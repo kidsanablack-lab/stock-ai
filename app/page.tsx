@@ -1,122 +1,420 @@
-const popularCompanies = [
-  {
-    name: "Apple",
-    ticker: "AAPL",
-    description: "Consumer technology & services",
-    accent: "from-zinc-100 to-zinc-50",
-  },
-  {
-    name: "Microsoft",
-    ticker: "MSFT",
-    description: "Cloud, software & enterprise",
-    accent: "from-sky-50 to-blue-50",
-  },
-  {
-    name: "NVIDIA",
-    ticker: "NVDA",
-    description: "AI chips & accelerated computing",
-    accent: "from-emerald-50 to-green-50",
-  },
-  {
-    name: "Amazon",
-    ticker: "AMZN",
-    description: "E-commerce, cloud & logistics",
-    accent: "from-amber-50 to-orange-50",
-  },
-];
+
+"use client";
+
+import { useState, type KeyboardEvent } from "react";
+import { useRouter } from "next/navigation";
+import Hero from "@/components/home/Hero";
+import WhyScope from "@/components/home/WhyScope";
 
 export default function Home() {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+
+  const handleSearch = (value?: string) => {
+    const normalizedQuery = (value ?? query).trim().toLowerCase().replace(/\s+/g, " ");
+
+    if (normalizedQuery === "apple" || normalizedQuery === "aapl") {
+      router.push("/company/apple");
+      return;
+    }
+
+    alert("Company not found");
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleSearch();
+    }
+  };
+
   return (
     <div className="min-h-full bg-white text-zinc-900">
-      <main className="mx-auto flex min-h-full max-w-6xl flex-col px-6 pb-24 pt-20 sm:px-10 sm:pt-28 lg:pt-32">
-        {/* Hero */}
-        <section className="mx-auto flex w-full max-w-3xl flex-col items-center text-center">
-          <p className="mb-6 text-sm font-medium tracking-wide text-zinc-400 uppercase">
-            Stock AI
-          </p>
+      <main className="mx-auto flex min-h-full max-w-7xl flex-col px-6 pb-24 pt-8 sm:px-10 sm:pt-10 lg:pt-12">
+        {/* ===== HOMEPAGE — paste this whole block inside your return(...) of app/page.tsx ===== */}
+<div style={{ maxWidth: 960, margin: "0 auto", padding: "0 20px" }}>
 
-          <h1 className="text-4xl font-semibold tracking-tight text-balance text-zinc-950 sm:text-5xl md:text-6xl lg:text-[3.5rem] lg:leading-[1.1]">
-            Understand Any Company Before You Invest.
-          </h1>
+  <Hero
+  query={query}
+  setQuery={setQuery}
+  handleKeyDown={handleKeyDown}
+/>
 
-          <p className="mt-5 max-w-xl text-base leading-relaxed text-zinc-500 sm:text-lg">
-            AI-powered research platform for long-term investors.
-          </p>
+  <WhyScope />
 
-          <form className="mt-12 w-full">
-            <div className="group relative flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  placeholder="Search by company name or ticker..."
-                  className="h-14 w-full rounded-2xl border border-zinc-200 bg-white px-5 text-base text-zinc-900 shadow-sm outline-none transition-all duration-300 placeholder:text-zinc-400 focus:border-zinc-400 focus:shadow-md"
-                />
-              </div>
-              <button
-                type="submit"
-                className="h-14 shrink-0 rounded-2xl bg-zinc-900 px-8 text-base font-medium text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-zinc-800 hover:shadow-lg active:translate-y-0 sm:w-auto"
-              >
-                Search
-              </button>
-            </div>
-          </form>
-        </section>
+  {/* Browse by category */}
+  <div style={{ marginBottom: 48 }}>
+    <p style={{ fontSize: 13, fontWeight: 600, color: "#6b6b68", margin: "0 0 14px", textTransform: "uppercase", letterSpacing: 0.5 }}>Browse by category</p>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+      <span style={{ display: "flex", alignItems: "center", gap: 5, background: "#e7edf5", color: "#1d3557", fontSize: 12, fontWeight: 500, borderRadius: 20, padding: "6px 14px" }}><i className="ti ti-cpu" style={{ fontSize: 14 }}></i>Technology</span>
+      <span style={{ display: "flex", alignItems: "center", gap: 5, background: "#e6f5f3", color: "#0f766e", fontSize: 12, fontWeight: 500, borderRadius: 20, padding: "6px 14px" }}><i className="ti ti-shopping-bag" style={{ fontSize: 14 }}></i>Consumer</span>
+      <span style={{ display: "flex", alignItems: "center", gap: 5, background: "#fbe9e5", color: "#c1502f", fontSize: 12, fontWeight: 500, borderRadius: 20, padding: "6px 14px" }}><i className="ti ti-heartbeat" style={{ fontSize: 14 }}></i>Healthcare</span>
+      <span style={{ display: "flex", alignItems: "center", gap: 5, background: "#fdf1e5", color: "#b3611f", fontSize: 12, fontWeight: 500, borderRadius: 20, padding: "6px 14px" }}><i className="ti ti-building-bank" style={{ fontSize: 14 }}></i>Finance</span>
+      <span style={{ display: "flex", alignItems: "center", gap: 5, background: "#eceef1", color: "#5c6b7a", fontSize: 12, fontWeight: 500, borderRadius: 20, padding: "6px 14px" }}><i className="ti ti-bolt" style={{ fontSize: 14 }}></i>Energy</span>
+    </div>
+  </div>
+{/* ===== TRENDING BY CATEGORY PAGE — paste inside return(...) of app/trending/page.tsx ===== */}
+<div style={{ maxWidth: 1000, margin: "0 auto", padding: "32px 20px" }}>
 
-        {/* Popular Companies */}
-        <section className="mx-auto mt-24 w-full max-w-5xl sm:mt-32">
-          <div className="mb-8 flex flex-col items-center text-center sm:mb-10">
-            <h2 className="text-lg font-medium tracking-tight text-zinc-900 sm:text-xl">
-              Popular Companies
-            </h2>
-            <p className="mt-2 text-sm text-zinc-500">
-              Start with a company investors know well
-            </p>
-          </div>
+  {/* Technology */}
+  <div style={{ marginBottom: 32 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6", display: "inline-block" }}></span>
+        <span style={{ fontSize: 15, fontWeight: 600, color: "#1a1a18" }}>Technology</span>
+        <span style={{ fontSize: 12, color: "#9a9a96" }}>4 companies</span>
+      </div>
+      <span style={{ fontSize: 12, color: "#6b6b68", cursor: "pointer" }}>View all →</span>
+    </div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5">
-            {popularCompanies.map((company) => (
-              <button
-                key={company.ticker}
-                type="button"
-                className="group relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 text-left shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-zinc-300 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 sm:p-7"
-              >
-                <div
-                  className={`absolute inset-0 bg-linear-to-br ${company.accent} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
-                />
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#1d3557", background: "#e7edf5", borderRadius: 8, padding: "3px 8px" }}>AAPL</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>9.4</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Apple</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Consumer Electronics</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Sells hardware tied to a software ecosystem, with growing long-term services revenue.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Hardware</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Ecosystem</span>
+        </div>
+      </div>
 
-                <div className="relative flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-medium tracking-wider text-zinc-400 uppercase transition-colors duration-300 group-hover:text-zinc-500">
-                      {company.ticker}
-                    </p>
-                    <h3 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 transition-transform duration-300 group-hover:translate-x-0.5">
-                      {company.name}
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-zinc-500 transition-colors duration-300 group-hover:text-zinc-600">
-                      {company.description}
-                    </p>
-                  </div>
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#1d3557", background: "#e7edf5", borderRadius: 8, padding: "3px 8px" }}>MSFT</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>9.2</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Microsoft</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Software &amp; Cloud</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Core revenue from enterprise software, with Azure cloud as the fastest-growing segment.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Cloud</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Enterprise</span>
+        </div>
+      </div>
 
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-400 transition-all duration-300 group-hover:border-zinc-300 group-hover:bg-zinc-900 group-hover:text-white">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#1d3557", background: "#e7edf5", borderRadius: 8, padding: "3px 8px" }}>GOOGL</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>8.9</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Alphabet</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Internet &amp; Advertising</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Owns Google Search and YouTube — most revenue comes from digital ads.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Advertising</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>AI</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#1d3557", background: "#e7edf5", borderRadius: 8, padding: "3px 8px" }}>NVDA</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>9.6</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Nvidia</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Semiconductors</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Makes chips and AI accelerators that power the world&apos;s data centers.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Chips</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Data Center</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  {/* Consumer */}
+  <div style={{ marginBottom: 32 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f4a261", display: "inline-block" }}></span>
+        <span style={{ fontSize: 15, fontWeight: 600, color: "#1a1a18" }}>Consumer</span>
+        <span style={{ fontSize: 12, color: "#9a9a96" }}>4 companies</span>
+      </div>
+      <span style={{ fontSize: 12, color: "#6b6b68", cursor: "pointer" }}>View all →</span>
+    </div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #f4a261", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#b3611f", background: "#fdf1e5", borderRadius: 8, padding: "3px 8px" }}>AMZN</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>9.0</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Amazon</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>E-Commerce &amp; Cloud</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>The largest online retail platform, boosted by AWS — its most profitable division.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Retail</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>AWS</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #f4a261", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#b3611f", background: "#fdf1e5", borderRadius: 8, padding: "3px 8px" }}>KO</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>8.5</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Coca-Cola</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Beverages</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Makes concentrate, sells to bottlers worldwide — a globally dominant brand.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Brand</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Distribution</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #f4a261", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#b3611f", background: "#fdf1e5", borderRadius: 8, padding: "3px 8px" }}>NKE</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>8.0</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Nike</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Apparel &amp; Footwear</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Designs and markets shoes, outsourcing manufacturing to focus on brand and design.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Brand</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Design</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #f4a261", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#b3611f", background: "#fdf1e5", borderRadius: 8, padding: "3px 8px" }}>MCD</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>8.3</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>McDonald&apos;s</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Restaurants</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Mainly a real-estate and franchise-fee business — landlord more than food seller.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Franchise</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Real Estate</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  {/* Finance */}
+  <div style={{ marginBottom: 32 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#7c3aed", display: "inline-block" }}></span>
+        <span style={{ fontSize: 15, fontWeight: 600, color: "#1a1a18" }}>Finance</span>
+        <span style={{ fontSize: 12, color: "#9a9a96" }}>4 companies</span>
+      </div>
+      <span style={{ fontSize: 12, color: "#6b6b68", cursor: "pointer" }}>View all →</span>
+    </div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #7c3aed", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#6d28d9", background: "#f2ebfd", borderRadius: 8, padding: "3px 8px" }}>JPM</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>8.8</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>JPMorgan</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Banking</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>The largest US bank by assets — earns from lending, trading, and banking fees.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Lending</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Trading</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #7c3aed", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#6d28d9", background: "#f2ebfd", borderRadius: 8, padding: "3px 8px" }}>V</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>9.1</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Visa</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Payments</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Runs the payment network — a small fee on nearly every card transaction, no lending risk.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Network</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Fees</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #7c3aed", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#6d28d9", background: "#f2ebfd", borderRadius: 8, padding: "3px 8px" }}>BRK.B</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>9.0</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Berkshire Hathaway</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Conglomerate</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Warren Buffett&apos;s holding company — insurance, railroads, and a huge stock portfolio.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Insurance</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Holdings</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #7c3aed", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#6d28d9", background: "#f2ebfd", borderRadius: 8, padding: "3px 8px" }}>GS</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>8.4</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Goldman Sachs</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Investment Banking</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Advises on deals and trades for institutions — revenue tied closely to markets activity.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Advisory</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Markets</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  {/* Healthcare */}
+  <div style={{ marginBottom: 32 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#e11d48", display: "inline-block" }}></span>
+        <span style={{ fontSize: 15, fontWeight: 600, color: "#1a1a18" }}>Healthcare</span>
+        <span style={{ fontSize: 12, color: "#9a9a96" }}>4 companies</span>
+      </div>
+      <span style={{ fontSize: 12, color: "#6b6b68", cursor: "pointer" }}>View all →</span>
+    </div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #e11d48", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#be123c", background: "#fde5ea", borderRadius: 8, padding: "3px 8px" }}>UNH</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>7.5</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>UnitedHealth</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Health Insurance</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>The largest US health insurer, also running Optum&apos;s pharmacy and care-delivery business.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Insurance</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Optum</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #e11d48", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#be123c", background: "#fde5ea", borderRadius: 8, padding: "3px 8px" }}>JNJ</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>8.6</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Johnson &amp; Johnson</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Pharma &amp; Medical Devices</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>A diversified healthcare giant spanning prescription drugs and medical devices.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Pharma</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Devices</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #e11d48", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#be123c", background: "#fde5ea", borderRadius: 8, padding: "3px 8px" }}>LLY</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>9.3</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Eli Lilly</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Pharmaceuticals</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>A drugmaker riding strong demand for its diabetes and weight-loss treatments.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Drugs</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>R&amp;D</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #e11d48", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#be123c", background: "#fde5ea", borderRadius: 8, padding: "3px 8px" }}>PFE</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>7.2</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Pfizer</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Pharmaceuticals</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>A global drugmaker rebuilding its pipeline after COVID-era vaccine revenue faded.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Vaccines</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Pipeline</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  {/* Energy */}
+  <div>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#16a34a", display: "inline-block" }}></span>
+        <span style={{ fontSize: 15, fontWeight: 600, color: "#1a1a18" }}>Energy</span>
+        <span style={{ fontSize: 12, color: "#9a9a96" }}>4 companies</span>
+      </div>
+      <span style={{ fontSize: 12, color: "#6b6b68", cursor: "pointer" }}>View all →</span>
+    </div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #16a34a", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#15803d", background: "#e7f8ed", borderRadius: 8, padding: "3px 8px" }}>XOM</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>7.9</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>ExxonMobil</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Oil &amp; Gas</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Explores, produces, and refines oil and gas — one of the world&apos;s largest energy companies.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Oil</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Refining</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #16a34a", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#15803d", background: "#e7f8ed", borderRadius: 8, padding: "3px 8px" }}>CVX</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>7.7</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Chevron</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Oil &amp; Gas</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>A major integrated oil producer, from drilling through to gas stations.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Drilling</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Retail</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #16a34a", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#15803d", background: "#e7f8ed", borderRadius: 8, padding: "3px 8px" }}>NEE</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>8.5</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>NextEra Energy</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Utilities &amp; Renewables</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Runs a regulated Florida utility alongside the world&apos;s largest wind and solar operator.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Utility</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Renewables</span>
+        </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #16a34a", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#15803d", background: "#e7f8ed", borderRadius: 8, padding: "3px 8px" }}>COP</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>7.4</span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>ConocoPhillips</p>
+        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Oil &amp; Gas Exploration</p>
+        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Focuses purely on exploration and production, without refining or retail stations.</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Exploration</span>
+          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Production</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{/* ===== END TRENDING BY CATEGORY PAGE ===== */}
+</div>
+{/* ===== END HOMEPAGE ===== */}
       </main>
     </div>
   );
