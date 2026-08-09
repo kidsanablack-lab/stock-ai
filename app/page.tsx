@@ -30,27 +30,31 @@ export default function Home() {
 
   return (
     <div className="min-h-full bg-white text-zinc-900">
-      <main className="mx-auto flex min-h-full max-w-7xl flex-col px-6 pb-24 pt-8 sm:px-10 sm:pt-10 lg:pt-12">
+      <main className="mx-auto flex min-h-full max-w-7xl flex-col px-4 pb-24 pt-6 sm:px-6 sm:pt-8 lg:px-8 lg:pt-10">
         {/* ===== HOMEPAGE — paste this whole block inside your return(...) of app/page.tsx ===== */}
-<div style={{ maxWidth: 960, margin: "0 auto", padding: "0 20px" }}>
+<div className="page-shell" style={{ width: "100%", maxWidth: 1080, margin: "0 auto", padding: "0 12px", boxSizing: "border-box" }}>
 
-  <Hero
-  query={query}
-  setQuery={setQuery}
-  handleKeyDown={handleKeyDown}
-/>
+  <div className="hero-shell">
+    <Hero
+      query={query}
+      setQuery={setQuery}
+      handleKeyDown={handleKeyDown}
+    />
+  </div>
 
-  <WhyScope />
+  <div className="section-block">
+    <WhyScope />
+  </div>
 
   {/* Browse by category */}
-  <div style={{ marginBottom: 48 }}>
+  <div className="section-block" style={{ marginBottom: 28 }}>
     <p style={{ fontSize: 13, fontWeight: 600, color: "#6b6b68", margin: "0 0 14px", textTransform: "uppercase", letterSpacing: 0.5 }}>Browse by category</p>
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-      <span style={{ display: "flex", alignItems: "center", gap: 5, background: "#e7edf5", color: "#1d3557", fontSize: 12, fontWeight: 500, borderRadius: 20, padding: "6px 14px" }}><i className="ti ti-cpu" style={{ fontSize: 14 }}></i>Technology</span>
-      <span style={{ display: "flex", alignItems: "center", gap: 5, background: "#e6f5f3", color: "#0f766e", fontSize: 12, fontWeight: 500, borderRadius: 20, padding: "6px 14px" }}><i className="ti ti-shopping-bag" style={{ fontSize: 14 }}></i>Consumer</span>
-      <span style={{ display: "flex", alignItems: "center", gap: 5, background: "#fbe9e5", color: "#c1502f", fontSize: 12, fontWeight: 500, borderRadius: 20, padding: "6px 14px" }}><i className="ti ti-heartbeat" style={{ fontSize: 14 }}></i>Healthcare</span>
-      <span style={{ display: "flex", alignItems: "center", gap: 5, background: "#fdf1e5", color: "#b3611f", fontSize: 12, fontWeight: 500, borderRadius: 20, padding: "6px 14px" }}><i className="ti ti-building-bank" style={{ fontSize: 14 }}></i>Finance</span>
-      <span style={{ display: "flex", alignItems: "center", gap: 5, background: "#eceef1", color: "#5c6b7a", fontSize: 12, fontWeight: 500, borderRadius: 20, padding: "6px 14px" }}><i className="ti ti-bolt" style={{ fontSize: 14 }}></i>Energy</span>
+    <div className="category-list">
+      <span className="category-pill" style={{ background: "#e7edf5", color: "#1d3557" }}><i className="ti ti-cpu" style={{ fontSize: 14 }}></i>Technology</span>
+      <span className="category-pill" style={{ background: "#e6f5f3", color: "#0f766e" }}><i className="ti ti-shopping-bag" style={{ fontSize: 14 }}></i>Consumer</span>
+      <span className="category-pill" style={{ background: "#fbe9e5", color: "#c1502f" }}><i className="ti ti-heartbeat" style={{ fontSize: 14 }}></i>Healthcare</span>
+      <span className="category-pill" style={{ background: "#fdf1e5", color: "#b3611f" }}><i className="ti ti-building-bank" style={{ fontSize: 14 }}></i>Finance</span>
+      <span className="category-pill" style={{ background: "#eceef1", color: "#5c6b7a" }}><i className="ti ti-bolt" style={{ fontSize: 14 }}></i>Energy</span>
     </div>
   </div>
 {/* ===== TRENDING BY CATEGORY PAGE — paste inside return(...) of app/trending/page.tsx ===== */}
@@ -66,7 +70,13 @@ export default function Home() {
       </div>
       <span style={{ fontSize: 12, color: "#6b6b68", cursor: "pointer" }}>View all →</span>
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+    <div
+  className="section-grid"
+  style={{
+    display: "grid",
+    gap: 12,
+  }}
+>
 
       <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -137,7 +147,13 @@ export default function Home() {
       </div>
       <span style={{ fontSize: 12, color: "#6b6b68", cursor: "pointer" }}>View all →</span>
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+    <div
+  className="section-grid"
+  style={{
+    display: "grid",
+    gap: 12,
+  }}
+>
 
       <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #f4a261", borderRadius: 12, padding: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -208,7 +224,13 @@ export default function Home() {
       </div>
       <span style={{ fontSize: 12, color: "#6b6b68", cursor: "pointer" }}>View all →</span>
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+    <div
+  className="section-grid"
+  style={{
+    display: "grid",
+    gap: 12,
+  }}
+>
 
       <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #7c3aed", borderRadius: 12, padding: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -279,7 +301,13 @@ export default function Home() {
       </div>
       <span style={{ fontSize: 12, color: "#6b6b68", cursor: "pointer" }}>View all →</span>
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+    <div
+  className="section-grid"
+  style={{
+    display: "grid",
+    gap: 12,
+  }}
+>
 
       <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #e11d48", borderRadius: 12, padding: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -350,7 +378,13 @@ export default function Home() {
       </div>
       <span style={{ fontSize: 12, color: "#6b6b68", cursor: "pointer" }}>View all →</span>
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+    <div
+  className="section-grid"
+  style={{
+    display: "grid",
+    gap: 12,
+  }}
+>
 
       <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #16a34a", borderRadius: 12, padding: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -416,6 +450,122 @@ export default function Home() {
 </div>
 {/* ===== END HOMEPAGE ===== */}
       </main>
+      <style jsx global>{`
+        .page-shell {
+          animation: fadeUp 0.45s ease both;
+        }
+
+        .hero-shell input,
+        .hero-shell button,
+        .category-pill,
+        .section-grid > div {
+          transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease,
+            color 180ms ease, transform 180ms ease;
+        }
+
+        .hero-shell input:focus-visible {
+          box-shadow: 0 0 0 2px rgba(47, 82, 51, 0.14);
+          border-color: #2f5233;
+        }
+
+        .hero-shell button:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 18px rgba(17, 24, 39, 0.08);
+        }
+
+        .section-block {
+          margin-bottom: 28px;
+        }
+
+        .category-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .category-pill {
+          border: 1px solid transparent;
+          cursor: default;
+          user-select: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 12px;
+          font-weight: 500;
+          border-radius: 999px;
+          padding: 6px 14px;
+        }
+
+        .category-pill:hover,
+        .category-pill:focus-visible {
+          transform: translateY(-1px);
+          border-color: #d7d7d2;
+          box-shadow: 0 8px 16px rgba(17, 24, 39, 0.05);
+        }
+
+        .section-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 12px;
+          min-width: 0;
+        }
+
+        .section-grid > div {
+          min-width: 0;
+        }
+
+        .section-grid > div:hover {
+          transform: translateY(-2px);
+          border-color: #d7d7d2;
+          box-shadow: 0 10px 24px rgba(17, 24, 39, 0.05);
+        }
+
+        .section-grid > div:focus-within {
+          border-color: #2f5233;
+          box-shadow: 0 0 0 2px rgba(47, 82, 51, 0.12);
+        }
+
+        @keyframes fadeUp {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (max-width: 1024px) {
+          .section-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          }
+        }
+
+        @media (max-width: 768px) {
+          .page-shell {
+            padding: 0 8px;
+          }
+
+          .section-block {
+            margin-bottom: 24px;
+          }
+
+          .section-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 390px) {
+          .section-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .category-list {
+            gap: 6px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

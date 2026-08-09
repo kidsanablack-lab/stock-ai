@@ -34,7 +34,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet" />
        </head>
-       <body className="min-h-full bg-white text-zinc-900">
+       <body className="min-h-full overflow-x-hidden bg-white text-zinc-900">
          <Navbar />
 
         <div className="flex-1">{children}</div>

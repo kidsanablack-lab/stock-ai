@@ -109,7 +109,7 @@ export default function AppleCompanyPage() {
       <main className="mx-auto max-w-6xl px-6 pb-24 pt-8 sm:px-10 sm:pt-12">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-zinc-500 transition-colors duration-200 hover:text-zinc-900"
+          className="interactive-link inline-flex items-center gap-2 text-sm text-zinc-500 transition-colors duration-200"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -127,117 +127,54 @@ export default function AppleCompanyPage() {
           Back to search
         </Link>
 
-        {/* ===== COMPANY OVERVIEW CARD — paste this whole block inside your return(...) ===== */}
+{/* ===== COMPANY OVERVIEW CARD ===== */}
 <div className="overview-card">
 
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
-    <div style={{ display: "flex", gap: 14 }}>
+  <div className="overview-header">
+    <div className="overview-company">
       <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#1a1a18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 600, color: "#fff", flexShrink: 0 }}>A</div>
-      <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 20, fontWeight: 600, color: "#1a1a18" }}>Apple Inc.</span>
-          <span className="pill">AAPL</span>
-          <span className="pill">Technology</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="overview-title-row">
+          <div className="overview-name-pills">
+            <span style={{ fontSize: 20, fontWeight: 600, color: "#1a1a18" }}>Apple Inc.</span>
+            <span className="pill">AAPL</span>
+            <span className="pill">Technology</span>
+          </div>
+
+          {/* Scope Score — badge on narrow screens, full card on wide screens */}
+          <div className="scope-score-badge">
+            <div className="scope-score-badge-circle">9.5</div>
+            <span className="scope-score-badge-label">Excellent</span>
+          </div>
         </div>
-        <p style={{ fontSize: 14, color: "#6b6b68", margin: "6px 0 0", maxWidth: 420, lineHeight: 1.6 }}>Designs premium hardware, software and services that work together as one of the world&apos;s most loyal technology ecosystems.</p>
+        <p style={{ fontSize: 14, color: "#6b6b68", margin: "6px 0 0", maxWidth: 420, lineHeight: 1.6 }}>
+          Designs premium hardware, software and services that work together as one of the world&apos;s most loyal technology ecosystems.
+        </p>
       </div>
     </div>
-<div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 16,
-    background: "#ffffff",
-    border: "1px solid #ecece8",
-    borderRadius: 18,
-    padding: "12px 16px",
-    minWidth: 220,
-    boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
-  }}
->
-  {/* Left */}
-  <div style={{ display: "flex", flexDirection: "column" }}>
-    <div
-      style={{
-        fontSize: 22,
-        fontWeight: 700,
-        color: "#1a1a18",
-        lineHeight: 1.2,
-      }}
-    >
-      Scope Score
+
+    {/* Full Scope Score card — wide screens only */}
+    <div className="scope-score-card">
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div className="scope-score-title" style={{ fontSize: 20, fontWeight: 700, color: "#1a1a18", lineHeight: 1.2 }}>
+          Scope Score
+        </div>
+        <div className="scope-score-rating" style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 6 }}>
+          <span style={{ color: "#F59E0B", fontWeight: 600, fontSize: 14 }}>Excellent</span>
+          <span style={{ color: "#d6d6d2", fontSize: 20 }}>|</span>
+          <span style={{ color: "#8b8b88", fontSize: 16 }}>/10</span>
+        </div>
+      </div>
+      <div style={{ width: 54, height: 54, borderRadius: "50%", background: "#EA8C00", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <span style={{ color: "#fff", fontSize: 24, fontWeight: 700, lineHeight: 1 }}>9.5</span>
+      </div>
     </div>
-
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        marginTop: 8,
-      }}
-    >
-      <span
-        style={{
-          color: "#F59E0B",
-          fontWeight: 600,
-          fontSize: 16,
-        }}
-      >
-        Excellent
-      </span>
-
-      <span
-        style={{
-          color: "#d6d6d2",
-          fontSize: 24,
-        }}
-      >
-        |
-      </span>
-
-      <span
-        style={{
-          color: "#8b8b88",
-          fontSize: 18,
-        }}
-      >
-        /10
-      </span>
-    </div>
-  </div>
-
-{/* Right Circle */}
-<div
-  style={{
-    width: 60,
-    height: 60,
-    borderRadius: "50%",
-    background: "#EA8C00",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  }}
->
-  <span
-    style={{
-      color: "#fff",
-      fontSize: 28,
-      fontWeight: 700,
-      lineHeight: 1,
-    }}
-  >
-    9.5
-  </span>
-</div>
-</div>
   </div>
 
   <div className="divider"></div>
 
   {/* Snapshot bar — reordered into 3 meaning-based pairs: [Quality, Moat] [Profitability, Revenue growth] [Risk, Valuation] */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
 
     {/* Pair 1: Quality assessment — stars */}
     <div className="snap-box">
@@ -303,6 +240,27 @@ export default function AppleCompanyPage() {
       <p className="stat-label"><i className="ti ti-report-money" style={{ fontSize: 16 }}></i>Revenue (FY25)</p>
       <p className="stat-value">$416.2B</p>
       <p className="stat-sub" style={{ color: "#2f9e44" }}>+6.4% YoY</p>
+    </div>
+  </div>
+
+</div>
+{/* ===== 30-SECOND SUMMARY CARD — replace the old summary block in page.tsx with this ===== */}
+<div className="overview-card" style={{ marginTop: 24 }}>
+
+  <div style={{ marginBottom: 20 }}>
+    <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18", margin: "0 0 4px" }}>30-Second Summary</h2>
+    <p style={{ fontSize: 13, color: "#6b6b68", margin: 0 }}>A plain-English explanation of Apple&apos;s business model</p>
+  </div>
+
+  <div style={{ background: "linear-gradient(135deg, #eff6ff 0%, #f0fdfa 100%)", borderRadius: 12, padding: "28px 32px", display: "flex", gap: 18, alignItems: "flex-start" }}>
+    <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      <i className="ti ti-bulb" style={{ fontSize: 22, color: "#f59e0b" }}></i>
+    </div>
+    <div>
+      <p style={{ fontSize: 12, fontWeight: 600, color: "#0f766e", textTransform: "uppercase", letterSpacing: 0.5, margin: "0 0 8px" }}>If you only remember one thing</p>
+      <p style={{ fontSize: 16, color: "#1a1a18", margin: 0, lineHeight: 1.7 }}>
+        Apple generates most of its revenue from the iPhone while rapidly expanding high-margin services such as the App Store, iCloud, Apple Music, and Apple TV+. Its biggest competitive advantage is its integrated ecosystem, which keeps customers loyal and drives repeat purchases.
+      </p>
     </div>
   </div>
 
@@ -723,7 +681,13 @@ export default function AppleCompanyPage() {
     <p style={{ fontSize: 13, color: "#6b6b68", margin: 0 }}>Who Apple depends on — and who depends on Apple</p>
   </div>
 
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 44px 200px 44px 1fr", alignItems: "center" }}>
+  <div
+  className="ecosystem-flow"
+  style={{
+    display: "grid",
+    alignItems: "center",
+  }}
+>
 
     {/* Suppliers column */}
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -731,7 +695,7 @@ export default function AppleCompanyPage() {
         <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#e7edf5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <i className="ti ti-cpu" style={{ fontSize: 18, color: "#1d3557" }}></i>
         </div>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: "#1a1a18", margin: 0 }}>TSMC</p>
           <p style={{ fontSize: 11, color: "#6b6b68", margin: "2px 0 0" }}>Manufactures all A-series and M-series chips</p>
         </div>
@@ -740,7 +704,7 @@ export default function AppleCompanyPage() {
         <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#fbe9e5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <i className="ti ti-tools" style={{ fontSize: 18, color: "#e76f51" }}></i>
         </div>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Foxconn</p>
           <p style={{ fontSize: 11, color: "#6b6b68", margin: "2px 0 0" }}>Assembles most iPhones worldwide</p>
         </div>
@@ -749,7 +713,7 @@ export default function AppleCompanyPage() {
         <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#fdf1e5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <i className="ti ti-device-mobile" style={{ fontSize: 18, color: "#f4a261" }}></i>
         </div>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Samsung Display</p>
           <p style={{ fontSize: 11, color: "#6b6b68", margin: "2px 0 0" }}>Key supplier of OLED screens</p>
         </div>
@@ -757,14 +721,32 @@ export default function AppleCompanyPage() {
     </div>
 
     {/* Arrow in */}
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div
+  className="ecosystem-arrow"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }}
+>
       <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#ffffff", border: "2px solid #e5e5e2", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <i className="ti ti-arrow-right" style={{ fontSize: 16, color: "#6b6b68" }}></i>
       </div>
     </div>
 
     {/* Apple center */}
-    <div style={{ background: "#1a1a18", borderRadius: 16, padding: "28px 16px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+    <div
+  className="ecosystem-apple"
+  style={{
+    background: "#1a1a18",
+    borderRadius: 16,
+    padding: "28px 16px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+  }}
+>
       <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <span style={{ fontSize: 20, fontWeight: 700, color: "#1a1a18" }}>A</span>
       </div>
@@ -773,14 +755,36 @@ export default function AppleCompanyPage() {
     </div>
 
     {/* Arrow out */}
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div
+  className="ecosystem-arrow"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }}
+>
       <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#ffffff", border: "2px solid #e5e5e2", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <i className="ti ti-arrow-right" style={{ fontSize: 16, color: "#6b6b68" }}></i>
       </div>
     </div>
 
     {/* Developers */}
-    <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #2a9d8f", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", height: "100%", justifyContent: "center" }}>
+    <div
+  className="ecosystem-developers"
+  style={{
+    background: "#ffffff",
+    border: "0.5px solid #e5e5e2",
+    borderTop: "3px solid #2a9d8f",
+    borderRadius: 12,
+    padding: 16,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    height: "100%",
+    justifyContent: "center",
+  }}
+>
       <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#e6f5f3", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <i className="ti ti-code" style={{ fontSize: 20, color: "#2a9d8f" }}></i>
       </div>
@@ -809,10 +813,12 @@ export default function AppleCompanyPage() {
 
   <div style={{ marginBottom: 20 }}>
     <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18", margin: "0 0 4px" }}>Competitors</h2>
-    <p style={{ fontSize: 13, color: "#6b6b68", margin: 0 }}>Who Apple competes with, and where — sized relative to Apple&apos;s $4.75T market cap</p>
+    <p style={{ fontSize: 14, color: "#6b6b68", margin: "6px 0 18px" }}>
+  Companies that compete with Apple across hardware, software, AI, and digital services. Market cap shown relative to Apple&apos;s $4.75T.
+</p>
   </div>
 
-  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
     {/* Samsung */}
     <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 18 }}>
@@ -850,17 +856,31 @@ export default function AppleCompanyPage() {
       <p style={{ fontSize: 11, color: "#6b6b68", margin: "8px 0 0", lineHeight: 1.5 }}>Different arena — barely overlaps, since Apple has almost no cloud/enterprise business</p>
     </div>
 
-    {/* Huawei */}
-    <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #f4a261", borderRadius: 12, padding: 18 }}>
-      <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#fdf1e5", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
-        <i className="ti ti-antenna" style={{ fontSize: 18, color: "#f4a261" }}></i>
-      </div>
-      <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: "0 0 4px" }}>Huawei</p>
-      <p style={{ fontSize: 16, fontWeight: 600, color: "#1a1a18", margin: 0 }}>$126B</p>
-      <p style={{ fontSize: 10, color: "#9a9a96", margin: "6px 0 12px" }}>Revenue — private, no market cap</p>
-      <span style={{ display: "inline-block", background: "#fdf1e5", color: "#b3611f", fontSize: 11, fontWeight: 500, borderRadius: 20, padding: "4px 10px" }}>Smartphones (China)</span>
-      <p style={{ fontSize: 11, color: "#6b6b68", margin: "8px 0 0", lineHeight: 1.5 }}>Regional rival — fierce competitor in China, barely present in the US/Europe</p>
-    </div>
+    {/* Meta */}
+<div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #6c63d9", borderRadius: 12, padding: 18 }}>
+  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#efefff", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+    <i className="ti ti-brand-meta" style={{ fontSize: 18, color: "#6c63d9" }}></i>
+  </div>
+  <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: "0 0 4px" }}>
+    Meta
+  </p>
+
+  <p style={{ fontSize: 16, fontWeight: 600, color: "#1a1a18", margin: 0 }}>
+    $1.8T
+  </p>
+
+  <div style={{ background: "#f7f7f5", borderRadius: 4, height: 6, width: "100%", margin: "6px 0 12px" }}>
+    <div style={{ background: "#6c63d9", height: 6, borderRadius: 4, width: "38%" }}></div>
+  </div>
+
+  <span style={{ display: "inline-block", background: "#efefff", color: "#5650ad", fontSize: 11, fontWeight: 500, borderRadius: 20, padding: "4px 10px" }}>
+    Social, AI &amp; Reality
+  </span>
+
+  <p style={{ fontSize: 11, color: "#6b6b68", margin: "8px 0 0", lineHeight: 1.5 }}>
+    Platform rival — competes with Apple for user attention, AI, and the next generation of computing
+  </p>
+</div>
 
   </div>
 
@@ -873,6 +893,8 @@ export default function AppleCompanyPage() {
     </p>
   </div>
 </div>
+
+{/* ===== END 30-SECOND SUMMARY CARD ===== */}
 {/* ===== END COMPETITORS CARD ===== */}
 {/* ===== END BUSINESS ECOSYSTEM CARD ===== */}
 {/* ===== END FINANCIAL HISTORY CARD ===== */}
@@ -881,29 +903,6 @@ export default function AppleCompanyPage() {
 {/* ===== END BUSINESS MODEL CARD ===== */}
 {/* ===== END BUSINESS SEGMENTS CARD ===== */}
 {/* ===== END COMPANY OVERVIEW CARD ===== */}
-
-
-        {/* 30-second Summary */}
-        <section className="mt-16 sm:mt-20">
-          <SectionHeading
-            title="30-second Summary"
-            description="A plain-English explanation of Apple’s business model."
-          />
-          <div className="rounded-[28px] border border-zinc-200 bg-gradient-to-br from-zinc-50 to-white p-8 text-center shadow-sm sm:p-10">
-            <div className="mx-auto flex max-w-3xl flex-col items-center">
-              <p className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                <span className="text-base">🧠</span>
-                {appleProfile.thirtySecondSummary.title}
-              </p>
-              <h3 className="mt-4 text-2xl font-semibold text-zinc-900 sm:text-3xl">
-                {appleProfile.thirtySecondSummary.subtitle}
-              </h3>
-              <p className="mt-5 text-lg leading-8 text-zinc-600 sm:text-xl">
-                {appleProfile.thirtySecondSummary.content}
-              </p>
-            </div>
-          </div>
-        </section>
 
       </main>
     </div>

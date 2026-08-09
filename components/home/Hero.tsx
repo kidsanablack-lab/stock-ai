@@ -114,6 +114,7 @@ export default function Hero({
         >
           {/* Input */}
           <div
+            className="card-surface"
             style={{
               flex: 1,
               minWidth: 0,
@@ -154,6 +155,7 @@ export default function Hero({
 
           {/* Button */}
           <button
+            className="button-soft"
             style={{
               flexShrink: 0,
               background: "#2f5233",
