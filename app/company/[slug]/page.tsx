@@ -1,14 +1,33 @@
 import type { Metadata } from "next";
 import { Fragment } from "react";
 import Link from "next/link";
-import { getCompanyByTicker } from "@/data/companies";
+import { notFound } from "next/navigation";
+import { getAllSlugs, getCompanyBySlug } from "@/data/companies";
 import type { SnapshotMetric } from "@/types/company";
 
-export const metadata: Metadata = {
-  title: "Apple Inc. (AAPL) — Stock AI",
-  description:
-    "AI-powered company profile for Apple Inc. Key metrics, financial highlights, and investment analysis.",
-};
+type CompanyPageParams = { slug: string };
+
+export function generateStaticParams(): CompanyPageParams[] {
+  return getAllSlugs().map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<CompanyPageParams>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const company = getCompanyBySlug(slug);
+
+  if (!company) {
+    return { title: "Company not found — Stock AI" };
+  }
+
+  return {
+    title: `${company.identity.name} (${company.identity.ticker}) — Stock AI`,
+    description: `AI-powered company profile for ${company.identity.name}. Key metrics, financial highlights, and investment analysis.`,
+  };
+}
 
 // Tone → color mapping for the Snapshot bar. This is presentation logic
 // (how a "good/neutral/risk" tone is drawn), not company data.
@@ -82,13 +101,16 @@ function SnapshotRatingDisplay({ metric }: { metric: SnapshotMetric }) {
   );
 }
 
-export default function AppleCompanyPage() {
-  const company = getCompanyByTicker("AAPL");
+export default async function CompanyPage({
+  params,
+}: {
+  params: Promise<CompanyPageParams>;
+}) {
+  const { slug } = await params;
+  const company = getCompanyBySlug(slug);
 
-  // AAPL is always present in the registry, but this keeps the component
-  // safe if a ticker were ever missing.
   if (!company) {
-    return null;
+    notFound();
   }
 
   const {
