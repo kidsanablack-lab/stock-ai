@@ -1,11 +1,15 @@
 import type { CompanyProfile } from "@/types/company";
 import { appleProfile } from "./apple";
+import { microsoftProfile } from "./microsoft";
+import { googleProfile } from "./google";
 
 // Registry of all companies currently supported by Scope, keyed by URL slug.
 // To add a new company later: create `data/companies/<name>.ts` exporting a
 // `CompanyProfile`, then add one line here. No routing or page changes needed.
 const companies: Record<string, CompanyProfile> = {
   apple: appleProfile,
+  microsoft: microsoftProfile,
+  google: googleProfile,
 };
 
 /**
