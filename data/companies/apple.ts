@@ -7,6 +7,7 @@ export const appleProfile: CompanyProfile = {
     exchange: "NASDAQ",
     industry: "Technology",
     logoInitial: "A",
+    logo: "/logos/apple-logo-svgrepo-com.svg",
     tagline:
       "Designs premium hardware, software and services that work together as one of the world's most loyal technology ecosystems.",
   },

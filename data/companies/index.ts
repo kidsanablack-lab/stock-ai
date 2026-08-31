@@ -40,3 +40,20 @@ export function getCompanyByTicker(ticker: string): CompanyProfile | undefined {
 export function getAllTickers(): string[] {
   return Object.values(companies).map((company) => company.identity.ticker);
 }
+
+/**
+ * All registered companies (slug + full profile) except the one matching
+ * `currentSlug` (case-insensitive). Used to power "Recommended Companies"
+ * on a company page — since it's derived from the same `companies` registry
+ * as `getAllSlugs()`, any company added to the registry later is
+ * automatically eligible to appear here, on every page, with no changes
+ * needed elsewhere.
+ */
+export function getOtherCompanies(
+  currentSlug: string,
+): { slug: string; company: CompanyProfile }[] {
+  const lowerCurrentSlug = currentSlug.toLowerCase();
+  return Object.entries(companies)
+    .filter(([slug]) => slug !== lowerCurrentSlug)
+    .map(([slug, company]) => ({ slug, company }));
+}

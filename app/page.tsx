@@ -1,20 +1,64 @@
-
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useState, useMemo, useRef, useEffect, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import Hero from "@/components/home/Hero";
 import WhyScope from "@/components/home/WhyScope";
 
+const COMPANIES = [
+  { slug: "apple", name: "Apple", ticker: "AAPL", aliases: ["apple", "aapl"] },
+  { slug: "microsoft", name: "Microsoft", ticker: "MSFT", aliases: ["microsoft", "msft"] },
+  { slug: "google", name: "Google", ticker: "GOOGL", aliases: ["google", "alphabet", "goog", "googl"] },
+];
+
 export default function Home() {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
+
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return COMPANIES.filter((c) =>
+      c.aliases.some((alias) => alias.includes(q))
+    ).slice(0, 6); 
+  }, [query]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const goToCompany = (slug: string) => {
+    setShowDropdown(false);
+    setQuery("");
+    router.push(`/company/${slug}`);
+  };
 
   const handleSearch = (value?: string) => {
     const normalizedQuery = (value ?? query).trim().toLowerCase().replace(/\s+/g, " ");
+    if (!normalizedQuery) return;
 
-    if (normalizedQuery === "apple" || normalizedQuery === "aapl") {
-      router.push("/company/apple");
+    if (highlightedIndex >= 0 && suggestions[highlightedIndex]) {
+      goToCompany(suggestions[highlightedIndex].slug);
+      return;
+    }
+
+    const exactMatch = COMPANIES.find((c) => c.aliases.includes(normalizedQuery));
+    if (exactMatch) {
+      goToCompany(exactMatch.slug);
+      return;
+    }
+
+    if (suggestions.length > 0) {
+      goToCompany(suggestions[0].slug);
       return;
     }
 
@@ -22,9 +66,23 @@ export default function Home() {
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setHighlightedIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setHighlightedIndex((prev) => Math.max(prev - 1, -1));
+      return;
+    }
     if (event.key === "Enter") {
       event.preventDefault();
       handleSearch();
+      return;
+    }
+    if (event.key === "Escape") {
+      setShowDropdown(false);
     }
   };
 
@@ -37,8 +95,19 @@ export default function Home() {
   <div className="hero-shell">
     <Hero
       query={query}
-      setQuery={setQuery}
+      setQuery={(val: string) => {
+        setQuery(val);
+        setShowDropdown(true);
+        setHighlightedIndex(-1);
+      }}
       handleKeyDown={handleKeyDown}
+      suggestions={suggestions}
+      showDropdown={showDropdown}
+      highlightedIndex={highlightedIndex}
+      onSelectCompany={goToCompany}
+      onHighlightIndex={setHighlightedIndex}
+      onFocusInput={() => setShowDropdown(true)}
+      searchBoxRef={searchBoxRef}
     />
   </div>
 
@@ -57,7 +126,7 @@ export default function Home() {
       <span className="category-pill" style={{ background: "#eceef1", color: "#5c6b7a" }}><i className="ti ti-bolt" style={{ fontSize: 14 }}></i>Energy</span>
     </div>
   </div>
-{/* ===== TRENDING BY CATEGORY PAGE — paste inside return(...) of app/trending/page.tsx ===== */}
+{/* ===== TRENDING BY CATEGORY ===== */}
 <div style={{ maxWidth: 1000, margin: "0 auto", padding: "32px 20px" }}>
 
   {/* Technology */}
@@ -78,61 +147,368 @@ export default function Home() {
   }}
 >
 
-      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: "#1d3557", background: "#e7edf5", borderRadius: 8, padding: "3px 8px" }}>AAPL</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>9.4</span>
-        </div>
-        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Apple</p>
-        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Consumer Electronics</p>
-        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Sells hardware tied to a software ecosystem, with growing long-term services revenue.</p>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Hardware</span>
-          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Ecosystem</span>
-        </div>
+      <div 
+      onClick={() => router.push("/company/apple")}
+      style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
+  <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  }}
+>
+  {/* Logo + Company Name */}
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+    }}
+  >
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <img
+        src="/logos/apple-logo-svgrepo-com.svg"
+        alt="Apple"
+        style={{
+          width: 26,
+          height: 26,
+          objectFit: "contain",
+        }}
+      />
+    </div>
+
+    <p
+      style={{
+        fontSize: 14,
+        fontWeight: 600,
+        color: "#1a1a18",
+        margin: 0,
+      }}
+    >
+      Apple
+    </p>
+  </div>
+
+  {/* AI Score */}
+  <span
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 2,
+      fontSize: 11,
+      fontWeight: 600,
+      color: "#c2410c",
+      background: "#fff3e0",
+      borderRadius: 8,
+      padding: "2px 7px",
+    }}
+  >
+    <i
+      className="ti ti-star-filled"
+      style={{ fontSize: 11 }}
+    ></i>
+    9.4
+  </span>
+</div>
+
+
+  <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>
+    Consumer Electronics
+  </p>
+
+  <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>
+    Sells hardware tied to a software ecosystem, with growing long-term services revenue.
+  </p>
+
+  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+    <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>
+      Hardware
+    </span>
+    <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>
+      Ecosystem
+    </span>
+  </div>
+</div>
+
+      <div 
+      onClick={() => router.push("/company/microsoft")}
+      style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 10,
+    }}
+  >
+    {/* Logo + Company Name */}
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+      }}
+    >
+      <div
+        style={{
+          width: 32,
+          height: 32,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <img
+          src="/logos/microsoft-svgrepo-com.svg"
+          alt="Microsoft"
+          style={{
+            width: 26,
+            height: 26,
+            objectFit: "contain",
+          }}
+        />
       </div>
 
-      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: "#1d3557", background: "#e7edf5", borderRadius: 8, padding: "3px 8px" }}>MSFT</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>9.2</span>
-        </div>
-        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Microsoft</p>
-        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Software &amp; Cloud</p>
-        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Core revenue from enterprise software, with Azure cloud as the fastest-growing segment.</p>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Cloud</span>
-          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Enterprise</span>
-        </div>
+      <p
+        style={{
+          fontSize: 14,
+          fontWeight: 600,
+          color: "#1a1a18",
+          margin: 0,
+        }}
+      >
+        Microsoft
+      </p>
+    </div>
+
+    {/* AI Score */}
+    <span
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 2,
+        fontSize: 11,
+        fontWeight: 600,
+        color: "#c2410c",
+        background: "#fff3e0",
+        borderRadius: 8,
+        padding: "2px 7px",
+      }}
+    >
+      <i
+        className="ti ti-star-filled"
+        style={{ fontSize: 11 }}
+      ></i>
+      9.2
+    </span>
+  </div>
+
+  <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>
+    Software &amp; Cloud
+  </p>
+
+  <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>
+    Provides enterprise software, cloud services, and productivity tools, with Azure as a major growth engine.
+  </p>
+
+  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+    <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>
+      Cloud
+    </span>
+    <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>
+      Enterprise
+    </span>
+  </div>
+</div>
+
+      <div 
+      onClick={() => router.push("/company/google")}
+      style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 10,
+    }}
+  >
+    {/* Logo + Company Name */}
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+      }}
+    >
+      <div
+        style={{
+          width: 32,
+          height: 32,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <img
+          src="/logos/google-svgrepo-com.svg"
+          alt="Google"
+          style={{
+            width: 26,
+            height: 26,
+            objectFit: "contain",
+          }}
+        />
       </div>
 
-      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: "#1d3557", background: "#e7edf5", borderRadius: 8, padding: "3px 8px" }}>GOOGL</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>8.9</span>
-        </div>
-        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Alphabet</p>
-        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Internet &amp; Advertising</p>
-        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Owns Google Search and YouTube — most revenue comes from digital ads.</p>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Advertising</span>
-          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>AI</span>
-        </div>
+      <p
+        style={{
+          fontSize: 14,
+          fontWeight: 600,
+          color: "#1a1a18",
+          margin: 0,
+        }}
+      >
+        Google
+      </p>
+    </div>
+
+    {/* AI Score */}
+    <span
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 2,
+        fontSize: 11,
+        fontWeight: 600,
+        color: "#c2410c",
+        background: "#fff3e0",
+        borderRadius: 8,
+        padding: "2px 7px",
+      }}
+    >
+      <i
+        className="ti ti-star-filled"
+        style={{ fontSize: 11 }}
+      ></i>
+      8.9
+    </span>
+  </div>
+
+  <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>
+    Internet &amp; Advertising
+  </p>
+
+  <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>
+    Operates Google Search, YouTube, and other digital platforms, with advertising as its primary revenue source.
+  </p>
+
+  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+    <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>
+      Advertising
+    </span>
+    <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>
+      AI
+    </span>
+  </div>
+</div>
+
+<div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 10,
+    }}
+  >
+    {/* Logo + Company Name */}
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+      }}
+    >
+      <div
+        style={{
+          width: 32,
+          height: 32,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <img
+          src="/logos/nvidia-svgrepo-com.svg"
+          alt="Nvidia"
+          style={{
+            width: 26,
+            height: 26,
+            objectFit: "contain",
+          }}
+        />
       </div>
 
-      <div style={{ background: "#ffffff", border: "0.5px solid #e5e5e2", borderTop: "3px solid #1d3557", borderRadius: 12, padding: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: "#1d3557", background: "#e7edf5", borderRadius: 8, padding: "3px 8px" }}>NVDA</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 600, color: "#c2410c", background: "#fff3e0", borderRadius: 8, padding: "2px 7px" }}><i className="ti ti-star-filled" style={{ fontSize: 11 }}></i>9.6</span>
-        </div>
-        <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: 0 }}>Nvidia</p>
-        <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>Semiconductors</p>
-        <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>Makes chips and AI accelerators that power the world&apos;s data centers.</p>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Chips</span>
-          <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>Data Center</span>
-        </div>
-      </div>
+      <p
+        style={{
+          fontSize: 14,
+          fontWeight: 600,
+          color: "#1a1a18",
+          margin: 0,
+        }}
+      >
+        Nvidia
+      </p>
+    </div>
+
+    {/* AI Score */}
+    <span
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 2,
+        fontSize: 11,
+        fontWeight: 600,
+        color: "#c2410c",
+        background: "#fff3e0",
+        borderRadius: 8,
+        padding: "2px 7px",
+      }}
+    >
+      <i
+        className="ti ti-star-filled"
+        style={{ fontSize: 11 }}
+      ></i>
+      9.6
+    </span>
+  </div>
+
+  <p style={{ fontSize: 10, color: "#9a9a96", textTransform: "uppercase", letterSpacing: 0.3, margin: "2px 0 8px" }}>
+    Semiconductors
+  </p>
+
+  <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: "0 0 10px" }}>
+    Designs GPUs and AI computing platforms that power data centers, artificial intelligence, and advanced computing.
+  </p>
+
+  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+    <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>
+      AI Chips
+    </span>
+    <span style={{ fontSize: 10, background: "#f7f7f5", color: "#6b6b68", borderRadius: 8, padding: "2px 8px" }}>
+      Data Center
+    </span>
+  </div>
+</div>
 
     </div>
   </div>
@@ -449,6 +825,28 @@ export default function Home() {
 {/* ===== END TRENDING BY CATEGORY PAGE ===== */}
 </div>
 {/* ===== END HOMEPAGE ===== */}
+
+   {/* ===== DISCLAIMER ===== */}
+<div
+  style={{
+    marginTop: 32,
+    paddingTop: 20,
+    borderTop: "0.5px solid #e5e5e2",
+    textAlign: "center",
+  }}
+>
+  <p
+    style={{
+      fontSize: 11,
+      lineHeight: 1.6,
+      color: "#9a9a96",
+      margin: 0,
+    }}
+  >
+    For educational purposes only. Not investment advice. Financial information
+    is based on publicly reported company data and may change over time.
+  </p>
+</div>   
       </main>
       <style jsx global>{`
         .page-shell {
@@ -556,7 +954,7 @@ export default function Home() {
           }
         }
 
-        @media (max-width: 390px) {
+                @media (max-width: 390px) {
           .section-grid {
             grid-template-columns: 1fr;
           }
@@ -564,6 +962,51 @@ export default function Home() {
           .category-list {
             gap: 6px;
           }
+        }
+
+        .autocomplete-dropdown {
+          position: absolute;
+          top: calc(100% + 6px);
+          left: 0;
+          right: 0;
+          background: #ffffff;
+          border: 1px solid #e5e5e2;
+          border-radius: 12px;
+          box-shadow: 0 12px 28px rgba(17, 24, 39, 0.1);
+          overflow: hidden;
+          z-index: 30;
+        }
+
+        .autocomplete-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 16px;
+          cursor: pointer;
+          font-size: 14px;
+        }
+
+        .autocomplete-item.is-highlighted,
+        .autocomplete-item:hover {
+          background: #f4f6f4;
+        }
+
+        .autocomplete-name {
+          font-weight: 600;
+          color: #1a1a18;
+        }
+
+        .autocomplete-ticker {
+          font-size: 11px;
+          color: #9a9a96;
+          font-weight: 500;
+        }
+
+        .autocomplete-empty {
+          padding: 12px 16px;
+          font-size: 13px;
+          color: #9a9a96;
+          text-align: center;
         }
       `}</style>
     </div>

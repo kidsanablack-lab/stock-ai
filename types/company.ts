@@ -20,6 +20,7 @@ export interface CompanyIdentity {
   /** Single letter/character shown in the round avatar (e.g. "A") */
   logoInitial: string;
   /** Short one-line description shown under the company name */
+  logo: string;
   tagline: string;
 }
 

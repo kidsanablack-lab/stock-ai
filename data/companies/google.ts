@@ -7,6 +7,7 @@ export const googleProfile: CompanyProfile = {
     exchange: "NASDAQ",
     industry: "Technology",
     logoInitial: "G",
+    logo: "/logos/google-svgrepo-com.svg",
     tagline:
       "Runs the world's dominant search engine, YouTube, and Android, monetized primarily through advertising alongside a fast-growing Cloud business.",
   },

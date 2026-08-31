@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Fragment } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAllSlugs, getCompanyBySlug } from "@/data/companies";
+import { getAllSlugs, getCompanyBySlug, getOtherCompanies } from "@/data/companies";
 import type { SnapshotMetric } from "@/types/company";
 
 type CompanyPageParams = { slug: string };
@@ -113,6 +113,8 @@ export default async function CompanyPage({
     notFound();
   }
 
+  const otherCompanies = getOtherCompanies(slug);
+
   const {
     identity,
     scopeScore,
@@ -166,22 +168,28 @@ export default async function CompanyPage({
           <div className="overview-header">
             <div className="overview-company">
               <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: "50%",
-                  background: "#1a1a18",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 18,
-                  fontWeight: 600,
-                  color: "#fff",
-                  flexShrink: 0,
-                }}
-              >
-                {identity.logoInitial}
-              </div>
+  style={{
+    width: 48,
+    height: 48,
+    borderRadius: "50%",
+    background: "#ffffff",
+    border: "0.5px solid #e5e5e2",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  }}
+>
+  <img
+    src={identity.logo}
+    alt={`${identity.name} logo`}
+    style={{
+      width: 28,
+      height: 28,
+      objectFit: "contain",
+    }}
+  />
+</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="overview-title-row">
                   <div className="overview-name-pills">
@@ -875,6 +883,185 @@ export default async function CompanyPage({
             <p style={{ fontSize: 13, color: "#1a1a18", margin: 0, lineHeight: 1.5 }}>{competitors.insight}</p>
           </div>
         </div>
+
+        {/* ===== EXPLORE COMPANIES ===== */}
+{otherCompanies.length > 0 && (
+  <div style={{ marginTop: 32 }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 14,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: "#3b82f6",
+            display: "inline-block",
+          }}
+        />
+        <span
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: "#1a1a18",
+          }}
+        >
+          Explore Companies
+        </span>
+        <span
+          style={{
+            fontSize: 12,
+            color: "#9a9a96",
+          }}
+        >
+          {otherCompanies.length} companies
+        </span>
+      </div>
+
+    </div>
+
+    <div
+      className="section-grid"
+      style={{
+        display: "grid",
+        gap: 12,
+      }}
+    >
+      {otherCompanies.map(({ slug: otherSlug, company: otherCompany }) => (
+        <Link
+          key={otherSlug}
+          href={`/company/${otherSlug}`}
+          className="interactive-link"
+          style={{
+            display: "block",
+            background: "#ffffff",
+            border: "0.5px solid #e5e5e2",
+            borderTop: "3px solid #1d3557",
+            borderRadius: 12,
+            padding: 16,
+            textDecoration: "none",
+          }}
+        >
+          {/* Company Logo + Name + Score */}
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  }}
+>
+  {/* Logo + Company Name */}
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      minWidth: 0,
+    }}
+  >
+    <div
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: "50%",
+        background: "#ffffff",
+        border: "0.5px solid #e5e5e2",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      <img
+        src={otherCompany.identity.logo}
+        alt={`${otherCompany.identity.name} logo`}
+        style={{
+          width: 24,
+          height: 24,
+          objectFit: "contain",
+        }}
+      />
+    </div>
+
+    <p
+      style={{
+        fontSize: 14,
+        fontWeight: 600,
+        color: "#1a1a18",
+        margin: 0,
+      }}
+    >
+      {otherCompany.identity.name}
+    </p>
+  </div>
+
+  {/* Score */}
+  <span
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 2,
+      fontSize: 11,
+      fontWeight: 600,
+      color: "#c2410c",
+      background: "#fff3e0",
+      borderRadius: 8,
+      padding: "2px 7px",
+      flexShrink: 0,
+    }}
+  >
+    <i
+      className="ti ti-star-filled"
+      style={{ fontSize: 11 }}
+    />
+    {otherCompany.scopeScore.score}
+  </span>
+</div>
+
+          {/* Description */}
+          <p
+            style={{
+              fontSize: 11,
+              color: "#6b6b68",
+              lineHeight: 1.5,
+              margin: "0 0 10px",
+            }}
+          >
+            {otherCompany.identity.tagline}
+          </p>
+        </Link>
+      ))}
+    </div>
+  </div>
+)}
+{/* ===== DISCLAIMER ===== */}
+<div
+  style={{
+    marginTop: 32,
+    paddingTop: 20,
+    borderTop: "0.5px solid #e5e5e2",
+    textAlign: "center",
+  }}
+>
+  <p
+    style={{
+      fontSize: 11,
+      lineHeight: 1.6,
+      color: "#9a9a96",
+      margin: 0,
+    }}
+  >
+    For educational purposes only. Not investment advice. Financial information
+    is based on publicly reported company data and may change over time.
+  </p>
+</div>
       </main>
     </div>
   );

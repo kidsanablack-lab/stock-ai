@@ -1,33 +1,55 @@
+import type { KeyboardEvent, RefObject } from "react";
+
+type Suggestion = {
+  slug: string;
+  name: string;
+  ticker: string;
+};
+
 type HeroProps = {
   query: string;
   setQuery: (value: string) => void;
-  handleKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  handleKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
+  suggestions: Suggestion[];
+  showDropdown: boolean;
+  highlightedIndex: number;
+  onSelectCompany: (slug: string) => void;
+  onHighlightIndex: (index: number) => void;
+  onFocusInput: () => void;
+    searchBoxRef: RefObject<HTMLDivElement | null>;
 };
 
 export default function Hero({
   query,
   setQuery,
   handleKeyDown,
+  suggestions,
+  showDropdown,
+  highlightedIndex,
+  onSelectCompany,
+  onHighlightIndex,
+  onFocusInput,
+  searchBoxRef,
 }: HeroProps) {
   return (
     <div
-         style={{
-           width: "100%",
-           textAlign: "center",
-           background: "#eef2e6",
-           borderRadius: 20,
-           padding: "56px 48px",
-           boxSizing: "border-box",
+      style={{
+        width: "100%",
+        textAlign: "center",
+        background: "#eef2e6",
+        borderRadius: 20,
+        padding: "56px 48px",
+        boxSizing: "border-box",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 1200,
+          margin: "0 auto",
+          boxSizing: "border-box",
         }}
       >
-    <div
-          style={{
-           width: "100%",
-           maxWidth: 1200,
-           margin: "0 auto",
-          boxSizing: "border-box",
-    }}
-        >      
         {/* Badge */}
         <div
           style={{
@@ -49,7 +71,6 @@ export default function Hero({
               display: "inline-block",
             }}
           />
-
           <span
             style={{
               fontFamily: "'Courier New', monospace",
@@ -114,8 +135,10 @@ export default function Hero({
         >
           {/* Input */}
           <div
+            ref={searchBoxRef}
             className="card-surface"
             style={{
+              position: "relative",
               flex: 1,
               minWidth: 0,
               display: "flex",
@@ -140,6 +163,7 @@ export default function Hero({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={onFocusInput}
               placeholder='Search companies or ticker — try "Apple" or "AAPL"'
               style={{
                 border: "none",
@@ -151,6 +175,28 @@ export default function Hero({
                 background: "transparent",
               }}
             />
+
+            {showDropdown && suggestions.length > 0 && (
+              <div className="autocomplete-dropdown" style={{ textAlign: "left" }}>
+                {suggestions.map((company, index) => (
+                  <div
+                    key={company.slug}
+                    className={`autocomplete-item ${index === highlightedIndex ? "is-highlighted" : ""}`}
+                    onMouseDown={() => onSelectCompany(company.slug)}
+                    onMouseEnter={() => onHighlightIndex(index)}
+                  >
+                    <span className="autocomplete-name">{company.name}</span>
+                    <span className="autocomplete-ticker">{company.ticker}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {showDropdown && query.trim() && suggestions.length === 0 && (
+              <div className="autocomplete-dropdown" style={{ textAlign: "left" }}>
+                <div className="autocomplete-empty">ไม่พบบริษัทที่ค้นหา</div>
+              </div>
+            )}
           </div>
 
           {/* Button */}

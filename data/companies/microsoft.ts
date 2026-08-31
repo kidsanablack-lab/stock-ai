@@ -7,6 +7,7 @@ export const microsoftProfile: CompanyProfile = {
     exchange: "NASDAQ",
     industry: "Technology",
     logoInitial: "M",
+    logo: "/logos/microsoft-svgrepo-com.svg",
     tagline:
       "Builds the cloud, AI, and productivity platforms that businesses run on — from Windows and Microsoft 365 to Azure and Copilot.",
   },
