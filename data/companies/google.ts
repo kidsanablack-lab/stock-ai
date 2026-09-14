@@ -2,8 +2,9 @@ import type { CompanyProfile } from "@/types/company";
 
 export const googleProfile: CompanyProfile = {
   identity: {
-    name: "Alphabet Inc.",
-    ticker: "GOOGL",
+  name: "Alphabet Inc.",
+  brandName: "Google",
+  ticker: "GOOGL",
     exchange: "NASDAQ",
     industry: "Technology",
     logoInitial: "G",
@@ -24,12 +25,21 @@ export const googleProfile: CompanyProfile = {
     headquarters: "Mountain View, California",
     ceo: "Sundar Pichai",
     ceoSince: "2019",
-    marketCap: "$4.2T",
-    marketCapRank: "#3 in the world",
-    revenue: "$402.8B",
-    revenueYoY: "+15% YoY",
-    revenueFiscalYear: "FY25",
-  },
+    marketCap: {
+  value: 4.2,
+  unit: "T",
+},
+marketCapRank: "#3 in the world",
+revenue: {
+  value: 402.8,
+  unit: "B",
+},
+revenueYoY: {
+  value: 15,
+},
+revenueFiscalYear: "FY25",
+
+},
 
   snapshot: [
     {
@@ -77,31 +87,46 @@ export const googleProfile: CompanyProfile = {
   },
 
   businessSegments: {
-    totalRevenue: "$402.8B",
+    totalRevenue: {
+  value: 402.8,
+  unit: "B",
+},
     fiscalYearLabel: "FY25 revenue",
     segments: [
       {
         name: "Google Services",
-        amount: "$342.7B",
+        amount: {
+      value: 342.7,
+      unit: "B",
+      },
         percentage: 85.0,
-        yoyChange: "+12% YoY",
-        yoyTrend: "up",
+        yoyChange: {
+  value: 12,
+},
         color: "#4285F4",
       },
       {
         name: "Google Cloud",
-        amount: "$58.7B",
+        amount: {
+          value: 58.7,
+          unit: "B",
+        },
         percentage: 14.6,
-        yoyChange: "+36% YoY",
-        yoyTrend: "up",
+        yoyChange: {
+          value: 36,
+        },
         color: "#34A853",
       },
       {
         name: "Other Bets",
-        amount: "$1.5B",
+        amount: {
+          value: 1.5,
+          unit: "B",
+        },
         percentage: 0.4,
-        yoyChange: "-7% YoY",
-        yoyTrend: "down",
+        yoyChange: {
+          value: -7,
+        },
         color: "#FBBC05",
       },
     ],
@@ -221,25 +246,27 @@ export const googleProfile: CompanyProfile = {
       {
         label: "Revenue",
         icon: "report-money",
-        value: "$402.8B",
-        changeLabel: "+15% YoY",
-        changeTrend: "up",
+        value: {
+           value: 402.8, 
+           unit: "B" 
+          },
+        change: {
+           value: 15 
+          },
         sublabel: "vs. $350.0B in FY24",
       },
       {
         label: "Net Income",
         icon: "coin",
-        value: "$132.2B",
-        changeLabel: "+32% YoY",
-        changeTrend: "up",
+        value: { value: 132.2, unit: "B" },
+        change: { value: 32 },
         sublabel: "32.8% margin",
       },
       {
         label: "Free Cash Flow",
         icon: "droplet",
-        value: "$73.3B",
-        changeLabel: "+1% YoY",
-        changeTrend: "up",
+        value: { value: 73.3, unit: "B" },
+        change: { value: 1 },
         sublabel: "18.2% margin",
       },
     ],
@@ -257,9 +284,9 @@ export const googleProfile: CompanyProfile = {
         highlightColor: "#1d4ed8",
         years: ["'21", "'22", "'23", "'24", "'25"],
         values: [257.6, 282.8, 307.4, 350.0, 402.8],
+        unit: "B",
         currentValueLabel: "$402.8B",
         changeNote: "+56.4% since FY21",
-        changeTrend: "up",
       },
       {
         label: "Net Income",
@@ -268,9 +295,9 @@ export const googleProfile: CompanyProfile = {
         highlightColor: "#0f766e",
         years: ["'21", "'22", "'23", "'24", "'25"],
         values: [76.0, 60.0, 73.8, 100.1, 132.2],
+        unit: "B",
         currentValueLabel: "$132.2B",
         changeNote: "+73.9% since FY21, despite a FY22 dip",
-        changeTrend: "up",
       },
       {
         label: "Free Cash Flow",
@@ -279,15 +306,15 @@ export const googleProfile: CompanyProfile = {
         highlightColor: "#b45309",
         years: ["'21", "'22", "'23", "'24", "'25"],
         values: [67.0, 60.0, 69.5, 72.8, 73.3],
+        unit: "B",
         currentValueLabel: "$73.3B",
         changeNote: "+9.4% since FY21, nearly flat the last two years",
-        changeTrend: "up",
       },
     ],
   },
 
   ecosystem: {
-    suppliers: [
+  partners: [
       {
         name: "Broadcom",
         description: "Co-designs Google's custom Tensor Processing Unit (TPU) AI chips",
@@ -336,7 +363,10 @@ export const googleProfile: CompanyProfile = {
         color: "#00a4ef",
         backgroundTint: "#e6f4fd",
         tagTextColor: "#0369a1",
-        marketCap: "$3.62T",
+        marketCap: {
+          value:3.62,
+          unit:"T"
+        },
         relativeSize: 86,
         tag: "Cloud, AI & Productivity",
         relationship:
@@ -348,7 +378,10 @@ export const googleProfile: CompanyProfile = {
         color: "#FF9900",
         backgroundTint: "#fff4e0",
         tagTextColor: "#a15c00",
-        marketCap: "$3.0T",
+        marketCap: {
+          value: 3.0,
+          unit: "T"
+        },
         relativeSize: 71,
         tag: "Cloud Infrastructure (AWS)",
         relationship:
@@ -360,7 +393,10 @@ export const googleProfile: CompanyProfile = {
         color: "#6c63d9",
         backgroundTint: "#efefff",
         tagTextColor: "#5650ad",
-        marketCap: "$1.40T",
+        marketCap: {
+          value: 1.40,
+          unit: "T"
+        },
         relativeSize: 33,
         tag: "Social & Digital Advertising",
         relationship:
@@ -372,7 +408,10 @@ export const googleProfile: CompanyProfile = {
         color: "#1a1a18",
         backgroundTint: "#ececea",
         tagTextColor: "#4b4b47",
-        marketCap: "$4.51T",
+        marketCap: {
+          value: 4.51,
+          unit: "T"
+        },
         relativeSize: 100,
         tag: "Mobile Platforms & AI",
         relationship:

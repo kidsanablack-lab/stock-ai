@@ -24,11 +24,20 @@ export const appleProfile: CompanyProfile = {
     headquarters: "Cupertino, California",
     ceo: "Tim Cook",
     ceoSince: "2011",
-    marketCap: "$4.75T",
-    marketCapRank: "#2 in the world",
-    revenue: "$416.2B",
-    revenueYoY: "+6.4% YoY",
-    revenueFiscalYear: "FY25",
+    marketCap: {
+  value: 4.75,
+  unit: "T",
+},
+marketCapRank: "#2 in the world",
+revenue: {
+  value: 416.2,
+  unit: "B",
+},
+revenueYoY: {
+  value: 6.4,
+},
+revenueFiscalYear: "FY25",
+
   },
 
   snapshot: [
@@ -77,47 +86,70 @@ export const appleProfile: CompanyProfile = {
   },
 
   businessSegments: {
-    totalRevenue: "$416.2B",
+    totalRevenue: {
+  value: 416.2,
+  unit: "B",
+},
     fiscalYearLabel: "FY25 revenue",
     segments: [
       {
         name: "iPhone",
-        amount: "$209.6B",
+        amount: {
+      value: 209.6,
+      unit: "B",
+      },
         percentage: 50.4,
-        yoyChange: "+4% YoY",
-        yoyTrend: "up",
+        yoyChange: {
+        value: 4.1,
+      },
         color: "#1d3557",
       },
       {
         name: "Services",
-        amount: "$109.2B",
+        amount: {
+          value: 109.2,
+          unit: "B",
+        },
         percentage: 26.2,
-        yoyChange: "+14% YoY",
-        yoyTrend: "up",
+        yoyChange: {
+          value: 14,
+        },
         color: "#2a9d8f",
       },
       {
         name: "Wearables, Home & Accessories",
-        amount: "$35.7B",
+        amount: {
+          value: 35.7,
+          unit: "B",
+        },
         percentage: 8.6,
-        yoyChange: "-4% YoY",
-        yoyTrend: "down",
+        yoyChange: {
+          value: -4,
+        },
         color: "#e76f51",
       },
       {
         name: "Mac",
-        amount: "$33.7B",
+        amount: {
+          value: 33.7,
+          unit: "B",
+        },
         percentage: 8.1,
-        yoyChange: "+12% YoY",
-        yoyTrend: "up",
+        yoyChange: {
+          value: 12,
+        },
         color: "#f4a261",
       },
       {
         name: "iPad",
-        amount: "$28.0B",
+        amount: {
+          value: 28.0,
+          unit: "B",
+        },
         percentage: 6.7,
-        yoyChange: "+5% YoY",
-        yoyTrend: "up",
+        yoyChange: {
+          value: 5,
+        },
         color: "#8d99ae",
       },
     ],
@@ -237,25 +269,34 @@ export const appleProfile: CompanyProfile = {
       {
         label: "Revenue",
         icon: "report-money",
-        value: "$416.2B",
-        changeLabel: "+6.4% YoY",
-        changeTrend: "up",
+        value: {
+           value: 416.2, 
+           unit: "B" 
+          },
+        change: { 
+          value: 6.4 
+        },
         sublabel: "vs. $391.0B in FY24",
       },
       {
         label: "Net Income",
         icon: "coin",
-        value: "$112.0B",
-        changeLabel: "+19.5% YoY",
-        changeTrend: "up",
+        value: { 
+          value: 112.0, 
+          unit: "B" 
+        },
+        change: {
+           value: 19.5
+           },
         sublabel: "26.9% margin",
       },
       {
         label: "Free Cash Flow",
         icon: "droplet",
-        value: "$98.8B",
-        changeLabel: "-9.2% YoY",
-        changeTrend: "down",
+        value: { value: 98.8, unit: "B" },
+        change: { 
+          value: -9.2 
+        },
         sublabel: "23.7% margin",
       },
     ],
@@ -273,9 +314,9 @@ export const appleProfile: CompanyProfile = {
         highlightColor: "#1d4ed8",
         years: ["'21", "'22", "'23", "'24", "'25"],
         values: [365.8, 394.3, 383.3, 391.0, 416.2],
+        unit: "B",
         currentValueLabel: "$416.2B",
         changeNote: "+13.9% since FY21",
-        changeTrend: "up",
       },
       {
         label: "Net Income",
@@ -284,9 +325,9 @@ export const appleProfile: CompanyProfile = {
         highlightColor: "#0f766e",
         years: ["'21", "'22", "'23", "'24", "'25"],
         values: [94.7, 99.8, 97.0, 93.7, 112.0],
+        unit: "B",
         currentValueLabel: "$112.0B",
         changeNote: "+18.3% since FY21",
-        changeTrend: "up",
       },
       {
         label: "Free Cash Flow",
@@ -295,15 +336,15 @@ export const appleProfile: CompanyProfile = {
         highlightColor: "#b45309",
         years: ["'21", "'22", "'23", "'24", "'25"],
         values: [93.0, 111.4, 99.6, 108.8, 98.8],
+        unit: "B",
         currentValueLabel: "$98.8B",
         changeNote: "+6.2% since FY21, down from FY22 peak",
-        changeTrend: "down",
       },
     ],
   },
 
   ecosystem: {
-    suppliers: [
+  partners: [
       {
         name: "TSMC",
         description: "Manufactures all A-series and M-series chips",
@@ -351,7 +392,10 @@ export const appleProfile: CompanyProfile = {
         color: "#1d3557",
         backgroundTint: "#e7edf5",
         tagTextColor: "#1d3557",
-        marketCap: "$1.14T",
+        marketCap: {
+          value: 1.14,
+          unit: "T"
+        },
         relativeSize: 24,
         tag: "Smartphones & Displays",
         relationship: "Direct rival — sells competing phones to the same customers",
@@ -362,7 +406,10 @@ export const appleProfile: CompanyProfile = {
         color: "#2a9d8f",
         backgroundTint: "#e6f5f3",
         tagTextColor: "#0f766e",
-        marketCap: "$4.0T",
+        marketCap: {
+          value: 4.0,
+          unit: "T"
+        },
         relativeSize: 84,
         tag: "AI, Search & Android",
         relationship:
@@ -374,7 +421,10 @@ export const appleProfile: CompanyProfile = {
         color: "#e76f51",
         backgroundTint: "#fbe9e5",
         tagTextColor: "#c1502f",
-        marketCap: "$2.89T",
+        marketCap: {
+          value: 2.89,
+          unit: "T"
+        },
         relativeSize: 61,
         tag: "Cloud, AI & Enterprise",
         relationship:
@@ -386,7 +436,10 @@ export const appleProfile: CompanyProfile = {
         color: "#6c63d9",
         backgroundTint: "#efefff",
         tagTextColor: "#5650ad",
-        marketCap: "$1.8T",
+        marketCap: {
+          value: 1.8,
+          unit: "T"
+        },
         relativeSize: 38,
         tag: "Social, AI & Reality",
         relationship:

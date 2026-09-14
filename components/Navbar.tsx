@@ -4,34 +4,47 @@ import { useState, useMemo, useRef, useEffect, type KeyboardEvent } from "react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-// รายชื่อบริษัททั้งหมด — เพิ่มบริษัทใหม่ตรงนี้ที่เดียว
-const COMPANIES = [
-  { slug: "apple", name: "Apple", ticker: "AAPL", aliases: ["apple", "aapl"] },
-  { slug: "microsoft", name: "Microsoft", ticker: "MSFT", aliases: ["microsoft", "msft"] },
-  { slug: "google", name: "Google", ticker: "GOOGL", aliases: ["google", "alphabet", "goog", "googl"] },
-];
+type CompanySearchItem = {
+  slug: string;
+  name: string;
+  ticker: string;
+  aliases: string[];
+};
 
-export default function Navbar() {
+type NavbarProps = {
+  companies: CompanySearchItem[];
+};
+
+export default function Navbar({ companies }: NavbarProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [dropdownRect, setDropdownRect] = useState({ top: 0, left: 0, width: 0 });
+  const [dropdownRect, setDropdownRect] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+  });
   const searchBoxRef = useRef<HTMLDivElement>(null);
 
   const suggestions = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
-    return COMPANIES.filter((c) =>
-      c.aliases.some((alias) => alias.includes(q))
-    ).slice(0, 6);
-  }, [query]);
 
-  // คำนวณตำแหน่งของกล่อง search จริงบนหน้าจอ ทุกครั้งที่เปิด dropdown / resize / scroll
+    return companies
+      .filter((c) =>
+        c.aliases.some((alias) => alias.includes(q))
+      )
+      .slice(0, 6);
+  }, [query, companies]);
+
+  // คำนวณตำแหน่งของกล่อง search จริงบนหน้าจอ
+  // ทุกครั้งที่เปิด dropdown / resize / scroll
   useEffect(() => {
     const updatePosition = () => {
       if (searchBoxRef.current) {
         const rect = searchBoxRef.current.getBoundingClientRect();
+
         setDropdownRect({
           top: rect.bottom + 6,
           left: rect.left,
@@ -54,12 +67,19 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+      if (
+        searchBoxRef.current &&
+        !searchBoxRef.current.contains(e.target as Node)
+      ) {
         setShowDropdown(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const goToCompany = (slug: string) => {
@@ -69,15 +89,25 @@ export default function Navbar() {
   };
 
   const handleSearch = (value?: string) => {
-    const normalizedQuery = (value ?? query).trim().toLowerCase().replace(/\s+/g, " ");
+    const normalizedQuery = (value ?? query)
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+
     if (!normalizedQuery) return;
 
-    if (highlightedIndex >= 0 && suggestions[highlightedIndex]) {
+    if (
+      highlightedIndex >= 0 &&
+      suggestions[highlightedIndex]
+    ) {
       goToCompany(suggestions[highlightedIndex].slug);
       return;
     }
 
-    const exactMatch = COMPANIES.find((c) => c.aliases.includes(normalizedQuery));
+    const exactMatch = companies.find((c) =>
+      c.aliases.includes(normalizedQuery)
+    );
+
     if (exactMatch) {
       goToCompany(exactMatch.slug);
       return;
@@ -91,22 +121,35 @@ export default function Navbar() {
     alert("Company not found");
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    event: KeyboardEvent<HTMLInputElement>
+  ) => {
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setHighlightedIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
+
+      setHighlightedIndex((prev) =>
+        Math.min(prev + 1, suggestions.length - 1)
+      );
+
       return;
     }
+
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      setHighlightedIndex((prev) => Math.max(prev - 1, -1));
+
+      setHighlightedIndex((prev) =>
+        Math.max(prev - 1, -1)
+      );
+
       return;
     }
+
     if (event.key === "Enter") {
       event.preventDefault();
       handleSearch();
       return;
     }
+
     if (event.key === "Escape") {
       setShowDropdown(false);
     }
@@ -128,13 +171,52 @@ export default function Navbar() {
       }}
     >
       {/* Logo */}
-      <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, textDecoration: "none" }}>
+      <Link
+        href="/"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexShrink: 0,
+          textDecoration: "none",
+        }}
+      >
         <svg width="28" height="28" viewBox="0 0 40 40">
-          <circle cx="17" cy="17" r="13" fill="none" stroke="#1a1a18" strokeWidth="3" />
-          <line x1="26.5" y1="26.5" x2="37" y2="37" stroke="#1a1a18" strokeWidth="3" strokeLinecap="round" />
-          <path d="M11 17a6 6 0 0 1 6-6" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" />
+          <circle
+            cx="17"
+            cy="17"
+            r="13"
+            fill="none"
+            stroke="#1a1a18"
+            strokeWidth="3"
+          />
+          <line
+            x1="26.5"
+            y1="26.5"
+            x2="37"
+            y2="37"
+            stroke="#1a1a18"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M11 17a6 6 0 0 1 6-6"
+            fill="none"
+            stroke="#f59e0b"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
         </svg>
-        <span style={{ fontSize: 16, fontWeight: 700, color: "#1a1a18" }}>Scope</span>
+
+        <span
+          style={{
+            fontSize: 16,
+            fontWeight: 700,
+            color: "#1a1a18",
+          }}
+        >
+          Scope
+        </span>
       </Link>
 
       {/* Search */}
@@ -153,10 +235,19 @@ export default function Navbar() {
           padding: "8px 12px",
           marginLeft: "auto",
           marginRight: 8,
-          transition: "border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease",
+          transition:
+            "border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease",
         }}
       >
-        <i className="ti ti-search" style={{ fontSize: 16, color: "#9a9a96", flexShrink: 0 }}></i>
+        <i
+          className="ti ti-search"
+          style={{
+            fontSize: 16,
+            color: "#9a9a96",
+            flexShrink: 0,
+          }}
+        ></i>
+
         <input
           type="text"
           value={query}
@@ -182,7 +273,15 @@ export default function Navbar() {
       </div>
 
       {/* Nav links */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginLeft: "auto", flexShrink: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginLeft: "auto",
+          flexShrink: 0,
+        }}
+      >
         <Link
           href="/trending"
           className="interactive-link"
@@ -198,8 +297,16 @@ export default function Navbar() {
             transition: "color 180ms ease, transform 180ms ease",
           }}
         >
-          <i className="ti ti-flame" style={{ fontSize: 15, color: "#e76f51" }}></i>Trending
+          <i
+            className="ti ti-flame"
+            style={{
+              fontSize: 15,
+              color: "#e76f51",
+            }}
+          ></i>
+          Trending
         </Link>
+
         <Link
           href="/categories"
           className="interactive-link"
@@ -215,11 +322,15 @@ export default function Navbar() {
             transition: "color 180ms ease, transform 180ms ease",
           }}
         >
-          <i className="ti ti-category" style={{ fontSize: 15 }}></i>Categories
+          <i
+            className="ti ti-category"
+            style={{ fontSize: 15 }}
+          ></i>
+          Categories
         </Link>
       </div>
 
-      {/* Dropdown — วางแบบ fixed อ้างอิงกับหน้าจอโดยตรง ไม่มีกล่องไหนบังหรือตัดได้ */}
+      {/* Dropdown */}
       {showDropdown && suggestions.length > 0 && (
         <div
           className="autocomplete-dropdown"
@@ -233,30 +344,45 @@ export default function Navbar() {
           {suggestions.map((company, index) => (
             <div
               key={company.slug}
-              className={`autocomplete-item ${index === highlightedIndex ? "is-highlighted" : ""}`}
+              className={`autocomplete-item ${
+                index === highlightedIndex
+                  ? "is-highlighted"
+                  : ""
+              }`}
               onMouseDown={() => goToCompany(company.slug)}
-              onMouseEnter={() => setHighlightedIndex(index)}
+              onMouseEnter={() =>
+                setHighlightedIndex(index)
+              }
             >
-              <span className="autocomplete-name">{company.name}</span>
-              <span className="autocomplete-ticker">{company.ticker}</span>
+              <span className="autocomplete-name">
+                {company.name}
+              </span>
+
+              <span className="autocomplete-ticker">
+                {company.ticker}
+              </span>
             </div>
           ))}
         </div>
       )}
 
-      {showDropdown && query.trim() && suggestions.length === 0 && (
-        <div
-          className="autocomplete-dropdown"
-          style={{
-            position: "fixed",
-            top: dropdownRect.top,
-            left: dropdownRect.left,
-            width: dropdownRect.width,
-          }}
-        >
-          <div className="autocomplete-empty">ไม่พบบริษัทที่ค้นหา</div>
-        </div>
-      )}
+      {showDropdown &&
+        query.trim() &&
+        suggestions.length === 0 && (
+          <div
+            className="autocomplete-dropdown"
+            style={{
+              position: "fixed",
+              top: dropdownRect.top,
+              left: dropdownRect.left,
+              width: dropdownRect.width,
+            }}
+          >
+            <div className="autocomplete-empty">
+              No companies found
+            </div>
+          </div>
+        )}
 
       <style jsx global>{`
         .autocomplete-dropdown {

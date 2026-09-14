@@ -24,13 +24,21 @@ export const microsoftProfile: CompanyProfile = {
     headquarters: "Redmond, Washington",
     ceo: "Satya Nadella",
     ceoSince: "2014",
-    marketCap: "$3.58T",
-    marketCapRank: "#4 in the world",
-    revenue: "$281.7B",
-    revenueYoY: "+15% YoY",
-    revenueFiscalYear: "FY25",
-  },
+    marketCap: {
+  value: 3.58,
+  unit: "T",
+},
+marketCapRank: "#4 in the world",
+revenue: {
+  value: 281.7,
+  unit: "B",
+},
+revenueYoY: {
+  value: 15,
+},
+revenueFiscalYear: "FY25",
 
+},
   snapshot: [
     {
       label: "Quality",
@@ -77,31 +85,46 @@ export const microsoftProfile: CompanyProfile = {
   },
 
   businessSegments: {
-    totalRevenue: "$281.7B",
+    totalRevenue: {
+  value: 281.7,
+  unit: "B",
+},
     fiscalYearLabel: "FY25 revenue",
     segments: [
       {
         name: "Productivity and Business Processes",
-        amount: "$120.8B",
+        amount: {
+      value: 120.8,
+      unit: "B",
+      },
         percentage: 42.9,
-        yoyChange: "+13% YoY",
-        yoyTrend: "up",
+        yoyChange: {
+        value: 13,
+      },
         color: "#2a9d8f",
       },
       {
         name: "Intelligent Cloud",
-        amount: "$106.3B",
+        amount: {
+          value: 106.3,
+          unit: "B",
+        },
         percentage: 37.7,
-        yoyChange: "+21% YoY",
-        yoyTrend: "up",
+        yoyChange: {
+          value: 21,
+        },
         color: "#1d3557",
       },
       {
         name: "More Personal Computing",
-        amount: "$54.6B",
+        amount: {
+          value: 54.6,
+          unit: "B",
+        },
         percentage: 19.4,
-        yoyChange: "+7.5% YoY",
-        yoyTrend: "up",
+        yoyChange: {
+          value: 7.5,
+        },
         color: "#f4a261",
       },
     ],
@@ -220,25 +243,37 @@ export const microsoftProfile: CompanyProfile = {
       {
         label: "Revenue",
         icon: "report-money",
-        value: "$281.7B",
-        changeLabel: "+15% YoY",
-        changeTrend: "up",
+        value: {
+          value: 281.7,
+          unit: "B",
+        },
+        change: {
+          value: 15,
+        },
         sublabel: "vs. $245.1B in FY24",
       },
       {
         label: "Net Income",
         icon: "coin",
-        value: "$101.8B",
-        changeLabel: "+16% YoY",
-        changeTrend: "up",
+        value: {
+          value: 101.8,
+          unit: "B",
+        },
+        change: {
+          value: 16,
+        },
         sublabel: "36.1% margin",
       },
       {
         label: "Free Cash Flow",
         icon: "droplet",
-        value: "$71.6B",
-        changeLabel: "-3.4% YoY",
-        changeTrend: "down",
+        value: {
+          value: 71.6,
+          unit: "B",
+        },
+        change: {
+          value: -3.4,
+        },
         sublabel: "25.4% margin",
       },
     ],
@@ -256,9 +291,9 @@ export const microsoftProfile: CompanyProfile = {
         highlightColor: "#1d4ed8",
         years: ["'21", "'22", "'23", "'24", "'25"],
         values: [168.1, 198.3, 211.9, 245.1, 281.7],
+        unit: "B",
         currentValueLabel: "$281.7B",
         changeNote: "+67.6% since FY21",
-        changeTrend: "up",
       },
       {
         label: "Net Income",
@@ -267,9 +302,9 @@ export const microsoftProfile: CompanyProfile = {
         highlightColor: "#0f766e",
         years: ["'21", "'22", "'23", "'24", "'25"],
         values: [61.3, 72.7, 72.4, 88.1, 101.8],
+        unit: "B",
         currentValueLabel: "$101.8B",
         changeNote: "+66.1% since FY21",
-        changeTrend: "up",
       },
       {
         label: "Free Cash Flow",
@@ -278,15 +313,15 @@ export const microsoftProfile: CompanyProfile = {
         highlightColor: "#b45309",
         years: ["'21", "'22", "'23", "'24", "'25"],
         values: [56.1, 65.1, 59.5, 74.1, 71.6],
+        unit: "B",
         currentValueLabel: "$71.6B",
         changeNote: "+27.6% since FY21, down from FY24 peak",
-        changeTrend: "down",
       },
     ],
   },
 
   ecosystem: {
-    suppliers: [
+  partners: [
       {
         name: "NVIDIA",
         description: "Primary GPU supplier powering Azure's AI infrastructure",
@@ -335,7 +370,10 @@ export const microsoftProfile: CompanyProfile = {
         color: "#FF9900",
         backgroundTint: "#fff4e0",
         tagTextColor: "#a15c00",
-        marketCap: "$2.99T",
+        marketCap: {
+          value: 2.99,
+          unit: "T"
+        },
         relativeSize: 84,
         tag: "Cloud Infrastructure (AWS)",
         relationship: "Direct rival — AWS remains the largest cloud provider and competes head-on with Azure for enterprise workloads",
@@ -346,7 +384,10 @@ export const microsoftProfile: CompanyProfile = {
         color: "#2a9d8f",
         backgroundTint: "#e6f5f3",
         tagTextColor: "#0f766e",
-        marketCap: "$4.55T",
+        marketCap: {
+          value: 4.55,
+          unit: "T"
+        },
         relativeSize: 100,
         tag: "Cloud, AI & Search",
         relationship:
@@ -358,7 +399,10 @@ export const microsoftProfile: CompanyProfile = {
         color: "#1a1a18",
         backgroundTint: "#ececea",
         tagTextColor: "#4b4b47",
-        marketCap: "$4.50T",
+        marketCap: {
+          value: 4.50,
+          unit: "T"
+        },
         relativeSize: 100,
         tag: "Devices & Consumer Software",
         relationship: "Different arena — minimal overlap, since Microsoft has almost no consumer hardware business",
@@ -369,7 +413,10 @@ export const microsoftProfile: CompanyProfile = {
         color: "#6c63d9",
         backgroundTint: "#efefff",
         tagTextColor: "#5650ad",
-        marketCap: "$1.90T",
+        marketCap: {
+          value: 1.90,
+          unit: "T"
+        },
         relativeSize: 53,
         tag: "AI & Social Platforms",
         relationship:

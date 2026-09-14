@@ -2,13 +2,23 @@ import type { Metadata } from "next";
 import { Fragment } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAllSlugs, getCompanyBySlug, getOtherCompanies } from "@/data/companies";
+import {
+  formatFinancialValue,
+  formatHistoricalValue,
+  formatYoY,
+  getPercentageTrend,
+} from "@/lib/format-financial";
+import {
+  getCompanySlugs,
+  getCompany,
+  getOtherCompanyProfiles,
+} from "@/lib/company-data";
 import type { SnapshotMetric } from "@/types/company";
 
 type CompanyPageParams = { slug: string };
 
 export function generateStaticParams(): CompanyPageParams[] {
-  return getAllSlugs().map((slug) => ({ slug }));
+  return getCompanySlugs().map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -17,7 +27,7 @@ export async function generateMetadata({
   params: Promise<CompanyPageParams>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const company = getCompanyBySlug(slug);
+  const company = getCompany(slug);
 
   if (!company) {
     return { title: "Company not found — Stock AI" };
@@ -107,13 +117,13 @@ export default async function CompanyPage({
   params: Promise<CompanyPageParams>;
 }) {
   const { slug } = await params;
-  const company = getCompanyBySlug(slug);
+  const company = getCompany(slug);
 
   if (!company) {
     notFound();
   }
 
-  const otherCompanies = getOtherCompanies(slug);
+  const otherCompanies = getOtherCompanyProfiles(slug);
 
   const {
     identity,
@@ -191,21 +201,24 @@ export default async function CompanyPage({
   />
 </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="overview-title-row">
-                  <div className="overview-name-pills">
-                    <span style={{ fontSize: 20, fontWeight: 600, color: "#1a1a18" }}>
-                      {identity.name}
-                    </span>
-                    <span className="pill">{identity.ticker}</span>
-                    <span className="pill">{identity.industry}</span>
-                  </div>
-
-                  {/* Scope Score — badge on narrow screens, full card on wide screens */}
-                  <div className="scope-score-badge">
-                    <div className="scope-score-badge-circle">{scopeScore.score}</div>
-                    <span className="scope-score-badge-label">{scopeScore.label}</span>
-                  </div>
-                </div>
+               <div className="overview-title-row">
+  <div className="overview-name-pills">
+    <span className="overview-company-name">
+      {identity.name}
+    </span>
+    <span className="pill">{identity.ticker}</span>
+    <span className="pill">{identity.industry}</span>
+  </div>
+  {/* Scope Score — compact badge */}
+  <div className="scope-score-badge">
+    <div className="scope-score-badge-circle">
+      {scopeScore.score}
+    </div>
+    <span className="scope-score-badge-label">
+      {scopeScore.label}
+    </span>
+  </div>
+</div>
                 <p style={{ fontSize: 14, color: "#6b6b68", margin: "6px 0 0", maxWidth: 420, lineHeight: 1.6 }}>
                   {identity.tagline}
                 </p>
@@ -286,15 +299,15 @@ export default async function CompanyPage({
               <p className="stat-label">
                 <i className="ti ti-chart-bar" style={{ fontSize: 16 }}></i>Market cap
               </p>
-              <p className="stat-value">{overview.marketCap}</p>
+              <p className="stat-value">{formatFinancialValue(overview.marketCap)}</p>
               <p className="stat-sub">{overview.marketCapRank}</p>
             </div>
             <div className="stat-box">
               <p className="stat-label">
                 <i className="ti ti-report-money" style={{ fontSize: 16 }}></i>Revenue ({overview.revenueFiscalYear})
               </p>
-              <p className="stat-value">{overview.revenue}</p>
-              <p className="stat-sub" style={{ color: "#2f9e44" }}>{overview.revenueYoY}</p>
+              <p className="stat-value">{formatFinancialValue(overview.revenue)}</p>
+              <p className="stat-sub" style={{ color: "#2f9e44" }}>{formatYoY(overview.revenueYoY)}</p>
             </div>
           </div>
         </div>
@@ -353,7 +366,7 @@ export default async function CompanyPage({
           <div style={{ marginBottom: 20 }}>
             <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18", margin: "0 0 4px" }}>Business Segments</h2>
             <p style={{ fontSize: 13, color: "#6b6b68", margin: 0 }}>
-              Where {identity.name.split(" ")[0]}&apos;s {businessSegments.totalRevenue} {businessSegments.fiscalYearLabel} comes from
+              Where {identity.name.split(" ")[0]}&apos;s {formatFinancialValue(businessSegments.totalRevenue)} {businessSegments.fiscalYearLabel} comes from
             </p>
           </div>
 
@@ -383,7 +396,7 @@ export default async function CompanyPage({
                   justifyContent: "center",
                 }}
               >
-                <p style={{ fontSize: 22, fontWeight: 600, color: "#1a1a18", margin: 0 }}>{businessSegments.totalRevenue}</p>
+                <p style={{ fontSize: 22, fontWeight: 600, color: "#1a1a18", margin: 0 }}>{formatFinancialValue(businessSegments.totalRevenue)}</p>
                 <p style={{ fontSize: 13, color: "#6b6b68", margin: "2px 0 0" }}>{businessSegments.fiscalYearLabel}</p>
               </div>
             </div>
@@ -397,10 +410,20 @@ export default async function CompanyPage({
                         <span style={{ width: 10, height: 10, borderRadius: "50%", background: seg.color, display: "inline-block" }}></span>
                         {seg.name}
                       </span>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18" }}>{seg.amount}</span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18" }}>{formatFinancialValue(seg.amount)}</span>
                     </div>
                     <p style={{ fontSize: 12, color: "#6b6b68", margin: "2px 0 0 18px" }}>
-                      {seg.percentage}% of revenue · {seg.yoyChange}
+                      {seg.percentage}% of revenue · 
+                      <span
+                        style={{
+                          color:
+                           getPercentageTrend(seg.yoyChange) === "up"
+                              ? "#2f9e44"
+                               : "#dc2626",
+                        }}
+                        >
+                      {formatYoY(seg.yoyChange)}
+                     </span>
                     </p>
                   </div>
                   {i < businessSegments.segments.length - 1 && <div style={{ borderTop: "0.5px solid #e5e5e2" }}></div>}
@@ -441,113 +464,239 @@ export default async function CompanyPage({
         </div>
 
         {/* ===== BUSINESS MODEL CARD ===== */}
-        <div className="overview-card" style={{ marginTop: 24 }}>
-          <div style={{ marginBottom: 20 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18", margin: "0 0 4px" }}>Business Model</h2>
-            <p style={{ fontSize: 13, color: "#6b6b68", margin: 0 }}>
-              How {identity.name.split(" ")[0]} makes money — the ecosystem flywheel
-            </p>
+<div className="overview-card" style={{ marginTop: 24 }}>
+  <div style={{ marginBottom: 20 }}>
+    <h2
+      style={{
+        fontSize: 18,
+        fontWeight: 600,
+        color: "#1a1a18",
+        margin: "0 0 4px",
+      }}
+    >
+      Business Model
+    </h2>
+
+    <p
+      style={{
+        fontSize: 13,
+        color: "#6b6b68",
+        margin: 0,
+      }}
+    >
+      How {identity.name.split(" ")[0]} makes money — the ecosystem flywheel
+    </p>
+  </div>
+
+  {/* Business Model Flow */}
+  <div
+    className={
+      businessModel.stages.length > 3
+        ? "business-model-flow business-model-many"
+        : "business-model-flow"
+    }
+    style={{
+      display: "grid",
+      gridTemplateColumns: Array(
+        businessModel.stages.length * 2 - 1
+      )
+        .fill(null)
+        .map((_, i) => (i % 2 === 0 ? "1fr" : "44px"))
+        .join(" "),
+      alignItems: "stretch",
+    }}
+  >
+    {businessModel.stages.map((stage, i) => (
+      <Fragment key={stage.title}>
+
+        {/* ===== STAGE CARD ===== */}
+        <div
+          className="business-model-stage"
+          style={{
+            background: "#ffffff",
+            border: "0.5px solid #e5e5e2",
+            borderTop: `3px solid ${stage.color}`,
+            borderRadius: 12,
+            padding: "22px 16px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+          }}
+        >
+          {/* Icon */}
+          <div
+            className="business-model-stage-icon"
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: "50%",
+              background: stage.backgroundTint,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <i
+              className={`ti ti-${stage.icon}`}
+              style={{
+                fontSize: 24,
+                color: stage.color,
+              }}
+            />
           </div>
 
-          {/* NOTE: this grid assumes 3 stages, matching the current flywheel design */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 44px 1fr 44px 1fr", alignItems: "stretch" }}>
-            {businessModel.stages.map((stage, i) => (
-              <Fragment key={stage.title}>
-                <div
-                  style={{
-                    background: "#ffffff",
-                    border: "0.5px solid #e5e5e2",
-                    borderTop: `3px solid ${stage.color}`,
-                    borderRadius: 12,
-                    padding: "22px 16px",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    textAlign: "center",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: "50%",
-                      background: stage.backgroundTint,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <i className={`ti ti-${stage.icon}`} style={{ fontSize: 24, color: stage.color }}></i>
-                  </div>
-                  <p style={{ fontSize: 15, fontWeight: 600, color: "#1a1a18", margin: "14px 0 12px" }}>{stage.title}</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
-                    {stage.tags.map((tag) => (
-                      <span
-                        key={tag.label}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 4,
-                          background: stage.backgroundTint,
-                          color: stage.tagTextColor,
-                          fontSize: 11,
-                          fontWeight: 500,
-                          borderRadius: 20,
-                          padding: "5px 10px",
-                        }}
-                      >
-                        <i className={`ti ti-${tag.icon}`} style={{ fontSize: 13 }}></i>
-                        {tag.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                {i < businessModel.stages.length - 1 && (
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        background: "#ffffff",
-                        border: "2px solid #e5e5e2",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                      }}
-                    >
-                      <i className="ti ti-arrow-right" style={{ fontSize: 18, color: "#6b6b68" }}></i>
-                    </div>
-                  </div>
-                )}
-              </Fragment>
+          {/* Title */}
+          <p
+            className="business-model-stage-title"
+            style={{
+              fontSize: 15,
+              fontWeight: 600,
+              color: "#1a1a18",
+              margin: "14px 0 12px",
+            }}
+          >
+            {stage.title}
+          </p>
+
+          {/* Tags */}
+          <div
+            className="business-model-stage-tags"
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 6,
+              justifyContent: "center",
+            }}
+          >
+            {stage.tags.map((tag) => (
+              <span
+                key={tag.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  background: stage.backgroundTint,
+                  color: stage.tagTextColor,
+                  fontSize: 11,
+                  fontWeight: 500,
+                  borderRadius: 20,
+                  padding: "5px 10px",
+                }}
+              >
+                <i
+                  className={`ti ti-${tag.icon}`}
+                  style={{ fontSize: 13 }}
+                />
+                {tag.label}
+              </span>
             ))}
           </div>
+        </div>
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 18, color: "#9a9a96", fontSize: 12 }}>
-            <i className="ti ti-repeat" style={{ fontSize: 15 }}></i>
-            {businessModel.repeatNote}
-          </div>
-
-          <div style={{ background: "#f7f7f5", borderRadius: 12, padding: "16px 20px", marginTop: 16, display: "flex", alignItems: "flex-start", gap: 12 }}>
+        {/* ===== ARROW ===== */}
+        {i < businessModel.stages.length - 1 && (
+          <div
+            className="business-model-arrow"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <div
               style={{
-                width: 30,
-                height: 30,
+                width: 36,
+                height: 36,
                 borderRadius: "50%",
-                background: "#fef3c7",
+                background: "#ffffff",
+                border: "2px solid #e5e5e2",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                flexShrink: 0,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
               }}
             >
-              <i className="ti ti-bulb" style={{ fontSize: 16, color: "#b45309" }}></i>
+              <i
+                className="ti ti-arrow-right business-model-arrow-icon"
+                style={{
+                  fontSize: 18,
+                  color: "#6b6b68",
+                }}
+              />
             </div>
-            <p style={{ fontSize: 13, color: "#1a1a18", margin: 0, lineHeight: 1.6, paddingTop: 4 }}>{businessModel.insight}</p>
           </div>
-        </div>
+        )}
+      </Fragment>
+    ))}
+  </div>
+
+  {/* ===== REPEAT NOTE ===== */}
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      marginTop: 18,
+      color: "#9a9a96",
+      fontSize: 12,
+    }}
+  >
+    <i
+      className="ti ti-repeat"
+      style={{ fontSize: 15 }}
+    />
+    {businessModel.repeatNote}
+  </div>
+
+  {/* ===== INSIGHT ===== */}
+  <div
+    style={{
+      background: "#f7f7f5",
+      borderRadius: 12,
+      padding: "16px 20px",
+      marginTop: 16,
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 12,
+    }}
+  >
+    <div
+      style={{
+        width: 30,
+        height: 30,
+        borderRadius: "50%",
+        background: "#fef3c7",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      <i
+        className="ti ti-bulb"
+        style={{
+          fontSize: 16,
+          color: "#b45309",
+        }}
+      />
+    </div>
+
+    <p
+      style={{
+        fontSize: 13,
+        color: "#1a1a18",
+        margin: 0,
+        lineHeight: 1.6,
+        paddingTop: 4,
+      }}
+    >
+      {businessModel.insight}
+    </p>
+  </div>
+</div>
 
         {/* ===== STRENGTHS & RISKS CARD ===== */}
         <div className="overview-card" style={{ marginTop: 24 }}>
@@ -619,19 +768,24 @@ export default async function CompanyPage({
                   <i className={`ti ti-${metric.icon}`} style={{ fontSize: 18 }}></i>
                   {metric.label}
                 </div>
-                <p style={{ fontSize: 28, fontWeight: 600, color: "#1a1a18", margin: "10px 0 4px" }}>{metric.value}</p>
+                <p style={{ fontSize: 28, fontWeight: 600, color: "#1a1a18", margin: "10px 0 4px" }}>{formatFinancialValue(metric.value)}</p>
                 <p
                   style={{
                     fontSize: 13,
-                    color: metric.changeTrend === "up" ? "#2f9e44" : "#dc2626",
+                    color:
+                      getPercentageTrend(metric.change) === "up"
+                      ? "#2f9e44"
+                      : "#dc2626",
                     margin: 0,
                     display: "flex",
                     alignItems: "center",
                     gap: 4,
                   }}
                 >
-                  <i className={`ti ti-arrow-${metric.changeTrend}`} style={{ fontSize: 14 }}></i>
-                  {metric.changeLabel}
+                  <i
+                  className={`ti ti-arrow-${getPercentageTrend(metric.change)}`}
+                     style={{ fontSize: 14 }}></i>
+                  {formatYoY(metric.change)}
                 </p>
                 <p style={{ fontSize: 11, color: "#9a9a96", margin: "6px 0 0" }}>{metric.sublabel}</p>
               </div>
@@ -682,8 +836,8 @@ export default async function CompanyPage({
                       <span key={year} style={{ fontSize: 10, color: "#9a9a96", flex: 1, textAlign: "center" }}>{year}</span>
                     ))}
                   </div>
-                  <p style={{ fontSize: 20, fontWeight: 600, color: "#1a1a18", margin: "12px 0 0" }}>{panel.currentValueLabel}</p>
-                  <p style={{ fontSize: 11, color: panel.changeTrend === "up" ? "#2f9e44" : "#dc2626", margin: "2px 0 0" }}>{panel.changeNote}</p>
+                  <p style={{ fontSize: 20, fontWeight: 600, color: "#1a1a18", margin: "12px 0 0" }}>{formatHistoricalValue(panel.values[panel.values.length - 1],panel.unit,)}</p>
+                  <p style={{fontSize: 11, color: panel.values[panel.values.length - 1] >= panel.values[panel.values.length - 2]? "#2f9e44": "#dc2626", margin: "2px 0 0", }}> {panel.changeNote} </p>
                 </div>
               );
             })}
@@ -700,15 +854,15 @@ export default async function CompanyPage({
           </div>
 
           <div className="ecosystem-flow" style={{ display: "grid", alignItems: "center" }}>
-            {/* Suppliers column */}
+            {/* Partners column */}
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {ecosystem.suppliers.map((supplier) => (
+              {ecosystem.partners.map((partner) => (
                 <div
-                  key={supplier.name}
+                  key={partner.name}
                   style={{
                     background: "#ffffff",
                     border: "0.5px solid #e5e5e2",
-                    borderTop: `3px solid ${supplier.color}`,
+                    borderTop: `3px solid ${partner.color}`,
                     borderRadius: 12,
                     padding: "14px 16px",
                     display: "flex",
@@ -721,18 +875,18 @@ export default async function CompanyPage({
                       width: 36,
                       height: 36,
                       borderRadius: "50%",
-                      background: supplier.backgroundTint,
+                      background: partner.backgroundTint,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
                     }}
                   >
-                    <i className={`ti ti-${supplier.icon}`} style={{ fontSize: 18, color: supplier.color }}></i>
+                    <i className={`ti ti-${partner.icon}`} style={{ fontSize: 18, color: partner.color }}></i>
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: "#1a1a18", margin: 0 }}>{supplier.name}</p>
-                    <p style={{ fontSize: 11, color: "#6b6b68", margin: "2px 0 0" }}>{supplier.description}</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "#1a1a18", margin: 0 }}>{partner.name}</p>
+                    <p style={{ fontSize: 11, color: "#6b6b68", margin: "2px 0 0" }}>{partner.description}</p>
                   </div>
                 </div>
               ))}
@@ -785,7 +939,6 @@ export default async function CompanyPage({
                 flexDirection: "column",
                 alignItems: "center",
                 textAlign: "center",
-                height: "100%",
                 justifyContent: "center",
               }}
             >
@@ -839,22 +992,48 @@ export default async function CompanyPage({
                   padding: 18,
                 }}
               >
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "50%",
-                    background: c.backgroundTint,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 12,
-                  }}
-                >
-                  <i className={`ti ti-${c.icon}`} style={{ fontSize: 18, color: c.color }}></i>
-                </div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a18", margin: "0 0 4px" }}>{c.name}</p>
-                <p style={{ fontSize: 16, fontWeight: 600, color: "#1a1a18", margin: 0 }}>{c.marketCap}</p>
+              <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 12,
+  }}
+>
+  {/* Logo */}
+  <div
+    style={{
+      width: 36,
+      height: 36,
+      borderRadius: "50%",
+      background: c.backgroundTint,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    }}
+  >
+    <i
+      className={`ti ti-${c.icon}`}
+      style={{ fontSize: 18, color: c.color }}
+    ></i>
+  </div>
+
+  {/* Company Name */}
+  <p
+    style={{
+      fontSize: 14,
+      fontWeight: 600,
+      color: "#1a1a18",
+      margin: 0,
+    }}
+  >
+    {c.name}
+  </p>
+</div>
+                <p style={{ fontSize: 16, fontWeight: 600, color: "#1a1a18", margin: 0 }}>
+                         {formatFinancialValue(c.marketCap)}
+                </p>
                 <div style={{ background: "#f7f7f5", borderRadius: 4, height: 6, width: "100%", margin: "6px 0 12px" }}>
                   <div style={{ background: c.color, height: 6, borderRadius: 4, width: `${c.relativeSize}%` }}></div>
                 </div>
@@ -933,7 +1112,7 @@ export default async function CompanyPage({
         gap: 12,
       }}
     >
-      {otherCompanies.map(({ slug: otherSlug, company: otherCompany }) => (
+      {otherCompanies.slice(0, 4).map(({ slug: otherSlug, company: otherCompany }) => (
         <Link
           key={otherSlug}
           href={`/company/${otherSlug}`}

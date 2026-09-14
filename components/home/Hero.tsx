@@ -194,7 +194,7 @@ export default function Hero({
 
             {showDropdown && query.trim() && suggestions.length === 0 && (
               <div className="autocomplete-dropdown" style={{ textAlign: "left" }}>
-                <div className="autocomplete-empty">ไม่พบบริษัทที่ค้นหา</div>
+                <div className="autocomplete-empty">No companies found</div>
               </div>
             )}
           </div>

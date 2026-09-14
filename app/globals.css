@@ -148,6 +148,99 @@ select:focus-visible {
   }
 }
 /* ========================================
+   BUSINESS MODEL
+   ======================================== */
+
+/* Normal / wide screen
+   Keep the original horizontal layout */
+.business-model-flow {
+  width: 100%;
+}
+
+/* Only companies with more than 3 stages
+   become vertical on small screens */
+@media (max-width: 950px) {
+  .business-model-flow.business-model-many {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 12px;
+  }
+
+  /* ================================
+     CARD
+     ================================ */
+
+  .business-model-flow.business-model-many
+    .business-model-stage {
+    width: 100% !important;
+    max-width: none;
+    box-sizing: border-box;
+
+    /*
+      Change content inside the card
+      from vertical → horizontal
+    */
+    flex-direction: row !important;
+    align-items: center !important;
+    text-align: left !important;
+
+    gap: 16px;
+    padding: 18px 20px;
+  }
+
+  /* ================================
+     ICON
+     ================================ */
+
+  .business-model-flow.business-model-many
+    .business-model-stage-icon {
+    flex-shrink: 0;
+  }
+
+  /* ================================
+     TITLE
+     ================================ */
+
+  .business-model-flow.business-model-many
+    .business-model-stage-title {
+    flex-shrink: 0;
+    margin: 0 !important;
+    min-width: 130px;
+  }
+
+  /* ================================
+     TAGS
+     ================================ */
+
+  .business-model-flow.business-model-many
+    .business-model-stage-tags {
+    flex: 1;
+    justify-content: flex-start !important;
+  }
+
+  /* ================================
+     ARROW
+     ================================ */
+
+  .business-model-flow.business-model-many
+    .business-model-arrow {
+    width: 100%;
+    height: 36px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .business-model-flow.business-model-many
+    .business-model-arrow-icon {
+    transform: rotate(90deg);
+  }
+}
+
+/* ========================================
    BUSINESS ECOSYSTEM
    ======================================== */
 
@@ -185,10 +278,15 @@ select:focus-visible {
 
   .ecosystem-developers {
     height: auto !important;
-    min-height: 150px;
+    min-height: 150px !important;
     box-sizing: border-box;
   }
+
 }
+  .ecosystem-developers {
+  min-height: 300px; 
+}
+
 .overview-header {
   display: flex;
   align-items: flex-start;
@@ -206,9 +304,23 @@ select:focus-visible {
 
 .overview-title-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.overview-title-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.overview-company-name {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #1a1a18;
 }
 
 .overview-name-pills {
@@ -216,6 +328,8 @@ select:focus-visible {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .scope-score-card {
@@ -250,6 +364,7 @@ select:focus-visible {
     padding: 3px 10px 3px 3px;
     border-radius: 999px;
     flex-shrink: 0;
+    white-space: nowrap;
   }
 
   .scope-score-badge-circle {
@@ -273,7 +388,153 @@ select:focus-visible {
     white-space: nowrap;
   }
 
-  .overview-title-row {
-    flex-wrap: wrap;
+}
+
+/* ===== Company Showcase Grid ===== */
+.showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 1024px) {
+  .showcase-grid {
+    gap: 10px;
+  }
+
+  .showcase-card {
+    padding: 14px !important;
+  }
+}
+
+.showcase-card {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.showcase-card:hover {
+  transform: translateY(-2px);
+  border-color: #d7d7d2;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.05);
+}
+/* ===== Trending Now Grid (6 companies) ===== */
+.trending-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .trending-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .trending-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.trending-company-card {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.trending-company-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border-color: #d6d6d2;
+}
+
+.trending-company-card:active {
+  transform: translateY(-1px);
+}
+/* ===== Browse by Category Tiles (bigger, 3x2) ===== */
+.category-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.category-tile {
+  transition: transform 180ms ease;
+}
+
+.category-tile:hover {
+  transform: translateY(-3px);
+}
+
+@media (max-width: 900px) {
+  .category-tile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .category-tile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* ===== Why Scope — alternating feature rows ===== */
+.whyscope-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  margin-bottom: 56px;
+}
+
+@media (max-width: 768px) {
+  .whyscope-wrap {
+    padding: 36px 16px !important;
+  }
+  .whyscope-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 36px;
+  }
+  /* บนมือถือ ให้ภาพประกอบขึ้นก่อนข้อความเสมอ ไม่ว่า desktop จะจัดซ้าย-ขวายังไง */
+  .whyscope-visual {
+    order: -1;
+  }
+  .whyscope-text {
+    order: 2;
+  }
+  .whyscope-title {
+    font-size: 26px !important;
+  }
+  .whyscope-row-title {
+    font-size: 20px !important;
+  }
+}
+/* ===== Closing Logo Wall ===== */
+.logo-wall-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 12px;
+}
+
+.logo-badge {
+  filter: grayscale(1);
+  opacity: 0.55;
+  transition: filter 180ms ease, opacity 180ms ease, transform 180ms ease;
+}
+
+.logo-badge:hover {
+  filter: grayscale(0);
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .logo-wall-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-wall-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }

@@ -2,6 +2,9 @@ import type { CompanyProfile } from "@/types/company";
 import { appleProfile } from "./apple";
 import { microsoftProfile } from "./microsoft";
 import { googleProfile } from "./google";
+import { nvidiaProfile } from "./nvidia";
+import { amazonProfile } from "./amazon";
+import { metaProfile } from "./meta";
 
 // Registry of all companies currently supported by Scope, keyed by URL slug.
 // To add a new company later: create `data/companies/<name>.ts` exporting a
@@ -10,6 +13,9 @@ const companies: Record<string, CompanyProfile> = {
   apple: appleProfile,
   microsoft: microsoftProfile,
   google: googleProfile,
+  nvidia: nvidiaProfile,
+  amazon: amazonProfile,
+  meta: metaProfile,
 };
 
 /**

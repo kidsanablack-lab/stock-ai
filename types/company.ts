@@ -1,35 +1,87 @@
-// Core company data types for the Scope Data System.
-//
-// These types describe WHAT information exists for a company.
-// They intentionally contain no CSS classes, inline styles, spacing,
-// layout, or other presentation concerns — that stays in the UI layer.
-//
-// Colors/icons are included only where they identify or distinguish a
-// specific entity (a competitor, a segment, a supplier) — not where
-// they describe how the page is laid out.
+// types/company.ts
 
-// ---------------------------------------------------------------------------
-// Identity / Hero
-// ---------------------------------------------------------------------------
+/**
+ * Scope Company Data Standard
+ *
+ * This file is the single source of truth for the shape of company data.
+ *
+ * Principles:
+ * - Company data belongs here, not inside page components.
+ * - Presentation metadata such as icons/colors may exist when needed
+ *   to identify or distinguish entities.
+ * - Financial display values currently remain formatted strings so the
+ *   existing UI does not need a breaking refactor.
+ * - Derived fields are explicitly documented and should not be treated
+ *   as independent primary data sources.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Identity                                                                   */
+/* -------------------------------------------------------------------------- */
 
 export interface CompanyIdentity {
+  /** Legal/company name used as the primary company name. */
   name: string;
+
+  /** Consumer-facing brand name when it differs from the legal company name. */
+  brandName?: string;
+
   ticker: string;
   exchange: string;
+
+  /** Broad company classification used by Scope. */
   industry: string;
-  /** Single letter/character shown in the round avatar (e.g. "A") */
+
+  /** Fallback when the company logo cannot be displayed. */
   logoInitial: string;
-  /** Short one-line description shown under the company name */
+
+  /** Primary company logo asset. */
   logo: string;
+
+  /** Short one-line description of the company. */
   tagline: string;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Scope Score                                                                */
+/* -------------------------------------------------------------------------- */
+
 export interface ScopeScore {
-  /** 0-10 scale */
   score: number;
-  /** e.g. "Excellent" */
   label: string;
 }
+/* -------------------------------------------------------------------------- */
+/* Financial Data Standard                                                    */
+/* -------------------------------------------------------------------------- */
+
+export type FinancialUnit = "B" | "M" | "T";
+
+export interface FinancialValue {
+  /**
+   * Numeric value expressed in the selected unit.
+   *
+   * Example:
+   * 716.9 + "B" = $716.9B
+   * 2.75 + "T" = $2.75T
+   */
+  value: number;
+  unit: FinancialUnit;
+}
+
+export interface PercentageValue {
+  /**
+   * Percentage expressed as a numeric value.
+   *
+   * Example:
+   * 12 = +12%
+   * -71 = -71%
+   */
+  value: number;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Company Overview                                                           */
+/* -------------------------------------------------------------------------- */
 
 export interface CompanyOverview {
   whatItDoes: string;
@@ -37,66 +89,113 @@ export interface CompanyOverview {
   headquarters: string;
   ceo: string;
   ceoSince: string;
-  marketCap: string;
+
+  /** Current market-cap snapshot. */
+  marketCap: FinancialValue;
+
+  /**
+   * Current approximate global market-cap ranking.
+   * Still time-sensitive / derived data.
+   */
   marketCapRank: string;
-  revenue: string;
-  revenueYoY: string;
+
+  /** Latest reported fiscal-year revenue. */
+  revenue: FinancialValue;
+
+  /** Year-over-year revenue growth for the reported fiscal year. */
+  revenueYoY: PercentageValue;
+
+  /** Fiscal year associated with the reported revenue. */
   revenueFiscalYear: string;
 }
 
-// ---------------------------------------------------------------------------
-// Snapshot bar
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* Snapshot Rating                                                            */
+/* -------------------------------------------------------------------------- */
 
 export type SnapshotRating =
-  | { kind: "stars"; value: number; outOf: number }
-  | { kind: "bars"; value: number; outOf: number }
-  | { kind: "arrow"; label: string }
-  | { kind: "badge"; label: string };
+  | {
+      kind: "stars";
+      value: number;
+      outOf: number;
+    }
+  | {
+      kind: "bars";
+      value: number;
+      outOf: number;
+    }
+  | {
+      kind: "arrow";
+      label: string;
+    }
+  | {
+      kind: "badge";
+      label: string;
+    };
 
 export interface SnapshotMetric {
   label: string;
-  /** Tabler icon name, without the "ti-" prefix duplication, e.g. "shield-check" */
   icon: string;
   tone: "good" | "neutral" | "risk";
   rating: SnapshotRating;
 }
 
-// ---------------------------------------------------------------------------
-// 30-Second Summary
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* 30-Second Summary                                                          */
+/* -------------------------------------------------------------------------- */
 
 export interface ThirtySecondSummary {
+  /** Short subtitle explaining what the section is. */
   subtitle: string;
+
+  /** Plain-English explanation of how the company works. */
   content: string;
 }
 
-// ---------------------------------------------------------------------------
-// Business Segments
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* Business Segments                                                          */
+/* -------------------------------------------------------------------------- */
 
 export interface RevenueSegment {
   name: string;
-  amount: string;
-  /** 0-100, share of total revenue */
+
+  /** Revenue amount for this segment. */
+  amount: FinancialValue;
+
+  /** Percentage of total company revenue. */
   percentage: number;
-  yoyChange: string;
-  yoyTrend: "up" | "down";
-  /** Identifies this segment in the donut chart and legend */
+
+  /** Year-over-year change as a numeric percentage. */
+  yoyChange: PercentageValue;
+
+  /** Visual identifier for the segment. */
   color: string;
 }
 
 export interface BusinessSegments {
-  totalRevenue: string;
+  totalRevenue: FinancialValue;
+
+  /**
+   * Fiscal year represented by this revenue breakdown.
+   */
   fiscalYearLabel: string;
+
+  /**
+   * Segments may represent official reportable segments or economically
+   * meaningful revenue categories.
+   *
+   * If Scope uses categories that differ from a company's formal reporting
+   * segments, the footnote should explain that distinction.
+   */
   segments: RevenueSegment[];
+
   insight: string;
   footnote: string;
 }
 
-// ---------------------------------------------------------------------------
-// Business Model
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* Business Model                                                             */
+/* -------------------------------------------------------------------------- */
 
 export interface BusinessModelTag {
   label: string;
@@ -106,24 +205,27 @@ export interface BusinessModelTag {
 export interface BusinessModelStage {
   title: string;
   icon: string;
-  /** Identifies this stage's accent color (icon color, top border) */
+
+  /** Visual identity for the stage. */
   color: string;
-  /** Light background tint for the icon circle and tag pills */
   backgroundTint: string;
-  /** Text color used on this stage's tag pills */
   tagTextColor: string;
+
   tags: BusinessModelTag[];
 }
 
 export interface BusinessModel {
   stages: BusinessModelStage[];
+
+  /** Explains the reinforcing loop / flywheel when applicable. */
   repeatNote: string;
+
   insight: string;
 }
 
-// ---------------------------------------------------------------------------
-// Strengths & Risks
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* Strengths & Risks                                                          */
+/* -------------------------------------------------------------------------- */
 
 export interface StrengthOrRiskItem {
   icon: string;
@@ -136,16 +238,20 @@ export interface StrengthsAndRisks {
   risks: StrengthOrRiskItem[];
 }
 
-// ---------------------------------------------------------------------------
-// Financial Overview
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* Financial Overview                                                         */
+/* -------------------------------------------------------------------------- */
 
 export interface FinancialOverviewMetric {
   label: string;
   icon: string;
-  value: string;
-  changeLabel: string;
-  changeTrend: "up" | "down";
+
+  /** Numeric financial value with an explicit unit. */
+  value: FinancialValue;
+
+  /** Numeric year-over-year change. */
+  change: PercentageValue;
+
   sublabel: string;
 }
 
@@ -155,75 +261,110 @@ export interface FinancialOverview {
   insight: string;
 }
 
-// ---------------------------------------------------------------------------
-// Financial History
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* Financial History                                                           */
+/* -------------------------------------------------------------------------- */
 
 export interface FinancialHistoryPanel {
   label: string;
   icon: string;
-  /** Identifies this panel/metric (bar color) */
+
   color: string;
-  /** Color used to highlight the most recent year's bar */
   highlightColor: string;
-  years: string[];
+
   /**
-   * Raw historical values (in billions USD), in the same order as `years`.
-   * The UI computes each bar's relative height from these values —
-   * no presentation-specific percentages are stored here.
+   * Fiscal-year labels aligned with values by index.
+   */
+  years: string[];
+
+  /**
+   * Numeric historical values.
+   * Unit is defined once for the entire panel.
    */
   values: number[];
+
+  unit: FinancialUnit;
+
   currentValueLabel: string;
+
   changeNote: string;
-  changeTrend: "up" | "down";
+
 }
 
 export interface FinancialHistory {
+  /**
+   * Companies may have different fiscal-year ranges.
+   * Do not assume every company starts at the same year.
+   */
   rangeLabel: string;
+
   panels: FinancialHistoryPanel[];
 }
 
-// ---------------------------------------------------------------------------
-// Business Ecosystem
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* Ecosystem                                                                  */
+/* -------------------------------------------------------------------------- */
 
 export interface EcosystemNode {
   name: string;
   description: string;
   icon: string;
-  /** Identifies this node (icon color, top border) */
+
+  /** Visual identity for the ecosystem entity. */
   color: string;
-  /** Light background tint for the icon circle */
   backgroundTint: string;
 }
 
 export interface BusinessEcosystem {
-  suppliers: EcosystemNode[];
+  /**
+   * Technology providers, strategic partners, infrastructure partners,
+   * and other important external relationships.
+   *
+   * This is intentionally broader than "suppliers" because not every
+   * ecosystem relationship is a vendor/supplier relationship.
+   */
+  partners: EcosystemNode[];
+
   centerLabel: string;
   centerSublabel: string;
+
   output: EcosystemNode;
+
   flowInLabel: string;
   flowOutLabel: string;
+
   insight: string;
 }
 
-// ---------------------------------------------------------------------------
-// Competitors
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* Competitors                                                                */
+/* -------------------------------------------------------------------------- */
 
 export interface Competitor {
   name: string;
   icon: string;
-  /** Identifies this competitor (icon color, top border, comparison bar fill) */
+
+  /** Visual identity for the competitor. */
   color: string;
-  /** Light background tint for the icon circle and tag pill */
   backgroundTint: string;
-  /** Text color used on this competitor's tag pill (may differ from `color`) */
   tagTextColor: string;
-  marketCap: string;
-  /** 0-100, relative size vs. this company, used for the comparison bar */
+
+  /**
+   * Current approximate market-cap snapshot.
+   */
+  marketCap: FinancialValue;
+
+  /**
+   * Derived relative visual size used by the current competitor UI.
+   */
   relativeSize: number;
+
   tag: string;
+
+  /**
+   * Free-form relationship because a company can be both customer,
+   * partner, and competitor depending on the business area.
+   */
   relationship: string;
 }
 
@@ -233,9 +374,9 @@ export interface CompetitorsSection {
   insight: string;
 }
 
-// ---------------------------------------------------------------------------
-// Root CompanyProfile
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* Company Profile                                                            */
+/* -------------------------------------------------------------------------- */
 
 export interface CompanyProfile {
   identity: CompanyIdentity;
