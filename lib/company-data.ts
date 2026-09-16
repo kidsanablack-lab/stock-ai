@@ -5,6 +5,11 @@ import {
   getAllCompanies as getAllCompaniesFromSource,
 } from "@/lib/company-source";
 import type { CompanyProfile } from "@/types/company";
+import type {
+  CompanyWithExternalData,
+  ExternalFinancialQuote,
+} from "@/types/external-financial";
+import { getFmpQuote } from "@/lib/fmp";
 
 /**
  * Data Access Layer
@@ -59,4 +64,40 @@ export function getOtherCompanyProfiles(
   return getAllCompanyProfiles().filter(
     ({ slug }) => slug !== lowerCurrentSlug,
   );
+}
+export async function getExternalFinancialQuote(
+  ticker: string,
+): Promise<ExternalFinancialQuote> {
+  const quote = await getFmpQuote(ticker);
+
+  return {
+    symbol: quote.symbol,
+    name: quote.name,
+    price: quote.price,
+    marketCap: quote.marketCap,
+    exchange: quote.exchange,
+    timestamp: quote.timestamp,
+  };
+}
+/**
+ * Get a company together with its external financial data.
+ */
+export async function getCompanyWithExternalData(
+  slug: string,
+): Promise<CompanyWithExternalData | undefined> {
+  const company = getCompany(slug);
+
+  if (!company) {
+    return undefined;
+  }
+
+  const external = await getExternalFinancialQuote(
+    company.identity.ticker,
+  );
+
+  return {
+    slug,
+    curated: company,
+    external,
+  };
 }
