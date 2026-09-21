@@ -3,9 +3,14 @@ import { getAllCompanyProfiles } from "@/lib/company-data";
 import { createCompanySearchItems } from "@/lib/company-search";
 
 export default function Home() {
- const companies = createCompanySearchItems(
-  getAllCompanyProfiles(),
-);
+  const profiles = getAllCompanyProfiles();
 
-  return <HomeClient companies={companies} />;
+  const companies = createCompanySearchItems(profiles);
+
+  return (
+    <HomeClient
+      companies={companies}
+      profiles={profiles}
+    />
+  );
 }

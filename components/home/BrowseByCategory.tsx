@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { getAllSlugs, getCompanyBySlug } from "@/data/companies";
 
 type CategoryTile = {
   key: string;
   label: string;
-  count: string;
   icon: string;
   bg: string;
   iconBg: string;
@@ -19,7 +19,6 @@ const CATEGORIES: CategoryTile[] = [
   {
     key: "technology",
     label: "Technology",
-    count: "180+ companies",
     icon: "ti-cpu",
     bg: "#E6F1FB",
     iconBg: "#185FA5",
@@ -31,7 +30,6 @@ const CATEGORIES: CategoryTile[] = [
   {
     key: "consumer",
     label: "Consumer",
-    count: "140+ companies",
     icon: "ti-shopping-bag",
     bg: "#FAECE7",
     iconBg: "#993C1D",
@@ -43,7 +41,6 @@ const CATEGORIES: CategoryTile[] = [
   {
     key: "finance",
     label: "Finance",
-    count: "95+ companies",
     icon: "ti-building-bank",
     bg: "#F1EFE8",
     iconBg: "#5F5E5A",
@@ -55,7 +52,6 @@ const CATEGORIES: CategoryTile[] = [
   {
     key: "healthcare",
     label: "Healthcare",
-    count: "110+ companies",
     icon: "ti-heartbeat",
     bg: "#FBEAF0",
     iconBg: "#993556",
@@ -67,7 +63,6 @@ const CATEGORIES: CategoryTile[] = [
   {
     key: "energy",
     label: "Energy",
-    count: "60+ companies",
     icon: "ti-droplet",
     bg: "#FAEEDA",
     iconBg: "#854F0B",
@@ -80,14 +75,72 @@ const CATEGORIES: CategoryTile[] = [
 
 export default function BrowseByCategory() {
   const router = useRouter();
+  const categoryCounts = CATEGORIES.reduce<Record<string, number>>(
+  (counts, category) => {
+    counts[category.key] = getAllSlugs()
+      .map((slug) => getCompanyBySlug(slug))
+      .filter((company) => {
+        if (!company) return false;
+
+        const industry = company.identity.industry.toLowerCase();
+
+        if (
+          category.key === "finance"
+        ) {
+          return (
+            industry.includes("bank") ||
+            industry.includes("payment") ||
+            industry.includes("financial")
+          );
+        }
+
+        if (
+          category.key === "healthcare"
+        ) {
+          return (
+            industry.includes("pharma") ||
+            industry.includes("health") ||
+            industry.includes("medical")
+          );
+        }
+
+        if (
+          category.key === "energy"
+        ) {
+          return (
+            industry.includes("energy") ||
+            industry.includes("oil") ||
+            industry.includes("gas") ||
+            industry.includes("utility")
+          );
+        }
+
+        if (
+          category.key === "consumer"
+        ) {
+          return (
+            industry.includes("consumer") ||
+            industry.includes("restaurant") ||
+            industry.includes("apparel") ||
+            industry.includes("automotive")
+          );
+        }
+
+        return true;
+      }).length;
+
+    return counts;
+  },
+  {},
+);
 
   return (
     <div className="section-block" style={{ marginBottom: 28 }}>
       <p
         style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: "#6b6b68",
+          fontSize: 14,
+          fontWeight: 700,
+          color: "#1a1a18",
           margin: "0 0 16px",
           textTransform: "uppercase",
           letterSpacing: 0.5,
@@ -141,7 +194,15 @@ export default function BrowseByCategory() {
             <div style={{ fontSize: 18, fontWeight: 700, color: cat.labelColor, marginBottom: 4, position: "relative" }}>
               {cat.label}
             </div>
-            <div style={{ fontSize: 13, color: cat.countColor, position: "relative" }}>{cat.count}</div>
+            <div
+  style={{
+    fontSize: 13,
+    color: cat.countColor,
+    position: "relative",
+  }}
+>
+  {categoryCounts[cat.key]} {categoryCounts[cat.key] === 1 ? "company" : "companies"}
+</div>
           </div>
         ))}
 

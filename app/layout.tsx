@@ -3,6 +3,8 @@ import { getAllCompanyProfiles } from "@/lib/company-data";
 import { createCompanySearchItems } from "@/lib/company-search";
 import type { Metadata } from "next";
 import "./globals.css";
+import Footer from "@/components/Footer";
+
 
 export const metadata: Metadata = {
   title: "Stock AI",
@@ -33,10 +35,12 @@ export default function RootLayout({
       </head>
 
       <body className="min-h-full overflow-x-hidden bg-white text-zinc-900">
-        <Navbar companies={companies} />
+  <Navbar companies={companies} />
 
-        <div className="flex-1">{children}</div>
-      </body>
+  <div className="flex-1">{children}</div>
+
+  <Footer />
+</body>
     </html>
   );
 }

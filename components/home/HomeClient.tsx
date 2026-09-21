@@ -24,9 +24,16 @@ type CompanySearchItem = {
 
 type HomeClientProps = {
   companies: CompanySearchItem[];
+  profiles: {
+    slug: string;
+    company: import("@/types/company").CompanyProfile;
+  }[];
 };
 
-export default function HomeClient({ companies }: HomeClientProps) {
+export default function HomeClient({
+  companies,
+  profiles,
+}: HomeClientProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -65,7 +72,7 @@ export default function HomeClient({ companies }: HomeClientProps) {
   const goToCompany = (slug: string) => {
     setShowDropdown(false);
     setQuery("");
-    router.push(`/company/${slug}`);
+    router.push(`/company/${slug}?from=home`);
   };
 
   const handleSearch = (value?: string) => {
@@ -168,43 +175,21 @@ export default function HomeClient({ companies }: HomeClientProps) {
           </div>
 
           <div style={{ paddingTop: 50, paddingBottom: 1 }}>
-  <CompanyShowcase />
+  <CompanyShowcase profiles={profiles} />
 </div>
 
-          <TrendingNow />
+          <TrendingNow profiles={profiles} />
           <div style={{ borderTop: "0.5px solid #e5e5e2", margin: "0" }} />
 
           <BrowseByCategory />
 
-          <div style={{ paddingTop: 64, paddingBottom: 64 }}>
+          <div style={{ paddingTop: 20, paddingBottom: 20 }}>
   <WhyScope />
 </div>
 
           <ClosingSection />
         </div>
 
-        {/* ===== DISCLAIMER ===== */}
-        <div
-          style={{
-            marginTop: 32,
-            paddingTop: 20,
-            borderTop: "0.5px solid #e5e5e2",
-            textAlign: "center",
-          }}
-        >
-          <p
-            style={{
-              fontSize: 11,
-              lineHeight: 1.6,
-              color: "#9a9a96",
-              margin: 0,
-            }}
-          >
-            For educational purposes only. Not investment advice. Financial
-            information is based on publicly reported company data and may
-            change over time.
-          </p>
-        </div>
       </main>
 
       <style jsx global>{`

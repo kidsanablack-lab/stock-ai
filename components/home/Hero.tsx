@@ -201,21 +201,48 @@ export default function Hero({
 
           {/* Button */}
           <button
-            className="button-soft"
-            style={{
-              flexShrink: 0,
-              background: "#2f5233",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: 14,
-              border: "none",
-              borderRadius: 12,
-              padding: "0 24px",
-              cursor: "pointer",
-            }}
-          >
-            Scope it out
-          </button>
+  type="button"
+  className="button-soft"
+  onClick={() => {
+    const normalizedQuery = query
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+
+    if (!normalizedQuery) return;
+
+    const exactMatch = suggestions.find((company) =>
+      [company.name, company.ticker, company.slug]
+        .map((value) => value.toLowerCase())
+        .includes(normalizedQuery),
+    );
+
+    if (exactMatch) {
+      onSelectCompany(exactMatch.slug);
+      return;
+    }
+
+    if (suggestions.length > 0) {
+      onSelectCompany(suggestions[0].slug);
+      return;
+    }
+
+    alert("Company not found");
+  }}
+  style={{
+    flexShrink: 0,
+    background: "#2f5233",
+    color: "#fff",
+    fontWeight: 700,
+    fontSize: 14,
+    border: "none",
+    borderRadius: 12,
+    padding: "0 24px",
+    cursor: "pointer",
+  }}
+>
+  Scope it out
+</button>
         </div>
       </div>
     </div>

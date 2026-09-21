@@ -15,7 +15,12 @@ import {
 } from "@/lib/company-data";
 import type { SnapshotMetric } from "@/types/company";
 
+
 type CompanyPageParams = { slug: string };
+type CompanyBackLink = {
+  href: string;
+  label: string;
+};
 
 export function generateStaticParams(): CompanyPageParams[] {
   return getCompanySlugs().map((slug) => ({ slug }));
@@ -113,10 +118,13 @@ function SnapshotRatingDisplay({ metric }: { metric: SnapshotMetric }) {
 
 export default async function CompanyPage({
   params,
+  searchParams,
 }: {
   params: Promise<CompanyPageParams>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { slug } = await params;
+  const { from } = await searchParams;
   const company = getCompany(slug);
 
   if (!company) {
@@ -124,6 +132,43 @@ export default async function CompanyPage({
   }
 
   const otherCompanies = getOtherCompanyProfiles(slug);
+    const backLinks: Record<string, CompanyBackLink> = {
+    home: {
+      href: "/",
+      label: "Back to home",
+    },
+    "all-companies": {
+  href: "/trending",
+  label: "Back to all companies",
+},
+    trending: {
+      href: "/trending",
+      label: "Back to trending",
+    },
+    technology: {
+  href: "/trending?category=technology",
+  label: "Back to Technology",
+},
+consumer: {
+  href: "/trending?category=consumer",
+  label: "Back to Consumer",
+},
+finance: {
+  href: "/trending?category=finance",
+  label: "Back to Finance",
+},
+healthcare: {
+  href: "/trending?category=healthcare",
+  label: "Back to Healthcare",
+},
+energy: {
+  href: "/trending?category=energy",
+  label: "Back to Energy",
+},
+  };
+
+  const backLink: CompanyBackLink =
+    backLinks[from ?? ""] ?? backLinks.home;
 
   const {
     identity,
@@ -139,6 +184,14 @@ export default async function CompanyPage({
     ecosystem,
     competitors,
   } = company;
+  const scoreValue = scopeScore.score;
+
+const scoreColor =
+  scoreValue >= 9
+    ? "#EA8C00"
+    : scoreValue >= 7.5
+      ? "#3B82F6"
+      : "#6B7280";
 
   // Conic-gradient stops for the segments donut, built from segment percentages.
   let cumulativePercent = 0;
@@ -154,7 +207,7 @@ export default async function CompanyPage({
     <div className="min-h-full bg-white text-zinc-900">
       <main className="mx-auto max-w-6xl px-6 pb-24 pt-8 sm:px-10 sm:pt-12">
         <Link
-          href="/"
+          href={backLink.href}
           className="interactive-link inline-flex items-center gap-2 text-sm text-zinc-500 transition-colors duration-200"
         >
           <svg
@@ -170,7 +223,7 @@ export default async function CompanyPage({
               clipRule="evenodd"
             />
           </svg>
-          Back to search
+           {backLink.label}
         </Link>
 
         {/* ===== COMPANY OVERVIEW CARD ===== */}
@@ -210,14 +263,28 @@ export default async function CompanyPage({
     <span className="pill">{identity.industry}</span>
   </div>
   {/* Scope Score — compact badge */}
-  <div className="scope-score-badge">
-    <div className="scope-score-badge-circle">
-      {scopeScore.score}
-    </div>
-    <span className="scope-score-badge-label">
-      {scopeScore.label}
-    </span>
+<div
+  className="scope-score-badge"
+  style={
+    {
+      "--score-color": scoreColor,
+    } as React.CSSProperties
+  }
+>
+  <div
+    className="scope-score-badge-circle"
+    style={{ background: scoreColor }}
+  >
+    {scopeScore.score}
   </div>
+
+  <span
+    className="scope-score-badge-label"
+    style={{ color: scoreColor }}
+  >
+    {scopeScore.label}
+  </span>
+</div>
 </div>
                 <p style={{ fontSize: 14, color: "#6b6b68", margin: "6px 0 0", maxWidth: 420, lineHeight: 1.6 }}>
                   {identity.tagline}
@@ -235,7 +302,15 @@ export default async function CompanyPage({
                   Scope Score
                 </div>
                 <div className="scope-score-rating" style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 6 }}>
-                  <span style={{ color: "#F59E0B", fontWeight: 600, fontSize: 14 }}>{scopeScore.label}</span>
+                  <span
+  style={{
+    color: scoreColor,
+    fontWeight: 600,
+    fontSize: 14,
+  }}
+>
+  {scopeScore.label}
+</span>
                   <span style={{ color: "#d6d6d2", fontSize: 20 }}>|</span>
                   <span style={{ color: "#8b8b88", fontSize: 16 }}>/10</span>
                 </div>
@@ -245,7 +320,7 @@ export default async function CompanyPage({
                   width: 54,
                   height: 54,
                   borderRadius: "50%",
-                  background: "#EA8C00",
+                  background: scoreColor,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -1220,27 +1295,7 @@ export default async function CompanyPage({
     </div>
   </div>
 )}
-{/* ===== DISCLAIMER ===== */}
-<div
-  style={{
-    marginTop: 32,
-    paddingTop: 20,
-    borderTop: "0.5px solid #e5e5e2",
-    textAlign: "center",
-  }}
->
-  <p
-    style={{
-      fontSize: 11,
-      lineHeight: 1.6,
-      color: "#9a9a96",
-      margin: 0,
-    }}
-  >
-    For educational purposes only. Not investment advice. Financial information
-    is based on publicly reported company data and may change over time.
-  </p>
-</div>
+
       </main>
     </div>
   );
