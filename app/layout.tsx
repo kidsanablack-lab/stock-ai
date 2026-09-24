@@ -11,14 +11,14 @@ export const metadata: Metadata = {
   description: "Understand any company before you invest.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const companies = createCompanySearchItems(
-    getAllCompanyProfiles(),
-  );
+  const profiles = await getAllCompanyProfiles();
+
+  const companies = createCompanySearchItems(profiles);
 
   return (
     <html lang="en" className="h-full antialiased">

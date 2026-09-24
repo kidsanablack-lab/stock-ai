@@ -22,8 +22,10 @@ type CompanyBackLink = {
   label: string;
 };
 
-export function generateStaticParams(): CompanyPageParams[] {
-  return getCompanySlugs().map((slug) => ({ slug }));
+export async function generateStaticParams(): Promise<CompanyPageParams[]> {
+  const slugs = await getCompanySlugs();
+
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -32,7 +34,7 @@ export async function generateMetadata({
   params: Promise<CompanyPageParams>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const company = getCompany(slug);
+  const company = await getCompany(slug);
 
   if (!company) {
     return { title: "Company not found — Stock AI" };
@@ -125,13 +127,13 @@ export default async function CompanyPage({
 }) {
   const { slug } = await params;
   const { from } = await searchParams;
-  const company = getCompany(slug);
+  const company = await getCompany(slug);
 
   if (!company) {
     notFound();
   }
 
-  const otherCompanies = getOtherCompanyProfiles(slug);
+  const otherCompanies = await getOtherCompanyProfiles(slug);
     const backLinks: Record<string, CompanyBackLink> = {
     home: {
       href: "/",

@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const ticker = searchParams.get("ticker");
 
   if (ticker) {
-    const result = getCompanyByStockTicker(ticker);
+    const result = await getCompanyByStockTicker(ticker);
 
     if (!result) {
       return NextResponse.json(
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     });
   }
 
-  const companies = getAllCompanyProfiles().map(
+  const companies = (await getAllCompanyProfiles()).map(
     ({ slug, company }) => ({
       slug,
       ...company,

@@ -1,25 +1,22 @@
-import { getAllSlugs, getCompanyBySlug } from "@/data/companies";
+import {
+  getAllCompanyProfiles,
+} from "@/lib/company-data";
 import { validateCompany } from "./validate-company";
-import { validateRegistry } from "./validate-registry";
 
-export function validateAllCompanies(): Record<string, string[]> {
+export async function validateAllCompanies(): Promise<
+  Record<string, string[]>
+> {
   const results: Record<string, string[]> = {};
 
-  for (const slug of getAllSlugs()) {
-    const company = getCompanyBySlug(slug);
+  const profiles = await getAllCompanyProfiles();
 
-    if (!company) {
-      results[slug] = ["Company could not be loaded."];
-      continue;
-    }
-
-    results[slug] = validateCompany(company);
+  if (profiles.length === 0) {
+    results._registry = ["No companies were loaded from Supabase."];
+    return results;
   }
 
-  const registryErrors = validateRegistry();
-
-  if (registryErrors.length > 0) {
-    results._registry = registryErrors;
+  for (const { slug, company } of profiles) {
+    results[slug] = validateCompany(company);
   }
 
   return results;
@@ -29,25 +26,29 @@ export function validateAllCompanies(): Record<string, string[]> {
 /* CLI runner                                                                */
 /* -------------------------------------------------------------------------- */
 
-const results = validateAllCompanies();
+async function runValidation() {
+  const results = await validateAllCompanies();
 
-let hasErrors = false;
+  let hasErrors = false;
 
-for (const [slug, errors] of Object.entries(results)) {
-  if (errors.length === 0) {
-    console.log(`✓ ${slug}: VALID`);
-  } else {
-    hasErrors = true;
-    console.error(`✗ ${slug}: INVALID`);
+  for (const [slug, errors] of Object.entries(results)) {
+    if (errors.length === 0) {
+      console.log(`✓ ${slug}: VALID`);
+    } else {
+      hasErrors = true;
+      console.error(`✗ ${slug}: INVALID`);
 
-    for (const error of errors) {
-      console.error(`  - ${error}`);
+      for (const error of errors) {
+        console.error(`  - ${error}`);
+      }
     }
   }
+
+  if (hasErrors) {
+    process.exit(1);
+  }
+
+  console.log("\nAll companies passed validation.");
 }
 
-if (hasErrors) {
-  process.exit(1);
-}
-
-console.log("\nAll companies passed validation.");
+runValidation();

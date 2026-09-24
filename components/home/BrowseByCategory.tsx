@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { getAllSlugs, getCompanyBySlug } from "@/data/companies";
+import type { CompanyProfile } from "@/types/company";
 
 type CategoryTile = {
   key: string;
@@ -13,6 +13,13 @@ type CategoryTile = {
   countColor: string;
   watermarkColor: string;
   href: string;
+};
+
+type BrowseByCategoryProps = {
+  profiles: {
+    slug: string;
+    company: CompanyProfile;
+  }[];
 };
 
 const CATEGORIES: CategoryTile[] = [
@@ -73,66 +80,63 @@ const CATEGORIES: CategoryTile[] = [
   },
 ];
 
-export default function BrowseByCategory() {
+function getCategory(industry: string) {
+  const value = industry.toLowerCase();
+
+  if (
+    value.includes("bank") ||
+    value.includes("payment") ||
+    value.includes("financial")
+  ) {
+    return "finance";
+  }
+
+  if (
+    value.includes("pharma") ||
+    value.includes("health") ||
+    value.includes("medical")
+  ) {
+    return "healthcare";
+  }
+
+  if (
+    value.includes("energy") ||
+    value.includes("oil") ||
+    value.includes("gas") ||
+    value.includes("utility")
+  ) {
+    return "energy";
+  }
+
+  if (
+    value.includes("consumer") ||
+    value.includes("restaurant") ||
+    value.includes("apparel") ||
+    value.includes("automotive")
+  ) {
+    return "consumer";
+  }
+
+  return "technology";
+}
+
+export default function BrowseByCategory({
+  profiles,
+}: BrowseByCategoryProps) {
   const router = useRouter();
-  const categoryCounts = CATEGORIES.reduce<Record<string, number>>(
-  (counts, category) => {
-    counts[category.key] = getAllSlugs()
-      .map((slug) => getCompanyBySlug(slug))
-      .filter((company) => {
-        if (!company) return false;
 
-        const industry = company.identity.industry.toLowerCase();
+  const categoryCounts = profiles.reduce<Record<string, number>>(
+    (counts, profile) => {
+      const category = getCategory(
+        profile.company.identity.industry,
+      );
 
-        if (
-          category.key === "finance"
-        ) {
-          return (
-            industry.includes("bank") ||
-            industry.includes("payment") ||
-            industry.includes("financial")
-          );
-        }
+      counts[category] = (counts[category] ?? 0) + 1;
 
-        if (
-          category.key === "healthcare"
-        ) {
-          return (
-            industry.includes("pharma") ||
-            industry.includes("health") ||
-            industry.includes("medical")
-          );
-        }
-
-        if (
-          category.key === "energy"
-        ) {
-          return (
-            industry.includes("energy") ||
-            industry.includes("oil") ||
-            industry.includes("gas") ||
-            industry.includes("utility")
-          );
-        }
-
-        if (
-          category.key === "consumer"
-        ) {
-          return (
-            industry.includes("consumer") ||
-            industry.includes("restaurant") ||
-            industry.includes("apparel") ||
-            industry.includes("automotive")
-          );
-        }
-
-        return true;
-      }).length;
-
-    return counts;
-  },
-  {},
-);
+      return counts;
+    },
+    {},
+  );
 
   return (
     <div className="section-block" style={{ marginBottom: 28 }}>
@@ -176,6 +180,7 @@ export default function BrowseByCategory() {
                 opacity: 0.12,
               }}
             />
+
             <div
               style={{
                 width: 52,
@@ -189,24 +194,42 @@ export default function BrowseByCategory() {
                 position: "relative",
               }}
             >
-              <i className={`ti ${cat.icon}`} style={{ fontSize: 26, color: "#ffffff" }} />
+              <i
+                className={`ti ${cat.icon}`}
+                style={{
+                  fontSize: 26,
+                  color: "#ffffff",
+                }}
+              />
             </div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: cat.labelColor, marginBottom: 4, position: "relative" }}>
+
+            <div
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: cat.labelColor,
+                marginBottom: 4,
+                position: "relative",
+              }}
+            >
               {cat.label}
             </div>
+
             <div
-  style={{
-    fontSize: 13,
-    color: cat.countColor,
-    position: "relative",
-  }}
->
-  {categoryCounts[cat.key]} {categoryCounts[cat.key] === 1 ? "company" : "companies"}
-</div>
+              style={{
+                fontSize: 13,
+                color: cat.countColor,
+                position: "relative",
+              }}
+            >
+              {categoryCounts[cat.key] ?? 0}{" "}
+              {(categoryCounts[cat.key] ?? 0) === 1
+                ? "company"
+                : "companies"}
+            </div>
           </div>
         ))}
 
-        {/* View all companies — styled differently: an action, not a category */}
         <div
           className="category-tile"
           onClick={() => router.push("/trending")}
@@ -222,8 +245,16 @@ export default function BrowseByCategory() {
         >
           <i
             className="ti ti-apps"
-            style={{ position: "absolute", right: -10, bottom: -14, fontSize: 92, color: "#ffffff", opacity: 0.08 }}
+            style={{
+              position: "absolute",
+              right: -10,
+              bottom: -14,
+              fontSize: 92,
+              color: "#ffffff",
+              opacity: 0.08,
+            }}
           />
+
           <div
             style={{
               width: 52,
@@ -237,12 +268,36 @@ export default function BrowseByCategory() {
               position: "relative",
             }}
           >
-            <i className="ti ti-apps" style={{ fontSize: 26, color: "#F3F5EE" }} />
+            <i
+              className="ti ti-apps"
+              style={{
+                fontSize: 26,
+                color: "#F3F5EE",
+              }}
+            />
           </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#F3F5EE", marginBottom: 4, position: "relative" }}>
+
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 700,
+              color: "#F3F5EE",
+              marginBottom: 4,
+              position: "relative",
+            }}
+          >
             View all
           </div>
-          <div style={{ fontSize: 13, color: "#B9C6B4", position: "relative" }}>Every company</div>
+
+          <div
+            style={{
+              fontSize: 13,
+              color: "#B9C6B4",
+              position: "relative",
+            }}
+          >
+            Every company
+          </div>
         </div>
       </div>
     </div>

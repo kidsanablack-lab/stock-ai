@@ -181,7 +181,7 @@ export default function HomeClient({
           <TrendingNow profiles={profiles} />
           <div style={{ borderTop: "0.5px solid #e5e5e2", margin: "0" }} />
 
-          <BrowseByCategory />
+          <BrowseByCategory profiles={profiles} />
 
           <div style={{ paddingTop: 20, paddingBottom: 20 }}>
   <WhyScope />

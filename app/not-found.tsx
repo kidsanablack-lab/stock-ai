@@ -26,9 +26,9 @@ const POPULAR = [
   },
 ];
 
-export default function NotFound() {
+export default async function NotFound() {
   const companies = createCompanySearchItems(
-    getAllCompanyProfiles(),
+    await getAllCompanyProfiles(),
   );
 
   return (

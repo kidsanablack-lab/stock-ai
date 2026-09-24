@@ -21,50 +21,60 @@ import { getFmpQuote } from "@/lib/fmp";
 /**
  * Get a company by its URL slug.
  */
-export function getCompany(
+export async function getCompany(
   slug: string,
-): CompanyProfile | undefined {
+): Promise<CompanyProfile | undefined> {
   return getCompanyFromSource(slug);
 }
 
 /**
  * Get a company by its stock ticker.
  */
-export function getCompanyByStockTicker(
+export async function getCompanyByStockTicker(
   ticker: string,
-): { slug: string; company: CompanyProfile } | undefined {
+): Promise<{ slug: string; company: CompanyProfile } | undefined> {
   return getCompanyByTickerFromSource(ticker);
 }
 
 /**
  * Get all supported company slugs.
  */
-export function getCompanySlugs(): string[] {
+export async function getCompanySlugs(): Promise<string[]> {
   return getCompanySlugsFromSource();
 }
 
 /**
  * Get all company profiles.
  */
-export function getAllCompanyProfiles(): {
-  slug: string;
-  company: CompanyProfile;
-}[] {
+export async function getAllCompanyProfiles(): Promise<
+  {
+    slug: string;
+    company: CompanyProfile;
+  }[]
+> {
   return getAllCompaniesFromSource();
 }
 
 /**
  * Get all companies except the current company.
  */
-export function getOtherCompanyProfiles(
+export async function getOtherCompanyProfiles(
   currentSlug: string,
-): { slug: string; company: CompanyProfile }[] {
+): Promise<
+  {
+    slug: string;
+    company: CompanyProfile;
+  }[]
+> {
   const lowerCurrentSlug = currentSlug.toLowerCase();
 
-  return getAllCompanyProfiles().filter(
+  const companies = await getAllCompanyProfiles();
+
+  return companies.filter(
     ({ slug }) => slug !== lowerCurrentSlug,
   );
 }
+
 export async function getExternalFinancialQuote(
   ticker: string,
 ): Promise<ExternalFinancialQuote> {
@@ -79,13 +89,14 @@ export async function getExternalFinancialQuote(
     timestamp: quote.timestamp,
   };
 }
+
 /**
  * Get a company together with its external financial data.
  */
 export async function getCompanyWithExternalData(
   slug: string,
 ): Promise<CompanyWithExternalData | undefined> {
-  const company = getCompany(slug);
+  const company = await getCompany(slug);
 
   if (!company) {
     return undefined;

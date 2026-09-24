@@ -11,7 +11,7 @@ export async function GET(
   { params }: { params: Promise<RouteParams> },
 ) {
   const { slug } = await params;
-  const company = getCompany(slug);
+  const company = await getCompany(slug);
 
   if (!company) {
     return NextResponse.json(
