@@ -110,29 +110,31 @@ export default function Hero({
 
         {/* Description */}
         <p
-          style={{
-            fontSize: 16,
-            color: "#57534e",
-            margin: "0 auto 32px",
-            maxWidth: 600,
-            lineHeight: 1.6,
-          }}
-        >
+  className="hero-description"
+  style={{
+    fontSize: 16,
+    color: "#57534e",
+    margin: "0 auto 32px",
+    maxWidth: 600,
+    lineHeight: 1.6,
+  }}
+>
           What it does, how it makes money, and whether it&apos;s worth your
           attention — explained visually, not buried in filings.
         </p>
 
         {/* Search */}
         <div
-          style={{
-            display: "flex",
-            alignItems: "stretch",
-            gap: 10,
-            width: "100%",
-            maxWidth: 760,
-            margin: "0 auto",
-          }}
-        >
+  className="hero-search"
+  style={{
+    display: "flex",
+    alignItems: "stretch",
+    gap: 10,
+    width: "100%",
+    maxWidth: 760,
+    margin: "0 auto",
+  }}
+>
           {/* Input */}
           <div
             ref={searchBoxRef}

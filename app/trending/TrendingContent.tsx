@@ -295,45 +295,99 @@ export default function TrendingContent({
       </div>
 
       {/* Search */}
-      <div
-        style={{
-          position: "relative",
-          marginBottom: 20,
-        }}
-      >
-        <i
-          className="ti ti-search"
-          style={{
-            position: "absolute",
-            left: 15,
-            top: "50%",
-            transform: "translateY(-50%)",
-            fontSize: 18,
-            color: "#9a9a96",
-            pointerEvents: "none",
-          }}
-        />
+<div
+  className="trending-search-row"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 20,
+  }}
+>
+  <div
+    style={{
+      position: "relative",
+      flex: 1,
+    }}
+  >
+    <i
+      className="ti ti-search"
+      style={{
+        position: "absolute",
+        left: 15,
+        top: "50%",
+        transform: "translateY(-50%)",
+        fontSize: 18,
+        color: "#9a9a96",
+        pointerEvents: "none",
+      }}
+    />
 
-        <input
-          type="text"
-          value={query}
-          onChange={handleSearchChange}
-          placeholder="Search company, ticker, or sector..."
-          aria-label="Search companies"
-          style={{
-            width: "100%",
-            height: 46,
-            boxSizing: "border-box",
-            padding: "0 16px 0 44px",
-            border: "1px solid #e5e5e2",
-            borderRadius: 12,
-            background: "#ffffff",
-            color: "#1a1a18",
-            fontSize: 14,
-            outline: "none",
-          }}
-        />
-      </div>
+    <input
+      type="text"
+      value={query}
+      onChange={handleSearchChange}
+      placeholder="Search company, ticker, or sector..."
+      aria-label="Search companies"
+      style={{
+        width: "100%",
+        height: 46,
+        boxSizing: "border-box",
+        padding: "0 16px 0 44px",
+        border: "1px solid #e5e5e2",
+        borderRadius: 12,
+        background: "#ffffff",
+        color: "#1a1a18",
+        fontSize: 14,
+        outline: "none",
+      }}
+    />
+  </div>
+
+    <button
+    type="button"
+    className="button-soft trending-search-button"
+    onClick={() => {
+      const normalizedQuery = query
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+
+      if (!normalizedQuery) return;
+
+      const exactMatch = companies.find((item) =>
+        [
+          item.company.identity.name,
+          item.company.identity.brandName,
+          item.company.identity.ticker,
+          item.slug,
+        ]
+          .filter((value): value is string => Boolean(value))
+          .map((value) => value.toLowerCase())
+          .includes(normalizedQuery),
+      );
+
+      if (exactMatch) {
+        router.push(`/company/${exactMatch.slug}`);
+      }
+    }}
+    style={{
+      flexShrink: 0,
+      height: 46,
+      padding: "0 22px",
+      background: "#2f5233",
+      color: "#ffffff",
+      fontWeight: 700,
+      fontSize: 14,
+      border: "none",
+      borderRadius: 12,
+      cursor: "pointer",
+      whiteSpace: "nowrap",
+    }}
+  >
+    Scope it out
+  </button>
+</div>
 
       {/* Category filters */}
       <div
@@ -494,20 +548,104 @@ export default function TrendingContent({
         </div>
       ) : (
         <div
-          style={{
-            background: "#ffffff",
-            border: "1px solid #e5e5e2",
-            borderRadius: 12,
-            padding: "8px 24px",
-            marginBottom: 24,
-          }}
-        >
+  className="trending-results-container"
+  style={{
+    background: "#ffffff",
+    border: "1px solid #e5e5e2",
+    borderRadius: 12,
+    padding: "8px 24px",
+    marginBottom: 24,
+  }}
+>
+          {/* Mobile cards */}
+<div className="trending-mobile-cards">
+  {visible.map(({ slug, company }, index) => (
+    <div
+      key={slug}
+      className="trending-mobile-card"
+      onClick={() =>
+        router.push(
+          `/company/${slug}?from=${
+            activeCategory === "all"
+              ? "all-companies"
+              : activeCategory
+          }`,
+        )
+      }
+    >
+      {/* Top row */}
+      <div className="trending-mobile-card-top">
+        <div className="trending-mobile-company">
+          <div className="trending-mobile-logo">
+            {company.identity.logo ? (
+              <img
+                src={company.identity.logo}
+                alt=""
+              />
+            ) : (
+              <span>
+                {company.identity.logoInitial}
+              </span>
+            )}
+          </div>
+
+          <div className="trending-mobile-company-info">
+            <div className="trending-mobile-name-row">
+              <span className="trending-mobile-name">
+                {company.identity.name}
+              </span>
+
+              <span className="trending-mobile-ticker">
+                {company.identity.ticker}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Scope Score */}
+        <div className="trending-mobile-score">
+          <i className="ti ti-star-filled" />
+          {company.scopeScore.score.toFixed(1)}
+        </div>
+      </div>
+
+      {/* Sector */}
+      <div className="trending-mobile-sector">
+        {company.identity.industry}
+      </div>
+
+      {/* Financials */}
+      <div className="trending-mobile-financials">
+        <div>
+          <span>Market Cap</span>
+          <strong>
+            {formatFinancialValue(
+              company.overview.marketCap.value,
+              company.overview.marketCap.unit,
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span>Revenue</span>
+          <strong>
+            {formatFinancialValue(
+              company.overview.revenue.value,
+              company.overview.revenue.unit,
+            )}
+          </strong>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
           {/* Desktop table */}
           <div
-            style={{
-              overflowX: "auto",
-            }}
-          >
+  className="trending-desktop-table"
+  style={{
+    overflowX: "auto",
+  }}
+>
             <div
               style={{
                 minWidth: 720,
@@ -828,6 +966,176 @@ export default function TrendingContent({
           </button>
         </div>
       )}
+      <style jsx>{`
+      .trending-desktop-table {
+  display: block;
+}
+
+@media (max-width: 700px) {
+  .trending-desktop-table {
+    display: none;
+  }
+}
+  .trending-mobile-cards {
+    display: none;
+  }
+
+  @media (max-width: 700px) {
+    .trending-mobile-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .trending-mobile-card {
+      background: #ffffff;
+      border: 1px solid #e5e5e2;
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        transform 160ms ease;
+    }
+
+    .trending-mobile-card:active {
+      transform: translateY(1px);
+    }
+
+    .trending-mobile-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .trending-mobile-company {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .trending-mobile-logo {
+      width: 40px;
+      height: 40px;
+      flex: 0 0 40px;
+      border-radius: 10px;
+      border: 1px solid #eeeeeb;
+      background: #fafaf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .trending-mobile-logo img {
+      width: 25px;
+      height: 25px;
+      object-fit: contain;
+    }
+
+    .trending-mobile-logo span {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a18;
+    }
+
+    .trending-mobile-company-info {
+      min-width: 0;
+    }
+
+    .trending-mobile-name-row {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .trending-mobile-name {
+      font-size: 14px;
+      font-weight: 650;
+      color: #1a1a18;
+    }
+
+    .trending-mobile-ticker {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9a9a96;
+    }
+
+    .trending-mobile-score {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      background: linear-gradient(
+        135deg,
+        #ea8c00,
+        #f59e0b
+      );
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 5px 9px 5px 7px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .trending-mobile-score i {
+      font-size: 11px;
+    }
+
+    .trending-mobile-sector {
+      margin-top: 14px;
+      font-size: 12px;
+      color: #6b6b68;
+    }
+
+    .trending-mobile-financials {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #f0f0ed;
+    }
+
+    .trending-mobile-financials div {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .trending-mobile-financials span {
+      font-size: 11px;
+      color: #9a9a96;
+    }
+
+    .trending-mobile-financials strong {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a18;
+      overflow-wrap: break-word;
+    }
+  }
+    @media (max-width: 700px) {
+  .trending-results-container {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin-bottom: 24px !important;
+  }
+}
+  @media (max-width: 700px) {
+  .trending-search-button {
+    display: none !important;
+  }
+}
+`}</style>
     </div>
   );
 }

@@ -397,15 +397,15 @@ const scoreColor =
           </div>
 
           <div
-            style={{
-              background: "linear-gradient(135deg, #eff6ff 0%, #f0fdfa 100%)",
-              borderRadius: 12,
-              padding: "28px 32px",
-              display: "flex",
-              gap: 18,
-              alignItems: "flex-start",
-            }}
-          >
+  style={{
+    background: "linear-gradient(135deg, #eff6ff 0%, #f0fdfa 100%)",
+    borderRadius: 12,
+    padding: "28px 32px",
+    display: "flex",
+    gap: 18,
+    alignItems: "flex-start",
+  }}
+>
             <div
               style={{
                 width: 44,
@@ -447,8 +447,24 @@ const scoreColor =
             </p>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 40, flexWrap: "wrap" }}>
-            <div style={{ position: "relative", width: 280, height: 280, flexShrink: 0 }}>
+          <div
+  className="business-segments-layout"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 40,
+    flexWrap: "wrap",
+  }}
+>
+            <div
+  className="business-segments-donut"
+  style={{
+    position: "relative",
+    width: 280,
+    height: 280,
+    flexShrink: 0,
+  }}
+>
               <div
                 style={{
                   width: 280,
@@ -474,11 +490,30 @@ const scoreColor =
                 }}
               >
                 <p style={{ fontSize: 22, fontWeight: 600, color: "#1a1a18", margin: 0 }}>{formatFinancialValue(businessSegments.totalRevenue)}</p>
-                <p style={{ fontSize: 13, color: "#6b6b68", margin: "2px 0 0" }}>{businessSegments.fiscalYearLabel}</p>
+                <p
+  style={{
+    fontSize: 12,
+    color: "#6b6b68",
+    margin: "4px 0 0",
+    textAlign: "center",
+    lineHeight: 1.4,
+    maxWidth: 130,
+  }}
+>
+  {businessSegments.fiscalYearLabel.split(" (")[0]}
+</p>
               </div>
             </div>
 
-            <div style={{ flex: 1, minWidth: 280, display: "flex", flexDirection: "column" }}>
+            <div
+  className="business-segments-list"
+  style={{
+    flex: 1,
+    minWidth: 280,
+    display: "flex",
+    flexDirection: "column",
+  }}
+>
               {businessSegments.segments.map((seg, i) => (
                 <div key={seg.name}>
                   <div style={{ padding: "10px 0" }}>
@@ -568,10 +603,10 @@ const scoreColor =
   {/* Business Model Flow */}
   <div
     className={
-      businessModel.stages.length > 3
-        ? "business-model-flow business-model-many"
-        : "business-model-flow"
-    }
+  businessModel.stages.length > 3
+    ? "business-model-flow business-model-many"
+    : "business-model-flow"
+}
     style={{
       display: "grid",
       gridTemplateColumns: Array(
@@ -784,7 +819,14 @@ const scoreColor =
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div
+  className="strengths-risks-grid"
+  style={{
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 16,
+  }}
+>
             {/* Competitive Advantages */}
             <div style={{ background: "#f0faf3", border: "0.5px solid #cdebd6", borderRadius: 12, padding: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
@@ -832,48 +874,149 @@ const scoreColor =
         </div>
 
         {/* ===== FINANCIAL OVERVIEW CARD ===== */}
-        <div className="overview-card" style={{ marginTop: 24 }}>
-          <div style={{ marginBottom: 20 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18", margin: "0 0 4px" }}>Financial Overview</h2>
-            <p style={{ fontSize: 13, color: "#6b6b68", margin: 0 }}>{financialOverview.fiscalYearLabel}</p>
+<div className="overview-card" style={{ marginTop: 24 }}>
+  <div style={{ marginBottom: 20 }}>
+    <h2
+      style={{
+        fontSize: 18,
+        fontWeight: 600,
+        color: "#1a1a18",
+        margin: "0 0 4px",
+      }}
+    >
+      Financial Overview
+    </h2>
+
+    <p
+      style={{
+        fontSize: 13,
+        color: "#6b6b68",
+        margin: 0,
+      }}
+    >
+      {financialOverview.fiscalYearLabel}
+    </p>
+  </div>
+
+  <div
+    className="financial-overview-metrics"
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(3, 1fr)",
+      gap: 16,
+    }}
+  >
+    {financialOverview.metrics.map((metric) => {
+      const matchingPanel = financialHistory.panels.find(
+        (panel) => panel.label === metric.label,
+      );
+
+      return (
+        <div
+          key={metric.label}
+          style={{
+            background: "#f7f7f5",
+            border: "0.5px solid #e5e5e2",
+            borderRadius: 12,
+            padding: 20,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              color: "#6b6b68",
+              fontSize: 13,
+            }}
+          >
+            <i
+              className={`ti ti-${metric.icon}`}
+              style={{
+                fontSize: 18,
+                color: matchingPanel?.color ?? "#6b6b68",
+              }}
+            />
+            {metric.label}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-            {financialOverview.metrics.map((metric) => (
-              <div key={metric.label} style={{ background: "#f7f7f5", border: "0.5px solid #e5e5e2", borderRadius: 12, padding: 20 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#6b6b68", fontSize: 13 }}>
-                  <i className={`ti ti-${metric.icon}`} style={{ fontSize: 18 }}></i>
-                  {metric.label}
-                </div>
-                <p style={{ fontSize: 28, fontWeight: 600, color: "#1a1a18", margin: "10px 0 4px" }}>{formatFinancialValue(metric.value)}</p>
-                <p
-                  style={{
-                    fontSize: 13,
-                    color:
-                      getPercentageTrend(metric.change) === "up"
-                      ? "#2f9e44"
-                      : "#dc2626",
-                    margin: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <i
-                  className={`ti ti-arrow-${getPercentageTrend(metric.change)}`}
-                     style={{ fontSize: 14 }}></i>
-                  {formatYoY(metric.change)}
-                </p>
-                <p style={{ fontSize: 11, color: "#9a9a96", margin: "6px 0 0" }}>{metric.sublabel}</p>
-              </div>
-            ))}
-          </div>
+          <p
+            style={{
+              fontSize: 28,
+              fontWeight: 600,
+              color: "#1a1a18",
+              margin: "10px 0 4px",
+            }}
+          >
+            {formatFinancialValue(metric.value)}
+          </p>
 
-          <div style={{ background: "#fffbeb", borderRadius: 12, padding: "14px 18px", marginTop: 14, display: "flex", alignItems: "center", gap: 10 }}>
-            <i className="ti ti-info-circle" style={{ fontSize: 18, color: "#b45309", flexShrink: 0 }}></i>
-            <p style={{ fontSize: 13, color: "#78350f", margin: 0, lineHeight: 1.5 }}>{financialOverview.insight}</p>
-          </div>
+          <p
+            style={{
+              fontSize: 13,
+              color:
+                getPercentageTrend(metric.change) === "up"
+                  ? "#2f9e44"
+                  : "#dc2626",
+              margin: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <i
+              className={`ti ti-arrow-${getPercentageTrend(metric.change)}`}
+              style={{ fontSize: 14 }}
+            />
+            {formatYoY(metric.change)}
+          </p>
+
+          <p
+            style={{
+              fontSize: 11,
+              color: "#9a9a96",
+              margin: "6px 0 0",
+            }}
+          >
+            {metric.sublabel}
+          </p>
         </div>
+      );
+    })}
+  </div>
+
+  <div
+    style={{
+      background: "#fffbeb",
+      borderRadius: 12,
+      padding: "14px 18px",
+      marginTop: 14,
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+    }}
+  >
+    <i
+      className="ti ti-info-circle"
+      style={{
+        fontSize: 18,
+        color: "#b45309",
+        flexShrink: 0,
+      }}
+    />
+
+    <p
+      style={{
+        fontSize: 13,
+        color: "#78350f",
+        margin: 0,
+        lineHeight: 1.5,
+      }}
+    >
+      {financialOverview.insight}
+    </p>
+  </div>
+</div>
 
         {/* ===== FINANCIAL HISTORY CARD ===== */}
         <div className="overview-card" style={{ marginTop: 24 }}>
@@ -882,7 +1025,14 @@ const scoreColor =
             <p style={{ fontSize: 13, color: "#6b6b68", margin: 0 }}>{financialHistory.rangeLabel}</p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          <div
+  className="financial-history-panels"
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: 16,
+  }}
+>
             {financialHistory.panels.map((panel) => {
               const maxValue = Math.max(...panel.values);
               return (
@@ -1259,26 +1409,29 @@ const scoreColor =
   </div>
 
   {/* Score */}
-  <span
+<div
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 2,
+    background: "linear-gradient(135deg, #EA8C00, #f59e0b)",
+    color: "#ffffff",
+    borderRadius: 20,
+    padding: "2px 7px 2px 5px",
+    fontSize: 12,
+    fontWeight: 600,
+    width: "fit-content",
+  }}
+>
+  <i
+    className="ti ti-star-filled"
     style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 2,
       fontSize: 11,
-      fontWeight: 600,
-      color: "#c2410c",
-      background: "#fff3e0",
-      borderRadius: 8,
-      padding: "2px 7px",
-      flexShrink: 0,
+      color: "#ffffff",
     }}
-  >
-    <i
-      className="ti ti-star-filled"
-      style={{ fontSize: 11 }}
-    />
-    {otherCompany.scopeScore.score}
-  </span>
+  />
+  {otherCompany.scopeScore.score.toFixed(1)}
+</div>
 </div>
 
           {/* Description */}

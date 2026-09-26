@@ -292,7 +292,7 @@ export default function HomeClient({
           }
         }
 
-        @media (max-width: 768px) {
+                @media (max-width: 768px) {
           .page-shell {
             padding: 0 8px;
           }
@@ -306,6 +306,25 @@ export default function HomeClient({
               2,
               minmax(0, 1fr)
             );
+          }
+
+          .hero-description {
+            max-width: 340px !important;
+            font-size: 14px !important;
+            line-height: 1.55 !important;
+            margin-bottom: 24px !important;
+          }
+
+          .hero-search {
+            flex-direction: column;
+            gap: 10px !important;
+            max-width: 100% !important;
+          }
+
+          .hero-search .button-soft {
+            width: 100%;
+            min-height: 48px;
+            padding: 0 20px !important;
           }
         }
 

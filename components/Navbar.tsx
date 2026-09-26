@@ -274,14 +274,15 @@ export default function Navbar({ companies }: NavbarProps) {
 
       {/* Nav links */}
       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          marginLeft: "auto",
-          flexShrink: 0,
-        }}
-      >
+  className="navbar-nav-links"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    marginLeft: "auto",
+    flexShrink: 0,
+  }}
+>
         <Link
           href="/trending"
           className="interactive-link"
@@ -307,27 +308,6 @@ export default function Navbar({ companies }: NavbarProps) {
           Trending
         </Link>
 
-        <Link
-          href="/categories"
-          className="interactive-link"
-          style={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: "#6b6b68",
-            display: "flex",
-            alignItems: "center",
-            gap: 5,
-            textDecoration: "none",
-            padding: "6px 4px",
-            transition: "color 180ms ease, transform 180ms ease",
-          }}
-        >
-          <i
-            className="ti ti-category"
-            style={{ fontSize: 15 }}
-          ></i>
-          Categories
-        </Link>
       </div>
 
       {/* Dropdown */}

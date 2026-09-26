@@ -151,16 +151,22 @@ select:focus-visible {
    BUSINESS MODEL
    ======================================== */
 
-/* Normal / wide screen
-   Keep the original horizontal layout */
 .business-model-flow {
   width: 100%;
 }
 
-/* Only companies with more than 3 stages
-   become vertical on small screens */
+/*
+  Desktop:
+  - 4+ stages ใช้ business-model-many
+  - 3 stages ใช้ business-model-mobile-many
+  - แต่ทั้งสองแบบยังคง horizontal layout บน Desktop
+
+  Mobile:
+  - 3+ stages เปลี่ยนเป็น vertical cards
+*/
 @media (max-width: 950px) {
-  .business-model-flow.business-model-many {
+  .business-model-flow.business-model-many,
+  .business-model-flow.business-model-mobile-many {
     display: flex !important;
     flex-direction: column;
     align-items: stretch;
@@ -168,64 +174,58 @@ select:focus-visible {
     gap: 12px;
   }
 
-  /* ================================
-     CARD
-     ================================ */
-
-  .business-model-flow.business-model-many
-    .business-model-stage {
+  .business-model-flow.business-model-many .business-model-stage,
+  .business-model-flow.business-model-mobile-many .business-model-stage {
     width: 100% !important;
-    max-width: none;
+    max-width: none !important;
+    min-width: 0 !important;
     box-sizing: border-box;
 
-    /*
-      Change content inside the card
-      from vertical → horizontal
-    */
-    flex-direction: row !important;
+    display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
-    text-align: left !important;
-
-    gap: 16px;
-    padding: 18px 20px;
-  }
-
-  /* ================================
-     ICON
-     ================================ */
-
-  .business-model-flow.business-model-many
-    .business-model-stage-icon {
-    flex-shrink: 0;
-  }
-
-  /* ================================
-     TITLE
-     ================================ */
-
-  .business-model-flow.business-model-many
-    .business-model-stage-title {
-    flex-shrink: 0;
-    margin: 0 !important;
-    min-width: 130px;
-  }
-
-  /* ================================
-     TAGS
-     ================================ */
-
-  .business-model-flow.business-model-many
-    .business-model-stage-tags {
-    flex: 1;
     justify-content: flex-start !important;
+    text-align: center !important;
+
+    gap: 0 !important;
+    padding: 20px 16px !important;
   }
 
-  /* ================================
-     ARROW
-     ================================ */
+  .business-model-flow.business-model-many .business-model-stage-icon,
+  .business-model-flow.business-model-mobile-many .business-model-stage-icon {
+    flex-shrink: 0;
+  }
 
-  .business-model-flow.business-model-many
-    .business-model-arrow {
+  .business-model-flow.business-model-many .business-model-stage-title,
+  .business-model-flow.business-model-mobile-many .business-model-stage-title {
+    width: 100%;
+    min-width: 0 !important;
+    margin: 12px 0 !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .business-model-flow.business-model-many .business-model-stage-tags,
+  .business-model-flow.business-model-mobile-many .business-model-stage-tags {
+    width: 100%;
+    min-width: 0;
+    flex: none !important;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center !important;
+    gap: 6px;
+  }
+
+  .business-model-flow.business-model-many .business-model-stage-tags span,
+  .business-model-flow.business-model-mobile-many .business-model-stage-tags span {
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .business-model-flow.business-model-many .business-model-arrow,
+  .business-model-flow.business-model-mobile-many .business-model-arrow {
     width: 100%;
     height: 36px;
     display: flex !important;
@@ -234,11 +234,79 @@ select:focus-visible {
     flex-shrink: 0;
   }
 
-  .business-model-flow.business-model-many
-    .business-model-arrow-icon {
+  .business-model-flow.business-model-many .business-model-arrow-icon,
+  .business-model-flow.business-model-mobile-many .business-model-arrow-icon {
+    transform: rotate(90deg);
+  }
+  @media (max-width: 600px) {
+  .business-model-flow {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .business-model-flow .business-model-stage {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: center !important;
+
+    gap: 0 !important;
+    padding: 20px 16px !important;
+  }
+
+  .business-model-flow .business-model-stage-icon {
+    flex-shrink: 0;
+  }
+
+  .business-model-flow .business-model-stage-title {
+    width: 100%;
+    min-width: 0 !important;
+    margin: 12px 0 !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .business-model-flow .business-model-stage-tags {
+    width: 100%;
+    min-width: 0;
+    flex: none !important;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center !important;
+    gap: 6px;
+  }
+
+  .business-model-flow .business-model-stage-tags span {
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .business-model-flow .business-model-arrow {
+    width: 100%;
+    height: 36px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .business-model-flow .business-model-arrow-icon {
     transform: rotate(90deg);
   }
 }
+}
+
 
 /* ========================================
    BUSINESS ECOSYSTEM
@@ -407,6 +475,17 @@ select:focus-visible {
   }
 }
 
+@media (max-width: 600px) {
+  .showcase-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .showcase-card {
+    min-width: 0;
+    overflow: hidden;
+  }
+}
+
 .showcase-card {
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
@@ -571,5 +650,102 @@ select:focus-visible {
 @media (max-width: 480px) {
   .score-factor-grid {
     grid-template-columns: 1fr;
+  }
+}
+/* ===== Company Overview — Mobile ===== */
+
+@media (max-width: 700px) {
+  .overview-card {
+    padding: 16px;
+  }
+
+  .overview-header {
+    gap: 12px;
+  }
+
+  .overview-company {
+    min-width: 0;
+  }
+
+  .overview-title-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .overview-name-pills {
+    min-width: 0;
+  }
+
+  .overview-company-name {
+    font-size: 18px;
+  }
+
+  .overview-card .overview-company > div:last-child > p {
+    max-width: 100% !important;
+    overflow-wrap: break-word;
+  }
+
+  .overview-card > .grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+  .overview-card > div[style*="1.3fr 1fr 1fr"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .overview-card > div[style*="1.3fr 1fr 1fr"] > .stat-box:first-child {
+    grid-column: 1 / -1;
+    grid-row: auto !important;
+  }
+
+  .stat-box {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .stat-value,
+  .stat-sub {
+    overflow-wrap: break-word;
+  }
+}
+/* ===== 30-Second Summary — Mobile ===== */
+
+@media (max-width: 700px) {
+  .overview-card[style*="margin-top: 24px"] {
+    padding: 16px;
+  }
+
+  .overview-card[style*="margin-top: 24px"] > div:nth-child(2) {
+    padding: 20px 16px !important;
+    gap: 14px !important;
+  }
+
+  .overview-card[style*="margin-top: 24px"] > div:nth-child(2) > div:last-child {
+    min-width: 0;
+  }
+
+  .overview-card[style*="margin-top: 24px"] > div:nth-child(2) p {
+    overflow-wrap: break-word;
+  }
+}
+/* ===== Strengths & Risks — Mobile ===== */
+
+@media (max-width: 700px) {
+  .strengths-risks-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+/* ===== Financial Overview — Mobile ===== */
+
+@media (max-width: 700px) {
+  .financial-overview-metrics {
+    grid-template-columns: 1fr !important;
+  }
+}
+/* ===== Financial History — Mobile ===== */
+
+@media (max-width: 700px) {
+  .financial-history-panels {
+    grid-template-columns: 1fr !important;
   }
 }

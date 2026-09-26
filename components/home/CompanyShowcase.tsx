@@ -424,15 +424,14 @@ export default function CompanyShowcase({
                         />
 
                         <span
-                          style={{
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {segment.name} —{" "}
-                          {segment.percentage}%
-                        </span>
+  style={{
+    minWidth: 0,
+    lineHeight: 1.4,
+    overflowWrap: "break-word",
+  }}
+>
+  {segment.name} — {segment.percentage}%
+</span>
                       </div>
                     ),
                   )}
