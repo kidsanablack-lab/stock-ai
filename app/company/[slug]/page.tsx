@@ -196,14 +196,16 @@ const scoreColor =
       : "#6B7280";
 
   // Conic-gradient stops for the segments donut, built from segment percentages.
-  let cumulativePercent = 0;
-  const donutStops = businessSegments.segments
-    .map((seg) => {
-      const start = cumulativePercent;
-      cumulativePercent += seg.percentage;
-      return `${seg.color} ${start}% ${cumulativePercent}%`;
-    })
-    .join(", ");
+const donutStops = businessSegments.segments
+  .map((seg, index, segments) => {
+    const start = segments
+      .slice(0, index)
+      .reduce((total, item) => total + item.percentage, 0);
+    const end = start + seg.percentage;
+
+    return `${seg.color} ${start}% ${end}%`;
+  })
+  .join(", ");
 
   return (
     <div className="min-h-full bg-white text-zinc-900">

@@ -124,47 +124,39 @@ export default function TrendingContent({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [activeCategory, setActiveCategory] =
-    useState<Category | "all">("all");
+const [query, setQuery] = useState("");
 
-  const [query, setQuery] = useState("");
+const [visibleCount, setVisibleCount] =
+  useState(PAGE_SIZE);
 
-  const [visibleCount, setVisibleCount] =
-    useState(PAGE_SIZE);
+const companies = useMemo<CompanyListItem[]>(() => {
+  return profiles
+    .map(({ slug, company }) => ({
+      slug,
+      company,
+      category: getCategory(
+        company.identity.industry,
+      ),
+    }))
+    .sort(
+      (a, b) =>
+        b.company.overview.marketCap.value -
+        a.company.overview.marketCap.value,
+    );
+}, [profiles]);
 
-  const companies = useMemo<CompanyListItem[]>(() => {
-    return profiles
-      .map(({ slug, company }) => ({
-        slug,
-        company,
-        category: getCategory(
-          company.identity.industry,
-        ),
-      }))
-      .sort(
-        (a, b) =>
-          b.company.overview.marketCap.value -
-          a.company.overview.marketCap.value,
-      );
-  }, [profiles]);
+const categoryParam = searchParams.get("category");
 
-  useEffect(() => {
-    const category = searchParams.get("category");
+const activeCategory: Category | "all" =
+  categoryParam === "technology" ||
+  categoryParam === "consumer" ||
+  categoryParam === "finance" ||
+  categoryParam === "healthcare" ||
+  categoryParam === "energy"
+    ? categoryParam
+    : "all";
 
-    if (
-      category === "technology" ||
-      category === "consumer" ||
-      category === "finance" ||
-      category === "healthcare" ||
-      category === "energy"
-    ) {
-      setActiveCategory(category);
-    } else {
-      setActiveCategory("all");
-    }
 
-    setVisibleCount(PAGE_SIZE);
-  }, [searchParams]);
 
   const filtered = useMemo(() => {
     const normalizedQuery = query
@@ -223,11 +215,26 @@ export default function TrendingContent({
   }, [companies]);
 
   const handleCategoryClick = (
-    category: Category | "all",
-  ) => {
-    setActiveCategory(category);
-    setVisibleCount(PAGE_SIZE);
-  };
+  category: Category | "all",
+) => {
+  const params = new URLSearchParams(searchParams.toString());
+
+  if (category === "all") {
+    params.delete("category");
+  } else {
+    params.set("category", category);
+  }
+
+  setVisibleCount(PAGE_SIZE);
+
+  const queryString = params.toString();
+
+  router.push(
+    queryString
+      ? `/trending?${queryString}`
+      : "/trending",
+  );
+};
 
   const handleSearchChange = (
     event: React.ChangeEvent<HTMLInputElement>,
