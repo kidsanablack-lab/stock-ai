@@ -37,12 +37,20 @@ export async function generateMetadata({
   const company = await getCompany(slug);
 
   if (!company) {
-    return { title: "Company not found — Stock AI" };
+    return { title: "Company not found — Scope" };
   }
 
+  const title = `${company.identity.name} (${company.identity.ticker}) — Scope`;
+  const description = `Understand what ${company.identity.name} does, how it makes money, and what drives its business.`;
+
   return {
-    title: `${company.identity.name} (${company.identity.ticker}) — Stock AI`,
-    description: `AI-powered company profile for ${company.identity.name}. Key metrics, financial highlights, and investment analysis.`,
+    title,
+    description,
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
   };
 }
 

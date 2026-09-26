@@ -7,8 +7,15 @@ import Footer from "@/components/Footer";
 
 
 export const metadata: Metadata = {
-  title: "Stock AI",
-  description: "Understand any company before you invest.",
+  title: "Scope — Understand Companies",
+  description:
+    "Understand what a company does, how it makes money, and what drives its business.",
+  openGraph: {
+    title: "Scope — Understand Companies",
+    description:
+      "Understand what a company does, how it makes money, and what drives its business.",
+    type: "website",
+  },
 };
 
 export default async function RootLayout({
