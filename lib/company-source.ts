@@ -279,7 +279,35 @@ export async function getAllCompanies(): Promise<
   const { data, error } = await supabase
     .from("companies")
     .select(`
-      *,
+      id,
+      slug,
+      name,
+      brand_name,
+      ticker,
+      exchange,
+      industry,
+      logo_initial,
+      logo,
+      tagline,
+      what_it_does,
+      founded,
+      headquarters,
+      ceo,
+      ceo_since,
+      scope_score,
+      scope_score_label,
+      business_segments_insight,
+      business_segments_footnote,
+      competitors_context_note,
+      competitors_insight,
+      overview,
+      snapshot,
+      thirty_second_summary,
+      business_model,
+      strengths_and_risks,
+      financial_overview,
+      financial_history,
+      ecosystem,
       business_segments (
         company_id,
         name,
@@ -322,13 +350,15 @@ export async function getAllCompanies(): Promise<
       competitors: CompetitorRow[];
     };
 
+    const profile = buildCompanyProfile({
+      company,
+      segments: segments ?? [],
+      competitors: competitors ?? [],
+    });
+
     return {
       slug: company.slug,
-      company: buildCompanyProfile({
-        company,
-        segments: segments ?? [],
-        competitors: competitors ?? [],
-      }),
+      company: profile,
     };
   });
 }

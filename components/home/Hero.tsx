@@ -1,12 +1,5 @@
 import type { KeyboardEvent, RefObject } from "react";
-import { Playfair_Display } from "next/font/google";
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["700"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
 
 type Suggestion = {
   slug: string;
@@ -93,7 +86,7 @@ export default function Hero({
 
         {/* Heading */}
         <h1
-  className={playfair.className}
+  className="hero-title"
   style={{
     fontWeight: 700,
     fontSize: 48,
