@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 type PopularCompany = {
@@ -113,15 +114,17 @@ export default function ClosingSection() {
               transition: "transform 0.18s ease, box-shadow 0.18s ease",
             }}
           >
-            <img
-              src={company.logoSrc}
-              alt={company.name}
-              style={{
-                width: 15,
-                height: 15,
-                objectFit: "contain",
-              }}
-            />
+            <Image
+  src={company.logoSrc}
+  alt={company.name}
+  width={15}
+  height={15}
+  style={{
+    width: 15,
+    height: 15,
+    objectFit: "contain",
+  }}
+/>
 
             <span
               style={{

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { CompanyProfile } from "@/types/company";
 
@@ -128,15 +129,17 @@ export default function TrendingNow({
                       flexShrink: 0,
                     }}
                   >
-                    <img
-                      src={company.identity.logo}
-                      alt={company.identity.name}
-                      style={{
-                        width: 26,
-                        height: 26,
-                        objectFit: "contain",
-                      }}
-                    />
+                    <Image
+  src={company.identity.logo}
+  alt={company.identity.name}
+  width={26}
+  height={26}
+  style={{
+    width: 26,
+    height: 26,
+    objectFit: "contain",
+  }}
+/>
                   </div>
 
                   <p

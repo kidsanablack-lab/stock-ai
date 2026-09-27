@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { CompanyProfile } from "@/types/company";
 
@@ -145,15 +146,17 @@ export default function CompanyShowcase({
                     flexShrink: 0,
                   }}
                 >
-                  <img
-                    src={company.identity.logo}
-                    alt={company.identity.name}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      objectFit: "contain",
-                    }}
-                  />
+                  <Image
+  src={company.identity.logo}
+  alt={company.identity.name}
+  width={28}
+  height={28}
+  style={{
+    width: 28,
+    height: 28,
+    objectFit: "contain",
+  }}
+/>
                 </div>
 
                 <div

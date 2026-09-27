@@ -1,7 +1,7 @@
 "use client";
 
+import Image from "next/image";
 import {
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -566,32 +566,34 @@ const activeCategory: Category | "all" =
 >
           {/* Mobile cards */}
 <div className="trending-mobile-cards">
-  {visible.map(({ slug, company }, index) => (
-    <div
-      key={slug}
-      className="trending-mobile-card"
-      onClick={() =>
-        router.push(
-          `/company/${slug}?from=${
-            activeCategory === "all"
-              ? "all-companies"
-              : activeCategory
-          }`,
-        )
-      }
-    >
+  {visible.map((company) => (
+  <div
+    key={company.slug}
+    className="trending-mobile-card"
+    onClick={() =>
+      router.push(
+        `/company/${company.slug}?from=${
+          activeCategory === "all"
+            ? "all-companies"
+            : activeCategory
+        }`,
+      )
+    }
+  >
       {/* Top row */}
       <div className="trending-mobile-card-top">
         <div className="trending-mobile-company">
           <div className="trending-mobile-logo">
-            {company.identity.logo ? (
-              <img
-                src={company.identity.logo}
-                alt=""
-              />
+            {company.company.identity.logo ? (
+              <Image
+  src={company.company.identity.logo}
+  alt=""
+  width={25}
+  height={25}
+/>
             ) : (
               <span>
-                {company.identity.logoInitial}
+                {company.company.identity.logoInitial}
               </span>
             )}
           </div>
@@ -599,11 +601,11 @@ const activeCategory: Category | "all" =
           <div className="trending-mobile-company-info">
             <div className="trending-mobile-name-row">
               <span className="trending-mobile-name">
-                {company.identity.name}
+                {company.company.identity.name}
               </span>
 
               <span className="trending-mobile-ticker">
-                {company.identity.ticker}
+                {company.company.identity.ticker}
               </span>
             </div>
           </div>
@@ -612,13 +614,13 @@ const activeCategory: Category | "all" =
         {/* Scope Score */}
         <div className="trending-mobile-score">
           <i className="ti ti-star-filled" />
-          {company.scopeScore.score.toFixed(1)}
+          {company.company.scopeScore.score.toFixed(1)}
         </div>
       </div>
 
       {/* Sector */}
       <div className="trending-mobile-sector">
-        {company.identity.industry}
+        {company.company.identity.industry}
       </div>
 
       {/* Financials */}
@@ -627,8 +629,8 @@ const activeCategory: Category | "all" =
           <span>Market Cap</span>
           <strong>
             {formatFinancialValue(
-              company.overview.marketCap.value,
-              company.overview.marketCap.unit,
+              company.company.overview.marketCap.value,
+              company.company.overview.marketCap.unit,
             )}
           </strong>
         </div>
@@ -637,8 +639,8 @@ const activeCategory: Category | "all" =
           <span>Revenue</span>
           <strong>
             {formatFinancialValue(
-              company.overview.revenue.value,
-              company.overview.revenue.unit,
+              company.company.overview.revenue.value,
+              company.company.overview.revenue.unit,
             )}
           </strong>
         </div>
@@ -793,15 +795,17 @@ const activeCategory: Category | "all" =
                         }}
                       >
                         {company.identity.logo ? (
-                          <img
-                            src={company.identity.logo}
-                            alt=""
-                            style={{
-                              width: 23,
-                              height: 23,
-                              objectFit: "contain",
-                            }}
-                          />
+                          <Image
+  src={company.identity.logo}
+  alt=""
+  width={23}
+  height={23}
+  style={{
+    width: 23,
+    height: 23,
+    objectFit: "contain",
+  }}
+/>
                         ) : (
                           <span
                             style={{

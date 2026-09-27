@@ -1,4 +1,12 @@
 import type { KeyboardEvent, RefObject } from "react";
+import { Playfair_Display } from "next/font/google";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["700"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
 
 type Suggestion = {
   slug: string;
@@ -85,16 +93,16 @@ export default function Hero({
 
         {/* Heading */}
         <h1
-          style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontWeight: 700,
-            fontSize: 48,
-            lineHeight: 1.15,
-            color: "#1a1a18",
-            margin: "0 auto 20px",
-            maxWidth: 800,
-          }}
-        >
+  className={playfair.className}
+  style={{
+    fontWeight: 700,
+    fontSize: 48,
+    lineHeight: 1.15,
+    color: "#1a1a18",
+    margin: "0 auto 20px",
+    maxWidth: 800,
+  }}
+>
           Understand any
           <br />
           company{" "}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAllCompanyProfiles } from "@/lib/company-data";
 import { createCompanySearchItems } from "@/lib/company-search";
 import NotFoundSearch from "@/components/NotFoundSearch";
+import Image from "next/image";
 
 const POPULAR = [
   {
@@ -151,15 +152,17 @@ export default async function NotFound() {
                   flexShrink: 0,
                 }}
               >
-                <img
-                  src={company.logoSrc}
-                  alt={company.name}
-                  style={{
-                    width: 16,
-                    height: 16,
-                    objectFit: "contain",
-                  }}
-                />
+                <Image
+  src={company.logoSrc}
+  alt={company.name}
+  width={16}
+  height={16}
+  style={{
+    width: 16,
+    height: 16,
+    objectFit: "contain",
+  }}
+/>
               </span>
 
               {company.name}

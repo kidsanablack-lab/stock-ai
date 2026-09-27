@@ -14,7 +14,7 @@ import {
   getOtherCompanyProfiles,
 } from "@/lib/company-data";
 import type { SnapshotMetric } from "@/types/company";
-
+import Image from "next/image";
 
 type CompanyPageParams = { slug: string };
 type CompanyBackLink = {
@@ -255,15 +255,17 @@ const donutStops = businessSegments.segments
     flexShrink: 0,
   }}
 >
-  <img
-    src={identity.logo}
-    alt={`${identity.name} logo`}
-    style={{
-      width: 28,
-      height: 28,
-      objectFit: "contain",
-    }}
-  />
+  <Image
+  src={identity.logo}
+  alt={`${identity.name} logo`}
+  width={28}
+  height={28}
+  style={{
+    width: 28,
+    height: 28,
+    objectFit: "contain",
+  }}
+/>
 </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                <div className="overview-title-row">
@@ -1395,15 +1397,17 @@ const donutStops = businessSegments.segments
         flexShrink: 0,
       }}
     >
-      <img
-        src={otherCompany.identity.logo}
-        alt={`${otherCompany.identity.name} logo`}
-        style={{
-          width: 24,
-          height: 24,
-          objectFit: "contain",
-        }}
-      />
+      <Image
+  src={otherCompany.identity.logo}
+  alt={`${otherCompany.identity.name} logo`}
+  width={24}
+  height={24}
+  style={{
+    width: 24,
+    height: 24,
+    objectFit: "contain",
+  }}
+/>
     </div>
 
     <p
