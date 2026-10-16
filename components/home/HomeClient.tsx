@@ -13,7 +13,11 @@ import WhyScope from "@/components/home/WhyScope";
 import CompanyShowcase from "@/components/home/CompanyShowcase";
 import TrendingNow from "@/components/home/TrendingNow";
 import BrowseByCategory from "@/components/home/BrowseByCategory";
+import BusinessModelsSection from "@/components/home/BusinessModelsSection";
 import ClosingSection from "@/components/home/ClosingSection";
+import SevenPowersSection from "@/components/home/SevenPowersSection";
+import ValuationLabSection from "@/components/home/ValuationLabSection";
+import CompareSection from "@/components/home/CompareSection";
 
 type CompanySearchItem = {
   slug: string;
@@ -177,9 +181,13 @@ export default function HomeClient({
           <div style={{ paddingTop: 50, paddingBottom: 1 }}>
   <CompanyShowcase profiles={profiles} />
 </div>
+<SevenPowersSection />
+<ValuationLabSection />
+<CompareSection profiles={profiles} />
+<BusinessModelsSection />
 
           <TrendingNow profiles={profiles} />
-          <div style={{ borderTop: "0.5px solid #e5e5e2", margin: "0" }} />
+          
 
           <BrowseByCategory profiles={profiles} />
 

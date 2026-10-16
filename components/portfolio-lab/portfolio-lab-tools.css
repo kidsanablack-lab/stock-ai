@@ -1,0 +1,297 @@
+/* =====================================================================
+   Portfolio Lab — DCA Planner and Investment Calculator (Phase 3).
+   Classes keep the "pl-" prefix and build on the base styles in
+   app/portfolio-lab/portfolio-lab.css.
+   ===================================================================== */
+
+.pl-section > .pl-panel,
+.pl-section > .pl-assumptions {
+  margin-top: 16px;
+}
+
+/* ---------- Layout ---------- */
+.pl-tool-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.pl-tool-inputs .pl-h3 {
+  margin-bottom: 14px;
+}
+
+.pl-fields {
+  display: grid;
+  gap: 16px;
+  margin: 0 0 16px;
+}
+
+.pl-tool-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.pl-tool-results {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pl-currency.pl-mode {
+  margin: 0 0 18px;
+}
+
+.pl-segmented.pl-segmented-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pl-segmented.pl-segmented-2 .pl-segment span {
+  text-align: center;
+  padding: 8px 10px;
+}
+
+.pl-rates {
+  border: 0;
+  padding: 0;
+  margin: 0 0 16px;
+  min-width: 0;
+}
+
+.pl-rates legend {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #3a3a36;
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.pl-rate-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* ---------- Results ---------- */
+.pl-result-hero {
+  background: #eef2e6;
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.pl-result-hero.is-loss {
+  background: #fdf1ef;
+}
+
+.pl-result-value {
+  font-family: var(--pl-serif, Georgia, "Times New Roman", serif);
+  font-size: 44px;
+  line-height: 1.05;
+  letter-spacing: -1px;
+  color: #1a1a18;
+  margin: 0 0 10px;
+  overflow-wrap: anywhere;
+}
+
+.pl-result-growth {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #1a1a18;
+  margin: 0 0 6px;
+}
+
+.pl-result-sub {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #4d4d49;
+  margin: 0;
+}
+
+.pl-mini-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pl-card .pl-card-value-sm {
+  font-size: 22px;
+}
+
+/* ---------- Chart ---------- */
+.pl-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 14px 0 6px;
+}
+
+.pl-chart-empty {
+  text-align: center;
+  font-size: 14px;
+  color: #6b6b68;
+  padding: 36px 12px;
+  margin: 0;
+}
+
+.pl-chart-legend {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+}
+
+.pl-chart-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #3a3a36;
+}
+
+.pl-chart-legend strong {
+  font-variant-numeric: tabular-nums;
+  color: #1a1a18;
+}
+
+.pl-line {
+  display: inline-block;
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+  background: #2f5233;
+  flex-shrink: 0;
+}
+
+.pl-line.is-dashed {
+  height: 0;
+  background: none;
+  border-top: 2px dashed #8a8a86;
+  border-radius: 0;
+}
+
+/* ---------- Tables ---------- */
+.pl-scroll {
+  overflow-x: auto;
+  margin-top: 16px;
+  border-radius: 12px;
+}
+
+.pl-scroll:focus-visible {
+  outline: 2px solid #2f5233;
+  outline-offset: 2px;
+}
+
+.pl-proj-table {
+  min-width: 480px;
+}
+
+/* On small screens the projection tables scroll sideways inside their own
+   box instead of stacking, so the page itself never overflows. */
+@media (max-width: 700px) {
+  .pl-scroll .pl-proj-table {
+    display: table;
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .pl-scroll .pl-proj-table thead {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .pl-scroll .pl-proj-table tbody,
+  .pl-scroll .pl-proj-table tfoot {
+    display: table-row-group;
+  }
+
+  .pl-scroll .pl-proj-table thead {
+    display: table-header-group;
+  }
+
+  .pl-scroll .pl-proj-table tr {
+    display: table-row;
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+
+  .pl-scroll .pl-proj-table th,
+  .pl-scroll .pl-proj-table td {
+    display: table-cell;
+    width: auto;
+    white-space: nowrap;
+    text-align: left;
+    border-top: 0.5px solid #eeeeea;
+    padding: 12px 10px;
+  }
+
+  .pl-scroll .pl-proj-table td.pl-num,
+  .pl-scroll .pl-proj-table th.pl-num {
+    text-align: right;
+  }
+
+  .pl-scroll .pl-proj-table td::before {
+    display: none;
+  }
+}
+
+/* ---------- Assumptions ---------- */
+.pl-assumptions {
+  background: #fafaf7;
+  border-radius: 20px;
+  padding: 22px 24px;
+}
+
+.pl-assumptions .pl-h3 {
+  margin-bottom: 12px;
+}
+
+.pl-assumptions ul {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.pl-assumptions li {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #3a3a36;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .pl-tool-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .pl-result-value {
+    font-size: 36px;
+  }
+
+  .pl-mini-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .pl-result-hero {
+    padding: 20px 18px;
+  }
+
+  .pl-assumptions {
+    padding: 18px 16px;
+  }
+
+  .pl-tool-actions .pl-btn {
+    width: 100%;
+  }
+}

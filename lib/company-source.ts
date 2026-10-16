@@ -10,6 +10,7 @@ type CompanyRow = {
   exchange: string;
   industry: string;
   logo_initial: string;
+  revenue_basis: "reported" | "managed" | "segment";
   logo: string;
   tagline: string;
   what_it_does: string;
@@ -97,6 +98,7 @@ function buildCompanyProfile({
 
     businessSegments: {
   totalRevenue: company.overview.revenue,
+  revenueBasis: company.revenue_basis,
   fiscalYearLabel: company.financial_overview.fiscalYearLabel,
   segments: segments
     .sort((a, b) => a.sort_order - b.sort_order)
@@ -232,26 +234,23 @@ export async function getCompanyByTicker(
     return undefined;
   }
 
-  const slug = ticker.toLowerCase() === "aapl"
-    ? "apple"
-    : ticker.toLowerCase() === "msft"
-      ? "microsoft"
-      : ticker.toLowerCase() === "googl"
-        ? "google"
-        : ticker.toLowerCase() === "nvda"
-          ? "nvidia"
-          : ticker.toLowerCase() === "amzn"
-            ? "amazon"
-            : ticker.toLowerCase() === "meta"
-              ? "meta"
-              : undefined;
+  const { data, error } = await supabase
+    .from("companies")
+    .select("slug")
+    .eq("ticker", ticker.toUpperCase())
+    .maybeSingle();
 
-  if (!slug) {
+  if (error) {
+    console.error("Supabase company ticker lookup error:", error);
+    throw new Error(error.message);
+  }
+
+  if (!data) {
     return undefined;
   }
 
   return {
-    slug,
+    slug: data.slug,
     company,
   };
 }
@@ -286,6 +285,7 @@ export async function getAllCompanies(): Promise<
       ticker,
       exchange,
       industry,
+      revenue_basis,
       logo_initial,
       logo,
       tagline,

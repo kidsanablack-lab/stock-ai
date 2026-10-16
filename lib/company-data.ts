@@ -55,9 +55,6 @@ export async function getAllCompanyProfiles(): Promise<
   return getAllCompaniesFromSource();
 }
 
-/**
- * Get all companies except the current company.
- */
 export async function getOtherCompanyProfiles(
   currentSlug: string,
 ): Promise<
@@ -67,12 +64,54 @@ export async function getOtherCompanyProfiles(
   }[]
 > {
   const lowerCurrentSlug = currentSlug.toLowerCase();
-
   const companies = await getAllCompanyProfiles();
 
-  return companies.filter(
-    ({ slug }) => slug !== lowerCurrentSlug,
-  );
+  const relatedCompanies: Record<string, string[]> = {
+  adobe: ["salesforce", "microsoft", "oracle", "palantir"],
+  amazon: ["walmart", "microsoft", "google", "costco"],
+  amd: ["nvidia", "broadcom", "tsmc", "microsoft"],
+  apple: ["microsoft", "google", "adobe", "nvidia"],
+  "berkshire-hathaway": ["jpmorgan-chase", "coca-cola", "apple", "visa"],
+  broadcom: ["nvidia", "amd", "tsmc", "oracle"],
+  chevron: ["exxon-mobil", "nextera-energy", "walmart", "costco"],
+  "coca-cola": ["mcdonald-s", "costco", "walmart", "nike"],
+  costco: ["walmart", "amazon", "coca-cola", "mcdonald-s"],
+  "eli-lilly": ["johnson-johnson", "unitedhealth-group", "mastercard", "visa"],
+  "exxon-mobil": ["chevron", "nextera-energy", "walmart", "costco"],
+  google: ["microsoft", "meta", "amazon", "adobe"],
+  "johnson-johnson": ["eli-lilly", "unitedhealth-group", "walmart", "costco"],
+  "jpmorgan-chase": ["visa", "mastercard", "paypal", "berkshire-hathaway"],
+  mastercard: ["visa", "paypal", "jpmorgan-chase", "berkshire-hathaway"],
+  "mcdonald-s": ["coca-cola", "walmart", "costco", "nike"],
+  meta: ["google", "amazon", "microsoft", "netflix"],
+  microsoft: ["google", "amazon", "adobe", "salesforce"],
+  netflix: ["meta", "amazon", "google", "mcdonald-s"],
+  "nextera-energy": ["chevron", "exxon-mobil", "walmart", "costco"],
+  nike: ["walmart", "costco", "amazon", "coca-cola"],
+  nvidia: ["amd", "broadcom", "tsmc", "microsoft"],
+  oracle: ["salesforce", "microsoft", "adobe", "palantir"],
+  palantir: ["oracle", "salesforce", "microsoft", "nvidia"],
+  paypal: ["visa", "mastercard", "jpmorgan-chase", "walmart"],
+  salesforce: ["adobe", "oracle", "microsoft", "palantir"],
+  tsmc: ["nvidia", "amd", "broadcom", "apple"],
+  "unitedhealth-group": ["eli-lilly", "johnson-johnson", "walmart", "costco"],
+  visa: ["mastercard", "paypal", "jpmorgan-chase", "berkshire-hathaway"],
+  walmart: ["costco", "amazon", "mcdonald-s", "coca-cola"],
+};
+
+  const priority = relatedCompanies[lowerCurrentSlug] ?? [];
+
+  return companies
+    .filter(({ slug }) => slug.toLowerCase() !== lowerCurrentSlug)
+    .sort((a, b) => {
+      const aIndex = priority.indexOf(a.slug.toLowerCase());
+      const bIndex = priority.indexOf(b.slug.toLowerCase());
+
+      const aPriority = aIndex === -1 ? Infinity : aIndex;
+      const bPriority = bIndex === -1 ? Infinity : bIndex;
+
+      return aPriority - bPriority;
+    });
 }
 
 export async function getExternalFinancialQuote(

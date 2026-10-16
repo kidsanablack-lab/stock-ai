@@ -130,6 +130,15 @@ const [visibleCount, setVisibleCount] =
   useState(PAGE_SIZE);
 
 const companies = useMemo<CompanyListItem[]>(() => {
+  const marketCapInBillions = (company: CompanyProfile) => {
+    const { value, unit } = company.overview.marketCap;
+
+    if (unit === "T") return value * 1000;
+    if (unit === "M") return value / 1000;
+
+    return value;
+  };
+
   return profiles
     .map(({ slug, company }) => ({
       slug,
@@ -140,8 +149,8 @@ const companies = useMemo<CompanyListItem[]>(() => {
     }))
     .sort(
       (a, b) =>
-        b.company.overview.marketCap.value -
-        a.company.overview.marketCap.value,
+        marketCapInBillions(b.company) -
+        marketCapInBillions(a.company),
     );
 }, [profiles]);
 
@@ -612,10 +621,20 @@ const activeCategory: Category | "all" =
         </div>
 
         {/* Scope Score */}
-        <div className="trending-mobile-score">
-          <i className="ti ti-star-filled" />
-          {company.company.scopeScore.score.toFixed(1)}
-        </div>
+        <div
+  className="trending-mobile-score"
+  style={{
+    background:
+      company.company.scopeScore.score >= 9
+        ? "linear-gradient(135deg, #EA8C00, #f59e0b)"
+        : company.company.scopeScore.score >= 7.5
+          ? "linear-gradient(135deg, #3B82F6, #60A5FA)"
+          : "linear-gradient(135deg, #6B7280, #9CA3AF)",
+  }}
+>
+  <i className="ti ti-star-filled" />
+  {company.company.scopeScore.score.toFixed(1)}
+</div>
       </div>
 
       {/* Sector */}
@@ -885,7 +904,11 @@ const activeCategory: Category | "all" =
                         alignItems: "center",
                         gap: 4,
                         background:
-                          "linear-gradient(135deg, #EA8C00, #f59e0b)",
+  company.scopeScore.score >= 9
+    ? "linear-gradient(135deg, #EA8C00, #f59e0b)"
+    : company.scopeScore.score >= 7.5
+      ? "linear-gradient(135deg, #3B82F6, #60A5FA)"
+      : "linear-gradient(135deg, #6B7280, #9CA3AF)",
                         color: "#ffffff",
                         borderRadius: 20,
                         padding: "4px 10px 4px 7px",

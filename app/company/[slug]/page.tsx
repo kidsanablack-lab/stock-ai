@@ -194,6 +194,16 @@ energy: {
     ecosystem,
     competitors,
   } = company;
+  const businessSegmentsDisplayRevenue =
+  businessSegments.revenueBasis === "managed"
+    ? {
+        value: businessSegments.segments.reduce(
+          (sum, segment) => sum + segment.amount.value,
+          0,
+        ),
+        unit: businessSegments.segments[0]?.amount.unit ?? "B",
+      }
+    : businessSegments.totalRevenue;
   const scoreValue = scopeScore.score;
 
 const scoreColor =
@@ -202,6 +212,13 @@ const scoreColor =
     : scoreValue >= 7.5
       ? "#3B82F6"
       : "#6B7280";
+
+const scoreLabel =
+  scoreValue >= 9
+    ? "Excellent"
+    : scoreValue >= 7.5
+      ? "Strong"
+      : "Solid";
 
   // Conic-gradient stops for the segments donut, built from segment percentages.
 const donutStops = businessSegments.segments
@@ -296,7 +313,7 @@ const donutStops = businessSegments.segments
     className="scope-score-badge-label"
     style={{ color: scoreColor }}
   >
-    {scopeScore.label}
+    {scoreLabel}
   </span>
 </div>
 </div>
@@ -323,7 +340,7 @@ const donutStops = businessSegments.segments
     fontSize: 14,
   }}
 >
-  {scopeScore.label}
+  {scoreLabel}
 </span>
                   <span style={{ color: "#d6d6d2", fontSize: 20 }}>|</span>
                   <span style={{ color: "#8b8b88", fontSize: 16 }}>/10</span>
@@ -396,7 +413,20 @@ const donutStops = businessSegments.segments
                 <i className="ti ti-report-money" style={{ fontSize: 16 }}></i>Revenue ({overview.revenueFiscalYear})
               </p>
               <p className="stat-value">{formatFinancialValue(overview.revenue)}</p>
-              <p className="stat-sub" style={{ color: "#2f9e44" }}>{formatYoY(overview.revenueYoY)}</p>
+              <p
+  className="stat-sub"
+  style={{
+    color:
+      overview.revenueYoY.value > 0
+        ? "#2f9e44"
+        : overview.revenueYoY.value < 0
+          ? "#dc2626"
+          : "#6b6b68",
+  }}
+>
+  {formatYoY(overview.revenueYoY)}
+</p>
+
             </div>
           </div>
         </div>
@@ -451,12 +481,18 @@ const donutStops = businessSegments.segments
         </div>
 
         {/* ===== BUSINESS SEGMENTS CARD ===== */}
+        
         <div className="overview-card" style={{ marginTop: 24 }}>
           <div style={{ marginBottom: 20 }}>
             <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18", margin: "0 0 4px" }}>Business Segments</h2>
             <p style={{ fontSize: 13, color: "#6b6b68", margin: 0 }}>
-              Where {identity.name.split(" ")[0]}&apos;s {formatFinancialValue(businessSegments.totalRevenue)} {businessSegments.fiscalYearLabel} comes from
-            </p>
+  Where {identity.name.split(" ")[0]}&apos;s{" "}
+  {formatFinancialValue(businessSegmentsDisplayRevenue)}{" "}
+  {businessSegments.revenueBasis === "managed"
+    ? "Managed Revenue"
+    : businessSegments.fiscalYearLabel}{" "}
+  comes from
+</p>
           </div>
 
           <div
@@ -501,7 +537,7 @@ const donutStops = businessSegments.segments
                   justifyContent: "center",
                 }}
               >
-                <p style={{ fontSize: 22, fontWeight: 600, color: "#1a1a18", margin: 0 }}>{formatFinancialValue(businessSegments.totalRevenue)}</p>
+                <p style={{ fontSize: 22, fontWeight: 600, color: "#1a1a18", margin: 0 }}>{formatFinancialValue(businessSegmentsDisplayRevenue)}</p>
                 <p
   style={{
     fontSize: 12,
@@ -943,12 +979,12 @@ const donutStops = businessSegments.segments
             }}
           >
             <i
-              className={`ti ti-${metric.icon}`}
-              style={{
-                fontSize: 18,
-                color: matchingPanel?.color ?? "#6b6b68",
-              }}
-            />
+  className={`ti ti-${metric.icon}`}
+  style={{
+    fontSize: 18,
+    color: matchingPanel?.highlightColor ?? "#6b6b68",
+  }}
+/>
             {metric.label}
           </div>
 
@@ -1050,7 +1086,13 @@ const donutStops = businessSegments.segments
               return (
                 <div key={panel.label} style={{ background: "#f7f7f5", border: "0.5px solid #e5e5e2", borderRadius: 12, padding: 18 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#6b6b68", fontSize: 12, marginBottom: 14 }}>
-                    <i className={`ti ti-${panel.icon}`} style={{ fontSize: 15, color: panel.color }}></i>
+                    <i
+  className={`ti ti-${panel.icon}`}
+  style={{
+    fontSize: 15,
+    color: panel.highlightColor,
+  }}
+></i>
                     {panel.label}
                   </div>
                   <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", height: 100, gap: 6 }}>
@@ -1071,9 +1113,20 @@ const donutStops = businessSegments.segments
                     })}
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-                    {panel.years.map((year) => (
-                      <span key={year} style={{ fontSize: 10, color: "#9a9a96", flex: 1, textAlign: "center" }}>{year}</span>
-                    ))}
+                    {panel.years.map((year, i) => (
+  <span
+    key={year}
+    style={{
+      fontSize: 10,
+      color: i === panel.years.length - 1 ? "#1a1a18" : "#6b6b68",
+      fontWeight: i === panel.years.length - 1 ? 600 : 400,
+      flex: 1,
+      textAlign: "center",
+    }}
+  >
+    {year}
+  </span>
+))}
                   </div>
                   <p style={{ fontSize: 20, fontWeight: 600, color: "#1a1a18", margin: "12px 0 0" }}>{formatHistoricalValue(panel.values[panel.values.length - 1],panel.unit,)}</p>
                   <p style={{fontSize: 11, color: panel.values[panel.values.length - 1] >= panel.values[panel.values.length - 2]? "#2f9e44": "#dc2626", margin: "2px 0 0", }}> {panel.changeNote} </p>
@@ -1253,9 +1306,19 @@ const donutStops = businessSegments.segments
     }}
   >
     <i
-      className={`ti ti-${c.icon}`}
-      style={{ fontSize: 18, color: c.color }}
-    ></i>
+  className={`ti ti-${
+  c.icon === "figma"
+    ? "palette"
+    : c.icon === "windows"
+      ? "brand-windows"
+      : c.icon === "nvidia"
+        ? "triangle"
+        : c.icon === "amd"
+          ? "brand-amd"
+          : c.icon
+}`}
+  style={{ fontSize: 18, color: c.color }}
+></i>
   </div>
 
   {/* Company Name */}
@@ -1271,10 +1334,19 @@ const donutStops = businessSegments.segments
   </p>
 </div>
                 <p style={{ fontSize: 16, fontWeight: 600, color: "#1a1a18", margin: 0 }}>
-                         {formatFinancialValue(c.marketCap)}
+                         {c.marketCap.unit === "B" && c.marketCap.value >= 1000
+  ? `$${(c.marketCap.value / 1000).toFixed(1)}T`
+  : formatFinancialValue(c.marketCap)}
                 </p>
                 <div style={{ background: "#f7f7f5", borderRadius: 4, height: 6, width: "100%", margin: "6px 0 12px" }}>
-                  <div style={{ background: c.color, height: 6, borderRadius: 4, width: `${c.relativeSize}%` }}></div>
+                  <div
+  style={{
+    background: c.color,
+    height: 6,
+    borderRadius: 4,
+    width: `${Math.min(c.relativeSize, 100)}%`,
+  }}
+></div>
                 </div>
                 <span
                   style={{
@@ -1428,7 +1500,12 @@ const donutStops = businessSegments.segments
     display: "inline-flex",
     alignItems: "center",
     gap: 2,
-    background: "linear-gradient(135deg, #EA8C00, #f59e0b)",
+    background:
+      otherCompany.scopeScore.score >= 9
+        ? "linear-gradient(135deg, #EA8C00, #f59e0b)"
+        : otherCompany.scopeScore.score >= 7.5
+          ? "linear-gradient(135deg, #3B82F6, #60A5FA)"
+          : "linear-gradient(135deg, #6B7280, #9CA3AF)",
     color: "#ffffff",
     borderRadius: 20,
     padding: "2px 7px 2px 5px",

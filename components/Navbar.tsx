@@ -307,7 +307,56 @@ export default function Navbar({ companies }: NavbarProps) {
           ></i>
           Trending
         </Link>
+        
+        <Link
+  href="/compare"
+  className="interactive-link"
+  style={{
+    fontSize: 13,
+    fontWeight: 500,
+    color: "#1a1a18",
+    display: "flex",
+    alignItems: "center",
+    gap: 5,
+    textDecoration: "none",
+    padding: "6px 4px",
+    transition: "color 180ms ease, transform 180ms ease",
+  }}
+>
+  <i
+    className="ti ti-chart-bar"
+    style={{
+      fontSize: 15,
+      color: "#536b48",
+    }}
+  ></i>
+    Compare
+</Link>
 
+<Link
+  href="/valuation-lab"
+  className="interactive-link"
+  style={{
+    fontSize: 13,
+    fontWeight: 500,
+    color: "#1a1a18",
+    display: "flex",
+    alignItems: "center",
+    gap: 5,
+    textDecoration: "none",
+    padding: "6px 4px",
+    transition: "color 180ms ease, transform 180ms ease",
+  }}
+>
+  <i
+    className="ti ti-calculator"
+    style={{
+      fontSize: 15,
+      color: "#536b48",
+    }}
+  ></i>
+  Valuation
+</Link>
       </div>
 
       {/* Dropdown */}

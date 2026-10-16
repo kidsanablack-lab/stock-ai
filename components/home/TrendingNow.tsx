@@ -1,8 +1,14 @@
-"use client";
-
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Fraunces } from "next/font/google";
 import type { CompanyProfile } from "@/types/company";
+import "./trending-now.css";
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--bm-serif",
+  display: "swap",
+});
 
 type TrendingProfile = {
   slug: string;
@@ -13,221 +19,170 @@ type TrendingNowProps = {
   profiles: TrendingProfile[];
 };
 
-export default function TrendingNow({
-  profiles,
-}: TrendingNowProps) {
-  const router = useRouter();
+// Companies shown as full cards (in this order).
+const FEATURED_SLUGS = ["google", "meta", "nvidia", "apple"];
 
-  const trendingSlugs = [
-    "apple",
-    "microsoft",
-    "google",
-    "nvidia",
-    "meta",
-    "amazon",
-  ];
+// Companies shown as small chips under the cards.
+const ALSO_SLUGS = ["microsoft", "amazon"];
 
-  const trendingCompanies = trendingSlugs
-    .map((slug) =>
-      profiles.find((profile) => profile.slug === slug),
-    )
-    .filter(
-      (profile): profile is TrendingProfile =>
-        Boolean(profile),
-    );
+function pickProfiles(profiles: TrendingProfile[], slugs: string[]) {
+  return slugs.flatMap((slug) => {
+    const profile = profiles.find((p) => p.slug === slug);
+    return profile ? [profile] : [];
+  });
+}
+
+// Same score thresholds as before: >= 9, >= 7.5, everything else.
+function getScoreStyle(score: number) {
+  if (score >= 9) {
+    return { dot: "#EA8C00", bg: "#fff1df", text: "#B96A00" };
+  }
+
+  if (score >= 7.5) {
+    return { dot: "#3B82F6", bg: "#eff6ff", text: "#2563c9" };
+  }
+
+  return { dot: "#6B7280", bg: "#f3f4f6", text: "#4b5563" };
+}
+
+export default function TrendingNow({ profiles }: TrendingNowProps) {
+  const featured = pickProfiles(profiles, FEATURED_SLUGS);
+  const also = pickProfiles(profiles, ALSO_SLUGS);
 
   return (
-    <div
-      className="section-block"
-      style={{ marginTop: 32, marginBottom: 32 }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 7,
-          marginBottom: 14,
-        }}
-      >
-        <i
-          className="ti ti-flame"
-          style={{ fontSize: 15, color: "#c2410c" }}
-        />
+    <section className={`tn-section ${fraunces.variable}`}>
+      <div className="tn-band">
+        <div className="tn-head">
+          <div>
+            <div className="tn-eyebrow">
+              <i className="ti ti-flame" />
+              Trending now
+            </div>
 
-        <span
-          style={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: "#1a1a18",
-          }}
-        >
-          Trending now
-        </span>
-      </div>
+            <h2 className="tn-title">
+              Start with companies you already know
+            </h2>
 
-      <div className="trending-grid">
-        {trendingCompanies.map((profile) => {
-          const company = profile.company;
-          const score = company.scopeScore.score;
+            <p className="tn-lead">
+              See what they do, how they make money, and what matters,
+              explained in minutes.
+            </p>
+          </div>
 
-          const scoreColor =
-            score >= 9
-              ? "#EA8C00"
-              : score >= 7.5
-                ? "#3B82F6"
-                : "#6B7280";
+          <Link href="/trending" className="tn-btn tn-btn-desktop">
+            All companies
+            <i className="ti ti-arrow-right" />
+          </Link>
+        </div>
 
-          const scoreBackground =
-            score >= 9
-              ? "#fff1df"
-              : score >= 7.5
-                ? "#eff6ff"
-                : "#f3f4f6";
+        <div className="tn-row">
+          {featured.map((profile) => {
+            const company = profile.company;
+            const score = company.scopeScore.score;
+            const scoreStyle = getScoreStyle(score);
 
-          return (
-            <div
-              key={profile.slug}
-              className="trending-company-card"
-              onClick={() =>
-                router.push(
-                  `/company/${profile.slug}?from=home`,
-                )
-              }
-              style={{
-                background: "#ffffff",
-                border: "0.5px solid #e5e5e2",
-                borderTop: "3px solid #1d3557",
-                borderRadius: 12,
-                padding: 16,
-                cursor: "pointer",
-                minWidth: 0,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 10,
-                }}
+            return (
+              <Link
+                key={profile.slug}
+                href={`/company/${profile.slug}?from=home`}
+                className="tn-card"
               >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    minWidth: 0,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
+                <div className="tn-card-top">
+                  <div className="tn-card-logo">
                     <Image
-  src={company.identity.logo}
-  alt={company.identity.name}
-  width={26}
-  height={26}
-  style={{
-    width: 26,
-    height: 26,
-    objectFit: "contain",
-  }}
-/>
+                      src={company.identity.logo}
+                      alt={company.identity.name}
+                      width={28}
+                      height={28}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        objectFit: "contain",
+                      }}
+                    />
                   </div>
 
-                  <p
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: "#1a1a18",
-                      margin: 0,
-                    }}
-                  >
-                    {company.identity.name}
-                  </p>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    background: scoreBackground,
-                    borderRadius: 999,
-                    padding: "2px 6px 2px 2px",
-                    flexShrink: 0,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: "50%",
-                      background: scoreColor,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span
-                      style={{
-                        color: "#fff",
-                        fontSize: 10,
-                        fontWeight: 700,
-                        lineHeight: 1,
-                      }}
-                    >
-                      {score.toFixed(1)}
+                  <div className="tn-card-title">
+                    <h3 className="tn-card-name">
+                      {company.identity.name}
+                    </h3>
+                    <span className="tn-card-industry">
+                      {company.identity.industry}
                     </span>
                   </div>
 
+                  <div className="tn-card-go">
+                    <i className="ti ti-arrow-up-right" />
+                  </div>
+                </div>
+
+                <p className="tn-card-desc">
+                  {company.overview.whatItDoes}
+                </p>
+
+                <div className="tn-card-foot">
+                  <small>Scope Score</small>
+
                   <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      color: scoreColor,
-                      whiteSpace: "nowrap",
-                    }}
+                    className="tn-score"
+                    style={{ background: scoreStyle.bg }}
                   >
-                    {company.scopeScore.label}
+                    <span
+                      className="tn-score-dot"
+                      style={{ background: scoreStyle.dot }}
+                    >
+                      {score.toFixed(1)}
+                    </span>
+
+                    <span
+                      className="tn-score-label"
+                      style={{ color: scoreStyle.text }}
+                    >
+                      {company.scopeScore.label}
+                    </span>
                   </span>
                 </div>
-              </div>
+              </Link>
+            );
+          })}
+        </div>
 
-              <p
-                style={{
-                  fontSize: 10,
-                  color: "#9a9a96",
-                  textTransform: "uppercase",
-                  letterSpacing: 0.3,
-                  margin: "2px 0 8px",
-                }}
-              >
-                {company.identity.industry}
-              </p>
+        <div className="tn-also">
+          <span className="tn-also-label">Also trending</span>
 
-              <p
-                style={{
-                  fontSize: 11,
-                  color: "#6b6b68",
-                  lineHeight: 1.5,
-                  margin: "0 0 10px",
-                }}
-              >
-                {company.overview.whatItDoes}
-              </p>
-            </div>
-          );
-        })}
+          {also.map((profile) => (
+            <Link
+              key={profile.slug}
+              href={`/company/${profile.slug}?from=home`}
+              className="tn-pill"
+            >
+              <span className="tn-pill-logo">
+                <Image
+                  src={profile.company.identity.logo}
+                  alt=""
+                  width={14}
+                  height={14}
+                  style={{
+                    width: 14,
+                    height: 14,
+                    objectFit: "contain",
+                  }}
+                />
+              </span>
+              {profile.company.identity.name}
+            </Link>
+          ))}
+
+          <Link href="/trending" className="tn-pill is-more">
+            Browse all
+          </Link>
+        </div>
+
+        <Link href="/trending" className="tn-btn tn-btn-mobile">
+          All companies
+          <i className="ti ti-arrow-right" />
+        </Link>
       </div>
-    </div>
+    </section>
   );
 }

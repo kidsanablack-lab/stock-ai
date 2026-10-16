@@ -1,0 +1,1079 @@
+/* =====================================================================
+   7 Powers — detail sections. All classes use the "sp-" prefix.
+   Each <article class="sp-detail"> sets --sp-accent, --sp-tint, --sp-ink.
+   ===================================================================== */
+
+.sp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Article shell ---------- */
+.sp-detail {
+  margin-top: 64px;
+  padding-top: 56px;
+  border-top: 0.5px solid #dcdcd6;
+  scroll-margin-top: 24px;
+}
+
+.sp-detail:first-of-type {
+  margin-top: 40px;
+}
+
+.sp-d-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  margin-bottom: 28px;
+}
+
+.sp-d-number {
+  font-family: var(--sp-serif, Georgia, "Times New Roman", serif);
+  font-size: 76px;
+  line-height: 0.9;
+  letter-spacing: -2px;
+  color: var(--sp-accent);
+  opacity: 0.9;
+}
+
+.sp-d-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sp-accent);
+  margin: 6px 0 10px;
+}
+
+.sp-d-kicker i {
+  font-size: 16px;
+}
+
+.sp-d-title {
+  font-family: var(--sp-serif, Georgia, "Times New Roman", serif);
+  font-size: 36px;
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.7px;
+  color: var(--sp-ink);
+  margin: 0;
+  max-width: 560px;
+}
+
+.sp-d-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9a9a96;
+  margin: 0 0 8px;
+}
+
+.sp-d-h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a18;
+  margin: 0 0 16px;
+}
+
+/* ---------- Simple explanation ---------- */
+.sp-d-simple {
+  background: var(--sp-tint);
+  border-radius: 18px;
+  padding: 24px 28px;
+  margin-bottom: 36px;
+}
+
+.sp-d-simple .sp-d-label {
+  color: var(--sp-accent);
+}
+
+.sp-d-simple-text {
+  font-family: var(--sp-serif, Georgia, "Times New Roman", serif);
+  font-size: 24px;
+  line-height: 1.4;
+  letter-spacing: -0.3px;
+  color: var(--sp-ink);
+  margin: 0;
+  max-width: 680px;
+}
+
+/* ---------- How it works ---------- */
+.sp-d-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 32px;
+  align-items: start;
+  margin-bottom: 36px;
+}
+
+.sp-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sp-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 14px;
+  padding-bottom: 20px;
+}
+
+.sp-step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 34px;
+  bottom: 2px;
+  width: 1.5px;
+  background: color-mix(in srgb, var(--sp-accent) 25%, #ffffff);
+}
+
+.sp-step-marker {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--sp-tint);
+  color: var(--sp-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sp-step:last-child .sp-step-marker {
+  background: var(--sp-accent);
+  color: #ffffff;
+}
+
+.sp-step-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #1a1a18;
+  margin: 5px 0 2px;
+}
+
+.sp-step-text {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #6b6b68;
+  margin: 0;
+}
+
+.sp-loop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sp-accent);
+  margin: 0 0 14px;
+}
+
+.sp-d-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #6b6b68;
+  border-left: 2px solid color-mix(in srgb, var(--sp-accent) 35%, #ffffff);
+  padding-left: 14px;
+  margin: 8px 0 0;
+}
+
+/* ---------- Diagram card ---------- */
+.sp-d-visual {
+  min-width: 0;
+}
+
+.sp-vis {
+  margin: 0;
+  background: #ffffff;
+  border: 0.5px solid #e5e5e2;
+  border-radius: 20px;
+  padding: 22px;
+}
+
+.sp-vis-caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #3a3a36;
+  margin-bottom: 18px;
+}
+
+.sp-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #854f0b;
+  background: #faeeda;
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.sp-fine {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #8a8a86;
+  margin: 14px 0 0;
+}
+
+/* Scale: bars */
+.sp-bars {
+  margin-bottom: 18px;
+}
+
+.sp-bar-row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) 52px;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sp-bar-label strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a18;
+}
+
+.sp-bar-label span {
+  font-size: 12px;
+  color: #8a8a86;
+}
+
+.sp-bar-track {
+  height: 14px;
+  background: #f1f1ee;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.sp-bar-fill {
+  height: 100%;
+  background: var(--sp-accent);
+  border-radius: 999px;
+}
+
+.sp-bar-value {
+  font-family: var(--sp-serif, Georgia, "Times New Roman", serif);
+  font-size: 20px;
+  color: var(--sp-ink);
+  text-align: right;
+}
+
+.sp-bar-axis {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a9a96;
+  margin: 2px 0 0;
+}
+
+/* Scale: table */
+.sp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.sp-table th,
+.sp-table td {
+  text-align: left;
+  padding: 9px 10px;
+  border-top: 0.5px solid #eeeeea;
+}
+
+.sp-table thead th {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a9a96;
+  border-top: none;
+}
+
+.sp-table tbody th {
+  font-weight: 500;
+  color: #3a3a36;
+}
+
+.sp-table td {
+  color: #1a1a18;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Network: graphs */
+.sp-graphs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.sp-graph-card {
+  background: #fafaf7;
+  border-radius: 16px;
+  padding: 14px 10px 16px;
+  text-align: center;
+}
+
+.sp-graph {
+  display: block;
+  width: 100%;
+  max-width: 170px;
+  height: auto;
+  margin: 0 auto 6px;
+}
+
+.sp-graph-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a18;
+  margin: 0 0 2px;
+}
+
+.sp-graph-sub {
+  font-size: 12px;
+  color: var(--sp-accent);
+  margin: 0;
+}
+
+.sp-graph-arrow {
+  font-size: 20px;
+  color: #9a9a96;
+}
+
+/* Counter-positioning: two models */
+.sp-models-head,
+.sp-model-row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.sp-models-head {
+  margin-bottom: 8px;
+}
+
+.sp-model-name {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6b68;
+  background: #f1efe8;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.sp-model-name.is-new {
+  color: #ffffff;
+  background: var(--sp-accent);
+}
+
+.sp-model-row {
+  padding: 12px 0;
+  border-top: 0.5px solid #eeeeea;
+}
+
+.sp-model-topic {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #1a1a18;
+  margin: 0;
+}
+
+.sp-model-cell {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #6b6b68;
+  margin: 0;
+}
+
+.sp-model-cell.is-new {
+  color: #3a3a36;
+}
+
+.sp-model-mobile-label {
+  display: none;
+}
+
+.sp-conflict {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--sp-tint);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: 6px;
+}
+
+.sp-conflict i {
+  font-size: 20px;
+  color: var(--sp-accent);
+  flex-shrink: 0;
+}
+
+.sp-conflict p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--sp-ink);
+  margin: 0;
+}
+
+/* ---------- Business example ---------- */
+.sp-example {
+  background: #fafaf7;
+  border-radius: 22px;
+  padding: 30px 30px 24px;
+  margin-bottom: 20px;
+}
+
+.sp-example-company {
+  font-family: var(--sp-serif, Georgia, "Times New Roman", serif);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  color: #1a1a18;
+  margin: 0 0 8px;
+}
+
+.sp-example-intro {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #3a3a36;
+  margin: 0 0 22px;
+  max-width: 680px;
+}
+
+.sp-points {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sp-point {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: #ffffff;
+  border: 0.5px solid #e5e5e2;
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.sp-point-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--sp-tint);
+  color: var(--sp-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  flex-shrink: 0;
+}
+
+.sp-point-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a18;
+  margin: 2px 0 4px;
+}
+
+.sp-point-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #6b6b68;
+  margin: 0;
+}
+
+.sp-example-caution {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #3a3a36;
+  border-left: 3px solid #854f0b;
+  background: #fdf7ea;
+  border-radius: 0 12px 12px 0;
+  padding: 14px 16px;
+  margin: 14px 0 0;
+}
+
+.sp-example-caution i {
+  font-size: 18px;
+  color: #854f0b;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.sp-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 12px;
+  color: #8a8a86;
+  margin: 18px 0 0;
+}
+
+.sp-sources a {
+  color: #185fa5;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.sp-sources a:hover {
+  color: #042c53;
+}
+
+.sp-sources a:focus-visible {
+  outline: 2px solid #185fa5;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Visa: participants chain */
+.sp-participants {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.sp-participant {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  background: #ffffff;
+  border: 0.5px solid #e5e5e2;
+  border-radius: 14px;
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.sp-participant-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: var(--sp-tint);
+  color: var(--sp-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+}
+
+.sp-participant-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #1a1a18;
+}
+
+.sp-participant.is-hub {
+  background: var(--sp-accent);
+  border-color: var(--sp-accent);
+}
+
+.sp-participant.is-hub .sp-participant-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.sp-participant.is-hub .sp-participant-label {
+  color: #ffffff;
+}
+
+.sp-participant-link {
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  font-size: 14px;
+  color: #9a9a96;
+  background: #fafaf7;
+  border-radius: 50%;
+  padding: 1px;
+}
+
+/* ---------- Why it matters / Limitations ---------- */
+.sp-d-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.sp-panel {
+  border-radius: 18px;
+  padding: 24px 26px 10px;
+}
+
+.sp-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sp-panel li {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #3a3a36;
+  padding: 12px 0;
+  border-top: 0.5px solid rgba(17, 24, 39, 0.08);
+}
+
+.sp-panel-why {
+  background: var(--sp-tint);
+}
+
+.sp-panel-why .sp-d-h4 {
+  color: var(--sp-ink);
+}
+
+.sp-panel-why .sp-d-h4 i {
+  color: var(--sp-accent);
+  font-size: 18px;
+}
+
+.sp-panel-limits {
+  background: #fdf7ea;
+}
+
+.sp-panel-limits .sp-d-h4 i {
+  color: #854f0b;
+  font-size: 18px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .sp-d-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .sp-d-number {
+    font-size: 60px;
+  }
+
+  .sp-d-title {
+    font-size: 30px;
+  }
+
+  .sp-d-simple-text {
+    font-size: 21px;
+  }
+}
+
+@media (max-width: 700px) {
+  .sp-points,
+  .sp-d-split {
+    grid-template-columns: 1fr;
+  }
+
+  .sp-participants {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .sp-participant {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 12px 14px;
+    text-align: left;
+  }
+
+  .sp-participant-link {
+    right: auto;
+    left: 28px;
+    top: auto;
+    bottom: -13px;
+    transform: rotate(90deg);
+  }
+}
+
+@media (max-width: 560px) {
+  .sp-detail {
+    padding-top: 40px;
+    margin-top: 48px;
+  }
+
+  .sp-d-head {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sp-d-number {
+    font-size: 48px;
+  }
+
+  .sp-d-title {
+    font-size: 27px;
+  }
+
+  .sp-d-simple {
+    padding: 20px;
+  }
+
+  .sp-d-simple-text {
+    font-size: 19px;
+  }
+
+  .sp-vis {
+    padding: 18px 16px;
+  }
+
+  .sp-bar-row {
+    grid-template-columns: 92px minmax(0, 1fr) 44px;
+    gap: 8px;
+  }
+
+  .sp-graphs {
+    grid-template-columns: 1fr;
+  }
+
+  .sp-graph-arrow {
+    transform: rotate(90deg);
+    justify-self: center;
+  }
+
+  /* counter-positioning: stack the two models under each topic */
+  .sp-models-head {
+    display: none;
+  }
+
+  .sp-model-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .sp-model-mobile-label {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9a9a96;
+    margin-right: 8px;
+  }
+
+  .sp-model-cell.is-new .sp-model-mobile-label {
+    color: var(--sp-accent);
+  }
+
+  .sp-example {
+    padding: 22px 18px 18px;
+  }
+
+  .sp-example-company {
+    font-size: 26px;
+  }
+
+  .sp-panel {
+    padding: 20px 20px 6px;
+  }
+}
+
+/* =====================================================================
+   Step 3 additions: Powers 04–07
+   ===================================================================== */
+
+/* ---------- Extra block (types of cornered resources) ---------- */
+.sp-extra {
+  margin-bottom: 36px;
+}
+
+/* ---------- 04 Switching costs: the path ---------- */
+.sp-path {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sp-path > li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding-bottom: 18px;
+}
+
+.sp-path > li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: 40px;
+  bottom: 2px;
+  width: 1.5px;
+  background: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--sp-accent) 45%, #ffffff) 0 5px,
+    transparent 5px 9px
+  );
+}
+
+.sp-path > li:last-child {
+  padding-bottom: 0;
+}
+
+.sp-path-dot {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--sp-tint);
+  color: var(--sp-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+}
+
+.sp-path-end strong {
+  align-self: center;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b6b68;
+}
+
+.sp-path-end.is-goal .sp-path-dot {
+  background: var(--sp-accent);
+  color: #ffffff;
+}
+
+.sp-path-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #1a1a18;
+  margin: 6px 0 3px;
+}
+
+.sp-path-cost {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sp-accent);
+  background: var(--sp-tint);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.sp-path-text {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #6b6b68;
+  margin: 0;
+}
+
+/* ---------- 05 Branding: comparison ---------- */
+.sp-brand-head,
+.sp-brand-row {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.sp-brand-head {
+  margin-bottom: 8px;
+}
+
+.sp-brand-name {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6b68;
+  background: #f1efe8;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.sp-brand-name.is-pref {
+  color: #ffffff;
+  background: var(--sp-accent);
+}
+
+.sp-brand-row {
+  padding: 12px 0;
+  border-top: 0.5px solid #eeeeea;
+}
+
+.sp-brand-topic {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #1a1a18;
+  margin: 0;
+}
+
+.sp-brand-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b6b68;
+  margin: 0;
+}
+
+.sp-brand-cell.is-pref {
+  color: var(--sp-ink);
+  font-weight: 500;
+}
+
+.sp-brand-cell i {
+  color: var(--sp-accent);
+  font-size: 15px;
+}
+
+.sp-brand-mobile {
+  display: none;
+}
+
+/* ---------- 06 Cornered resource: access diagram ---------- */
+.sp-access {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 460px;
+  margin: 0 auto 4px;
+}
+
+/* ---------- 07 Process power: staircase ---------- */
+.sp-stairs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.sp-stair {
+  position: relative;
+  background: var(--sp-tint);
+  border-radius: 14px;
+  padding: 14px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sp-stair.is-top {
+  background: var(--sp-accent);
+}
+
+.sp-stair-num {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-family: var(--sp-serif, Georgia, "Times New Roman", serif);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--sp-accent);
+  opacity: 0.55;
+}
+
+.sp-stair.is-top .sp-stair-num,
+.sp-stair.is-top .sp-stair-label,
+.sp-stair.is-top .sp-stair-text {
+  color: #ffffff;
+}
+
+.sp-stair-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sp-ink);
+  margin: 0 0 4px;
+}
+
+.sp-stair-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #5f5e5a;
+  margin: 0;
+}
+
+.sp-stairs-axis {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--sp-accent);
+  margin: 12px 0 0;
+}
+
+/* ---------- Responsive (step 3) ---------- */
+@media (max-width: 560px) {
+  .sp-stairs {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .sp-stair {
+    min-height: 0 !important;
+    justify-content: flex-start;
+    padding-right: 40px;
+  }
+
+  .sp-brand-head {
+    display: none;
+  }
+
+  .sp-brand-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .sp-brand-mobile {
+    display: inline-block;
+    min-width: 66px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9a9a96;
+  }
+}

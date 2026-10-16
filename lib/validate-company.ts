@@ -123,11 +123,12 @@ export function validateCompany(
     );
   }
 
-  const segmentRevenueTotal = segments.reduce(
-    (sum, segment) => sum + segment.amount.value,
-    0,
-  );
+const segmentRevenueTotal = segments.reduce(
+  (sum, segment) => sum + segment.amount.value,
+  0,
+);
 
+if (businessSegments.revenueBasis === "reported") {
   if (
     Math.abs(
       segmentRevenueTotal - businessSegments.totalRevenue.value,
@@ -141,15 +142,20 @@ export function validateCompany(
       }${businessSegments.totalRevenue.unit}.`,
     );
   }
+}
     // ─────────────────────────────────────────────
   // Segment-Level Revenue ↔ Percentage Integrity
   // ─────────────────────────────────────────────
 
-  for (const segment of segments) {
-    const expectedPercentage =
-      (segment.amount.value /
-        businessSegments.totalRevenue.value) *
-      100;
+for (const segment of segments) {
+  const percentageBase =
+  businessSegments.revenueBasis === "managed" ||
+  businessSegments.revenueBasis === "segment"
+    ? segmentRevenueTotal
+    : businessSegments.totalRevenue.value;
+
+  const expectedPercentage =
+    (segment.amount.value / percentageBase) * 100;
 
     if (
       Math.abs(expectedPercentage - segment.percentage) >

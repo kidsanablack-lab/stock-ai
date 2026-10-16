@@ -10,7 +10,7 @@ const LINK_COLUMNS: { title: string; links: FooterLink[] }[] = [
     links: [
       { label: "All companies", href: "/trending" },
       { label: "Trending", href: "/trending" },
-      { label: "Categories", href: "/trending" },
+      { label: "7 Powers of Business", href: "/7-powers" },
     ],
   },
   {

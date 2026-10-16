@@ -176,6 +176,14 @@ export interface BusinessSegments {
   totalRevenue: FinancialValue;
 
   /**
+   * Revenue basis used for the segment breakdown.
+   *
+   * "reported" = revenue reported in the company's primary financial statements.
+   * "managed" = management/operating presentation that may differ from reported revenue.
+   */
+  revenueBasis: "reported" | "managed" | "segment";
+
+  /**
    * Fiscal year represented by this revenue breakdown.
    */
   fiscalYearLabel: string;
