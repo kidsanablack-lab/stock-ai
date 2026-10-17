@@ -1,0 +1,45 @@
+/*
+  Autocomplete dropdown styles. These used to be injected globally by the old
+  Navbar (styled-jsx). Other pages (404 search, trending) may still use them,
+  so they live here now. Safe to delete once nothing uses .autocomplete-*.
+*/
+.autocomplete-dropdown {
+  background: #ffffff;
+  border: 1px solid #e5e5e2;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.1);
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.autocomplete-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.autocomplete-item.is-highlighted,
+.autocomplete-item:hover {
+  background: #f4f6f4;
+}
+
+.autocomplete-name {
+  font-weight: 600;
+  color: #1a1a18;
+}
+
+.autocomplete-ticker {
+  font-size: 11px;
+  color: #9a9a96;
+  font-weight: 500;
+}
+
+.autocomplete-empty {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #9a9a96;
+  text-align: center;
+}

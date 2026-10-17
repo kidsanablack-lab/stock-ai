@@ -1,8 +1,9 @@
 @import "tailwindcss";
+@import "./design-tokens.css";
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #172b4d;
 }
 
 @theme inline {
@@ -10,20 +11,15 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+  --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
+} 
 
 * {
   box-sizing: border-box;
 }
 
 html {
+  scroll-padding-top: 80px;
   scroll-behavior: smooth;
   overflow-x: hidden;
 }
@@ -32,13 +28,13 @@ body {
   background: #ffffff;
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
-  overflow-x: hidden;
+  overflow-x: clip;
   text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: rgba(47, 82, 51, 0.14);
-  color: #1a1a18;
+  background: rgb(37 99 235 / 0.18);
+  color: var(--color-ink);
 }
 
 a,
@@ -50,19 +46,14 @@ select {
     color 180ms ease, transform 180ms ease;
 }
 
-a:hover,
-button:hover {
-  transform: translateY(-1px);
-}
+/* Global hover lift removed (Scope design system). */
 
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(47, 82, 51, 0.16);
-  border-color: #2f5233;
+/* Focus ring (in @layer base so Tailwind utilities can override it) */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
 }
 
 .button-soft {

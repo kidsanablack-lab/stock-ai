@@ -128,6 +128,7 @@ export default function AboutPage() {
 
       {/* AI Score breakdown */}
       <div
+      id="ai-score"   
         style={{
           background: "#ffffff",
           border: "0.5px solid #e5e5e2",
@@ -185,7 +186,7 @@ export default function AboutPage() {
       </div>
 
       {/* Data sources */}
-      <div style={{ marginBottom: 40 }}>
+      <div id="data" style={{ marginBottom: 40 }}>
         <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18", margin: "0 0 4px" }}>
           Where the data comes from
         </h2>
