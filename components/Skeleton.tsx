@@ -15,7 +15,7 @@ export default function Skeleton({
 }: SkeletonProps) {
   return (
     <div
-      className="skeleton"
+      className="rounded-md bg-border/70 motion-safe:animate-pulse"
       aria-hidden="true"
       style={{
         width,
