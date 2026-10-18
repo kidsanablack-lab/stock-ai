@@ -1,0 +1,467 @@
+/* =====================================================================
+   Company page styles
+   Imported by app/company/[slug]/page.tsx. These classes are only used
+   by that page, so they live here instead of in globals.css.
+   Colors are still the legacy ones: move them to the design tokens when
+   the Company page is restyled.
+   ===================================================================== */
+
+/* ---------- Links ---------- */
+.interactive-link {
+  color: #6b6b68;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.interactive-link:hover {
+  color: #1a1a18;
+}
+
+/* ---------- Overview card ---------- */
+.overview-card {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid #e5e5e2;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.divider {
+  border-top: 1px solid #e5e5e2;
+  margin: 20px 0;
+}
+
+.stat-box {
+  background: #f7f7f5;
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.stat-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b6b68;
+  margin: 0 0 6px;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a18;
+  margin: 0;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: #9a9a96;
+  margin: 2px 0 0;
+}
+
+.snap-box {
+  background: #f7f7f5;
+  border-radius: 8px;
+  padding: 16px 18px;
+}
+
+.snap-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b6b68;
+}
+
+/* ---------- Overview header ---------- */
+.overview-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.overview-company {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.overview-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.overview-title-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.overview-company-name {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #1a1a18;
+}
+
+.overview-name-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- Scope Score (desktop card, mobile badge) ---------- */
+.scope-score-card {
+  width: 250px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 0.5px solid #e5e5e2;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.scope-score-badge {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .scope-score-card {
+    display: none;
+  }
+
+  .scope-score-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    background: color-mix(in srgb, var(--score-color) 12%, white);
+    padding: 3px 10px 3px 3px;
+    border-radius: 999px;
+  }
+
+  .scope-score-badge-circle {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #ea8c00;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .scope-score-badge-label {
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--score-color);
+  }
+}
+
+/* ---------- Section grid ---------- */
+.section-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1099px) {
+  .section-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 699px) {
+  .section-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Business model flow ----------
+   Tablet (up to 950px): flows with many stages switch from a horizontal
+   row to vertical cards. Phone (up to 600px): every flow does.
+   ------------------------------------------------------------------ */
+.business-model-flow {
+  width: 100%;
+}
+
+@media (max-width: 950px) {
+  .business-model-flow:is(.business-model-many, .business-model-mobile-many) {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .business-model-flow:is(.business-model-many, .business-model-mobile-many)
+    .business-model-stage {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: center !important;
+    gap: 0 !important;
+    padding: 20px 16px !important;
+  }
+
+  .business-model-flow:is(.business-model-many, .business-model-mobile-many)
+    .business-model-stage-icon {
+    flex-shrink: 0;
+  }
+
+  .business-model-flow:is(.business-model-many, .business-model-mobile-many)
+    .business-model-stage-title {
+    width: 100%;
+    min-width: 0 !important;
+    margin: 12px 0 !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .business-model-flow:is(.business-model-many, .business-model-mobile-many)
+    .business-model-stage-tags {
+    width: 100%;
+    min-width: 0;
+    flex: none !important;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center !important;
+    gap: 6px;
+  }
+
+  .business-model-flow:is(.business-model-many, .business-model-mobile-many)
+    .business-model-stage-tags
+    span {
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .business-model-flow:is(.business-model-many, .business-model-mobile-many)
+    .business-model-arrow {
+    width: 100%;
+    height: 36px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .business-model-flow:is(.business-model-many, .business-model-mobile-many)
+    .business-model-arrow-icon {
+    transform: rotate(90deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .business-model-flow {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .business-model-flow .business-model-stage {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: center !important;
+    gap: 0 !important;
+    padding: 20px 16px !important;
+  }
+
+  .business-model-flow .business-model-stage-icon {
+    flex-shrink: 0;
+  }
+
+  .business-model-flow .business-model-stage-title {
+    width: 100%;
+    min-width: 0 !important;
+    margin: 12px 0 !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .business-model-flow .business-model-stage-tags {
+    width: 100%;
+    min-width: 0;
+    flex: none !important;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center !important;
+    gap: 6px;
+  }
+
+  .business-model-flow .business-model-stage-tags span {
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .business-model-flow .business-model-arrow {
+    width: 100%;
+    height: 36px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .business-model-flow .business-model-arrow-icon {
+    transform: rotate(90deg);
+  }
+}
+
+/* ---------- Business ecosystem ---------- */
+.ecosystem-flow {
+  grid-template-columns: minmax(0, 1fr) 44px 200px 44px minmax(0, 1fr);
+}
+
+.ecosystem-developers {
+  min-height: 300px;
+}
+
+@media (max-width: 900px) {
+  .ecosystem-flow {
+    grid-template-columns: minmax(0, 1fr) 36px 180px 36px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .ecosystem-flow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .ecosystem-arrow {
+    height: 32px;
+  }
+
+  .ecosystem-arrow i {
+    transform: rotate(90deg);
+  }
+
+  .ecosystem-apple {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 24px 16px !important;
+  }
+
+  .ecosystem-developers {
+    height: auto !important;
+    min-height: 150px !important;
+    box-sizing: border-box;
+  }
+}
+
+/* ---------- Mobile (up to 700px) ---------- */
+@media (max-width: 700px) {
+  /* Company overview */
+  .overview-card {
+    padding: 16px;
+  }
+
+  .overview-header {
+    gap: 12px;
+  }
+
+  .overview-company {
+    min-width: 0;
+  }
+
+  .overview-title-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .overview-name-pills {
+    min-width: 0;
+  }
+
+  .overview-company-name {
+    font-size: 18px;
+  }
+
+  .overview-card .overview-company > div:last-child > p {
+    max-width: 100% !important;
+    overflow-wrap: break-word;
+  }
+
+  .overview-card > .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .overview-card > div[style*="1.3fr 1fr 1fr"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .overview-card > div[style*="1.3fr 1fr 1fr"] > .stat-box:first-child {
+    grid-column: 1 / -1;
+    grid-row: auto !important;
+  }
+
+  .stat-box {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .stat-value,
+  .stat-sub {
+    overflow-wrap: break-word;
+  }
+
+  /* 30-second summary */
+  .overview-card[style*="margin-top: 24px"] {
+    padding: 16px;
+  }
+
+  .overview-card[style*="margin-top: 24px"] > div:nth-child(2) {
+    padding: 20px 16px !important;
+    gap: 14px !important;
+  }
+
+  .overview-card[style*="margin-top: 24px"] > div:nth-child(2) > div:last-child {
+    min-width: 0;
+  }
+
+  .overview-card[style*="margin-top: 24px"] > div:nth-child(2) p {
+    overflow-wrap: break-word;
+  }
+
+  /* Strengths & risks, financial overview, financial history */
+  .strengths-risks-grid,
+  .financial-overview-metrics,
+  .financial-history-panels {
+    grid-template-columns: 1fr !important;
+  }
+}

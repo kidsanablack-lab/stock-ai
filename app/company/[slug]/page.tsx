@@ -15,6 +15,7 @@ import {
 } from "@/lib/company-data";
 import type { SnapshotMetric } from "@/types/company";
 import Image from "next/image";
+import "../company.css";
 
 type CompanyPageParams = { slug: string };
 type CompanyBackLink = {
