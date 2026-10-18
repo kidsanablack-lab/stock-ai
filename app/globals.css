@@ -120,12 +120,3 @@ select {
   }
 }
 
-/* ===== 404 chips ===== */
-.notfound-chip {
-  transition: transform 150ms ease;
-}
-
-.notfound-chip:hover {
-  transform: translateY(-2px);
-}
-
