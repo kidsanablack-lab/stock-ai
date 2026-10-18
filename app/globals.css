@@ -56,18 +56,6 @@ select {
   }
 }
 
-.button-soft {
-  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
-}
-
-.button-soft:hover {
-  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.06);
-}
-
-.button-soft:active {
-  transform: translateY(0);
-}
-
 .card-surface {
   background: #ffffff;
   border: 1px solid #e5e5e2;
@@ -831,34 +819,7 @@ select {
 .notfound-chip:hover {
   transform: translateY(-2px);
 }
-/* ===== About / How Scope Works page ===== */
-.score-factor-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
 
-.data-source-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-@media (max-width: 768px) {
-  .score-factor-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-  .data-source-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .score-factor-grid {
-    grid-template-columns: 1fr;
-  }
-}
 /* ===== Company Overview — Mobile ===== */
 
 @media (max-width: 700px) {
@@ -993,31 +954,7 @@ select {
   }
 }
  
-.sk-mobile-cards {
-  display: none;
-}
- 
-@media (max-width: 700px) {
-  .sk-desktop-table {
-    display: none;
-  }
- 
-  .sk-mobile-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
- 
-  .sk-results {
-    background: transparent !important;
-    border: none !important;
-    padding: 0 !important;
-  }
- 
-  .sk-search-button {
-    display: none !important;
-  }
-}
+
  /* ===== Company page skeleton ===== */
 .sk-card {
   max-width: 1100px;

@@ -242,23 +242,6 @@
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 900px) {
-  .sp-takeaways {
-    grid-template-columns: 1fr;
-  }
-
-  .sp-takeaway,
-  .sp-takeaway + .sp-takeaway {
-    padding: 24px 0;
-    border-left: none;
-    border-bottom: 0.5px solid #dcdcd6;
-  }
-
-  .sp-takeaway:last-child {
-    border-bottom: none;
-  }
-}
-
 @media (max-width: 700px) {
   .sp-compare-sides {
     grid-template-columns: 1fr;
@@ -281,14 +264,5 @@
 
   .sp-compare-summary {
     font-size: 16px;
-  }
-
-  .sp-closing {
-    padding: 40px 22px 32px;
-    border-radius: 20px;
-  }
-
-  .sp-closing-line {
-    font-size: 30px;
   }
 }
