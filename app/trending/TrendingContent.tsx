@@ -1,24 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import {
-  useMemo,
-  useState,
-} from "react";
+import Link from "next/link";
+import { useMemo, useState, type ChangeEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Container from "@/components/ui/Container";
+import ScopeScore from "@/components/ui/ScopeScore";
+import SectionHeading from "@/components/ui/SectionHeading";
+import { HOME_CATEGORIES, getCategoryKey } from "@/lib/home-categories";
+import { formatGrowth, formatMoney, toBillions } from "@/lib/home-format";
 import type { CompanyProfile } from "@/types/company";
-
-type Category =
-  | "technology"
-  | "consumer"
-  | "finance"
-  | "healthcare"
-  | "energy";
 
 type CompanyListItem = {
   slug: string;
   company: CompanyProfile;
-  category: Category;
+  category: string;
 };
 
 type TrendingContentProps = {
@@ -28,157 +24,102 @@ type TrendingContentProps = {
   }>;
 };
 
-const CATEGORY_META: Record<
-  Category,
-  {
-    label: string;
-    bg: string;
-    color: string;
-    border: string;
-  }
-> = {
-  technology: {
-    label: "Technology",
-    bg: "#EAF2FA",
-    color: "#245B87",
-    border: "#D5E5F2",
-  },
-  consumer: {
-    label: "Consumer",
-    bg: "#FDF0EA",
-    color: "#A44B2C",
-    border: "#F3D8CA",
-  },
-  finance: {
-    label: "Finance",
-    bg: "#F1EFF7",
-    color: "#665A86",
-    border: "#E1DDED",
-  },
-  healthcare: {
-    label: "Healthcare",
-    bg: "#FBECEF",
-    color: "#A04A62",
-    border: "#F0D6DE",
-  },
-  energy: {
-    label: "Energy",
-    bg: "#FBF3E3",
-    color: "#8A641E",
-    border: "#EEDDB8",
-  },
-};
-
 const PAGE_SIZE = 8;
 
-function getCategory(industry: string): Category {
-  const value = industry.toLowerCase();
+const DESKTOP_COLUMNS =
+  "md:grid-cols-[28px_minmax(0,2.4fr)_minmax(0,1.2fr)_1fr_1fr_0.9fr_1.4fr]";
 
-  if (
-    value.includes("bank") ||
-    value.includes("payment") ||
-    value.includes("financial")
-  ) {
-    return "finance";
-  }
+const ROW = `grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 md:gap-3 ${DESKTOP_COLUMNS}`;
 
-  if (
-    value.includes("pharma") ||
-    value.includes("health") ||
-    value.includes("medical")
-  ) {
-    return "healthcare";
-  }
+const CHIP =
+  "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-sm font-medium transition-colors";
+const CHIP_IDLE =
+  "border-border bg-white text-ink hover:border-primary hover:text-primary";
+const CHIP_ACTIVE = "border-primary bg-primary-soft text-primary-ink";
 
-  if (
-    value.includes("energy") ||
-    value.includes("oil") ||
-    value.includes("gas") ||
-    value.includes("utility")
-  ) {
-    return "energy";
-  }
-
-  if (
-    value.includes("consumer") ||
-    value.includes("restaurant") ||
-    value.includes("apparel") ||
-    value.includes("automotive")
-  ) {
-    return "consumer";
-  }
-
-  return "technology";
+function normalize(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function formatFinancialValue(
-  value: number,
-  unit: "B" | "M" | "T",
-) {
-  return `$${value}${unit}`;
+function growthTone(growth: number) {
+  if (!Number.isFinite(growth)) return "text-ink-muted";
+  return growth >= 0 ? "text-success" : "text-danger";
 }
 
-export default function TrendingContent({
-  profiles,
-}: TrendingContentProps) {
+function CompanyLogo({ company }: { company: CompanyProfile }) {
+  const { logo, logoInitial } = company.identity;
+
+  return (
+    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] border border-border bg-white">
+      {logo ? (
+        <Image
+          src={logo}
+          alt=""
+          width={22}
+          height={22}
+          style={{ width: 22, height: 22, objectFit: "contain" }}
+        />
+      ) : (
+        <span className="text-[13px] font-semibold text-ink">
+          {logoInitial}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function MobileStat({
+  label,
+  className = "",
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <span className="min-w-0">
+      <span className="block text-[12.5px] text-ink-muted">{label}</span>
+      <span className={`block text-[15px] font-semibold tabular-nums ${className}`}>
+        {children}
+      </span>
+    </span>
+  );
+}
+
+export default function TrendingContent({ profiles }: TrendingContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-const [query, setQuery] = useState("");
+  const [query, setQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-const [visibleCount, setVisibleCount] =
-  useState(PAGE_SIZE);
+  const companies = useMemo<CompanyListItem[]>(() => {
+    return profiles
+      .map(({ slug, company }) => ({
+        slug,
+        company,
+        category: getCategoryKey(company.identity.industry),
+      }))
+      .sort(
+        (a, b) =>
+          toBillions(b.company.overview.marketCap) -
+          toBillions(a.company.overview.marketCap),
+      );
+  }, [profiles]);
 
-const companies = useMemo<CompanyListItem[]>(() => {
-  const marketCapInBillions = (company: CompanyProfile) => {
-    const { value, unit } = company.overview.marketCap;
-
-    if (unit === "T") return value * 1000;
-    if (unit === "M") return value / 1000;
-
-    return value;
-  };
-
-  return profiles
-    .map(({ slug, company }) => ({
-      slug,
-      company,
-      category: getCategory(
-        company.identity.industry,
-      ),
-    }))
-    .sort(
-      (a, b) =>
-        marketCapInBillions(b.company) -
-        marketCapInBillions(a.company),
-    );
-}, [profiles]);
-
-const categoryParam = searchParams.get("category");
-
-const activeCategory: Category | "all" =
-  categoryParam === "technology" ||
-  categoryParam === "consumer" ||
-  categoryParam === "finance" ||
-  categoryParam === "healthcare" ||
-  categoryParam === "energy"
-    ? categoryParam
-    : "all";
-
-
+  const categoryParam = searchParams.get("category");
+  const activeCategory =
+    HOME_CATEGORIES.find((category) => category.key === categoryParam)?.key ??
+    "all";
 
   const filtered = useMemo(() => {
-    const normalizedQuery = query
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, " ");
+    const normalizedQuery = normalize(query);
 
     return companies.filter(({ company, category }) => {
-      const matchesCategory =
-        activeCategory === "all" ||
-        category === activeCategory;
-
-      if (!matchesCategory) return false;
+      if (activeCategory !== "all" && category !== activeCategory) {
+        return false;
+      }
 
       if (!normalizedQuery) return true;
 
@@ -190,9 +131,7 @@ const activeCategory: Category | "all" =
         company.identity.tagline,
       ]
         .filter(Boolean)
-        .some((value) =>
-          value!.toLowerCase().includes(normalizedQuery),
-        );
+        .some((value) => value!.toLowerCase().includes(normalizedQuery));
     });
   }, [companies, activeCategory, query]);
 
@@ -200,976 +139,262 @@ const activeCategory: Category | "all" =
   const hasMore = visibleCount < filtered.length;
 
   const categoryCounts = useMemo(() => {
-    return {
-      technology: companies.filter(
-        (item) => item.category === "technology",
-      ).length,
-
-      consumer: companies.filter(
-        (item) => item.category === "consumer",
-      ).length,
-
-      finance: companies.filter(
-        (item) => item.category === "finance",
-      ).length,
-
-      healthcare: companies.filter(
-        (item) => item.category === "healthcare",
-      ).length,
-
-      energy: companies.filter(
-        (item) => item.category === "energy",
-      ).length,
-    };
+    return companies.reduce<Record<string, number>>((acc, item) => {
+      acc[item.category] = (acc[item.category] ?? 0) + 1;
+      return acc;
+    }, {});
   }, [companies]);
 
-  const handleCategoryClick = (
-  category: Category | "all",
-) => {
-  const params = new URLSearchParams(searchParams.toString());
+  const categoryTotal = HOME_CATEGORIES.filter(
+    (category) => (categoryCounts[category.key] ?? 0) > 0,
+  ).length;
 
-  if (category === "all") {
-    params.delete("category");
-  } else {
-    params.set("category", category);
-  }
+  const buildCategoryHref = (category: string) => {
+    const params = new URLSearchParams(searchParams.toString());
 
-  setVisibleCount(PAGE_SIZE);
+    if (category === "all") {
+      params.delete("category");
+    } else {
+      params.set("category", category);
+    }
 
-  const queryString = params.toString();
+    const queryString = params.toString();
+    return queryString ? `/trending?${queryString}` : "/trending";
+  };
 
-  router.push(
-    queryString
-      ? `/trending?${queryString}`
-      : "/trending",
-  );
-};
-
-  const handleSearchChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value);
     setVisibleCount(PAGE_SIZE);
   };
 
-  return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: 1080,
-        margin: "0 auto",
-        padding: "40px 20px 72px",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          marginBottom: 24,
-        }}
-      >
-        <h1
-          style={{
-            fontSize: 30,
-            lineHeight: 1.2,
-            fontWeight: 700,
-            color: "#1a1a18",
-            margin: "0 0 8px",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Explore companies
-        </h1>
+  const handleScopeItOut = () => {
+    const normalizedQuery = normalize(query);
+    if (!normalizedQuery) return;
 
-        <p
-          style={{
-            fontSize: 14,
-            lineHeight: 1.6,
-            color: "#777773",
-            margin: "0 0 6px",
-            maxWidth: 620,
-          }}
-        >
-          Understand what companies do, how they make money,
-          and how their businesses are structured.
-        </p>
+    const exactMatch = companies.find((item) =>
+      [
+        item.company.identity.name,
+        item.company.identity.brandName,
+        item.company.identity.ticker,
+        item.slug,
+      ]
+        .filter((value): value is string => Boolean(value))
+        .map((value) => value.toLowerCase())
+        .includes(normalizedQuery),
+    );
 
-        <p
-          style={{
-            fontSize: 12,
-            color: "#9a9a96",
-            margin: 0,
-          }}
-        >
-          {companies.length} companies ·{" "}
-          {
-            Object.values(categoryCounts).filter(
-              (count) => count > 0,
-            ).length
-          }{" "}
-          categories
-        </p>
-      </div>
-
-      {/* Search */}
-<div
-  className="trending-search-row"
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 20,
-  }}
->
-  <div
-    style={{
-      position: "relative",
-      flex: 1,
-    }}
-  >
-    <i
-      className="ti ti-search"
-      style={{
-        position: "absolute",
-        left: 15,
-        top: "50%",
-        transform: "translateY(-50%)",
-        fontSize: 18,
-        color: "#9a9a96",
-        pointerEvents: "none",
-      }}
-    />
-
-    <input
-      type="text"
-      value={query}
-      onChange={handleSearchChange}
-      placeholder="Search company, ticker, or sector..."
-      aria-label="Search companies"
-      style={{
-        width: "100%",
-        height: 46,
-        boxSizing: "border-box",
-        padding: "0 16px 0 44px",
-        border: "1px solid #e5e5e2",
-        borderRadius: 12,
-        background: "#ffffff",
-        color: "#1a1a18",
-        fontSize: 14,
-        outline: "none",
-      }}
-    />
-  </div>
-
-    <button
-    type="button"
-    className="button-soft trending-search-button"
-    onClick={() => {
-      const normalizedQuery = query
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, " ");
-
-      if (!normalizedQuery) return;
-
-      const exactMatch = companies.find((item) =>
-        [
-          item.company.identity.name,
-          item.company.identity.brandName,
-          item.company.identity.ticker,
-          item.slug,
-        ]
-          .filter((value): value is string => Boolean(value))
-          .map((value) => value.toLowerCase())
-          .includes(normalizedQuery),
-      );
-
-      if (exactMatch) {
-        router.push(`/company/${exactMatch.slug}`);
-      }
-    }}
-    style={{
-      flexShrink: 0,
-      height: 46,
-      padding: "0 22px",
-      background: "#2f5233",
-      color: "#ffffff",
-      fontWeight: 700,
-      fontSize: 14,
-      border: "none",
-      borderRadius: 12,
-      cursor: "pointer",
-      whiteSpace: "nowrap",
-    }}
-  >
-    Scope it out
-  </button>
-</div>
-
-      {/* Category filters */}
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 8,
-          marginBottom: 24,
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => handleCategoryClick("all")}
-          style={{
-            cursor: "pointer",
-            fontSize: 12,
-            fontWeight:
-              activeCategory === "all" ? 600 : 500,
-            padding: "7px 14px",
-            borderRadius: 20,
-            border:
-              activeCategory === "all"
-                ? "1px solid #1a1a18"
-                : "1px solid #e5e5e2",
-            background:
-              activeCategory === "all"
-                ? "#1a1a18"
-                : "#ffffff",
-            color:
-              activeCategory === "all"
-                ? "#ffffff"
-                : "#6b6b68",
-          }}
-        >
-          All{" "}
-          <span
-            style={{
-              opacity: 0.7,
-              marginLeft: 3,
-            }}
-          >
-            {companies.length}
-          </span>
-        </button>
-
-        {(Object.keys(CATEGORY_META) as Category[]).map(
-          (category) => {
-            const isActive =
-              activeCategory === category;
-
-            return (
-              <button
-                key={category}
-                type="button"
-                onClick={() =>
-                  handleCategoryClick(category)
-                }
-                style={{
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: isActive ? 600 : 500,
-                  padding: "7px 14px",
-                  borderRadius: 20,
-                  border: `1px solid ${
-                    isActive
-                      ? CATEGORY_META[category].color
-                      : CATEGORY_META[category].border
-                  }`,
-                  background:
-                    CATEGORY_META[category].bg,
-                  color:
-                    CATEGORY_META[category].color,
-                  transition:
-                    "border-color 160ms ease, box-shadow 160ms ease",
-                  boxShadow: isActive
-                    ? `inset 0 0 0 1px ${CATEGORY_META[category].color}`
-                    : "none",
-                }}
-              >
-                {CATEGORY_META[category].label}
-
-                <span
-                  style={{
-                    opacity: 0.65,
-                    marginLeft: 4,
-                  }}
-                >
-                  {categoryCounts[category]}
-                </span>
-              </button>
-            );
-          },
-        )}
-      </div>
-
-      {/* Result count */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 10,
-        }}
-      >
-        <span
-          style={{
-            fontSize: 12,
-            color: "#9a9a96",
-          }}
-        >
-          {filtered.length}{" "}
-          {filtered.length === 1
-            ? "company"
-            : "companies"}
-        </span>
-      </div>
-
-      {visible.length === 0 ? (
-        <div
-          style={{
-            background: "#ffffff",
-            border: "1px solid #e5e5e2",
-            borderRadius: 12,
-            padding: "52px 24px",
-            textAlign: "center",
-          }}
-        >
-          <i
-            className="ti ti-search-off"
-            style={{
-              display: "block",
-              fontSize: 28,
-              color: "#b0b0ac",
-              marginBottom: 10,
-            }}
-          />
-
-          <p
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: "#1a1a18",
-              margin: "0 0 5px",
-            }}
-          >
-            No companies found
-          </p>
-
-          <p
-            style={{
-              fontSize: 12,
-              color: "#9a9a96",
-              margin: 0,
-            }}
-          >
-            Try another company name, ticker, or sector.
-          </p>
-        </div>
-      ) : (
-        <div
-  className="trending-results-container"
-  style={{
-    background: "#ffffff",
-    border: "1px solid #e5e5e2",
-    borderRadius: 12,
-    padding: "8px 24px",
-    marginBottom: 24,
-  }}
->
-          {/* Mobile cards */}
-<div className="trending-mobile-cards">
-  {visible.map((company) => (
-  <div
-    key={company.slug}
-    className="trending-mobile-card"
-    onClick={() =>
-      router.push(
-        `/company/${company.slug}?from=${
-          activeCategory === "all"
-            ? "all-companies"
-            : activeCategory
-        }`,
-      )
+    if (exactMatch) {
+      router.push(`/company/${exactMatch.slug}`);
     }
-  >
-      {/* Top row */}
-      <div className="trending-mobile-card-top">
-        <div className="trending-mobile-company">
-          <div className="trending-mobile-logo">
-            {company.company.identity.logo ? (
-              <Image
-  src={company.company.identity.logo}
-  alt=""
-  width={25}
-  height={25}
-/>
-            ) : (
-              <span>
-                {company.company.identity.logoInitial}
-              </span>
-            )}
+  };
+
+  const fromParam = activeCategory === "all" ? "all-companies" : activeCategory;
+
+  return (
+    <section className="pb-16 pt-10 lg:pb-[72px]">
+      <Container>
+        <p className="mb-3 text-[13px] tabular-nums text-ink-muted">
+          {companies.length} companies · {categoryTotal} categories
+        </p>
+
+        <SectionHeading
+          as="h1"
+          title="Explore companies"
+          description="Understand what companies do, how they make money, and how their businesses are structured."
+        />
+
+        {/* Search */}
+        <div className="mb-5 flex items-center gap-3">
+          <div className="relative flex-1">
+            <i
+              className="ti ti-search pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg text-ink-muted"
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              value={query}
+              onChange={handleSearchChange}
+              placeholder="Search company, ticker, or sector..."
+              aria-label="Search companies"
+              className="h-12 w-full rounded-xl border border-border bg-white pl-11 pr-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
           </div>
 
-          <div className="trending-mobile-company-info">
-            <div className="trending-mobile-name-row">
-              <span className="trending-mobile-name">
-                {company.company.identity.name}
-              </span>
-
-              <span className="trending-mobile-ticker">
-                {company.company.identity.ticker}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Scope Score */}
-        <div
-  className="trending-mobile-score"
-  style={{
-    background:
-      company.company.scopeScore.score >= 9
-        ? "linear-gradient(135deg, #EA8C00, #f59e0b)"
-        : company.company.scopeScore.score >= 7.5
-          ? "linear-gradient(135deg, #3B82F6, #60A5FA)"
-          : "linear-gradient(135deg, #6B7280, #9CA3AF)",
-  }}
->
-  <i className="ti ti-star-filled" />
-  {company.company.scopeScore.score.toFixed(1)}
-</div>
-      </div>
-
-      {/* Sector */}
-      <div className="trending-mobile-sector">
-        {company.company.identity.industry}
-      </div>
-
-      {/* Financials */}
-      <div className="trending-mobile-financials">
-        <div>
-          <span>Market Cap</span>
-          <strong>
-            {formatFinancialValue(
-              company.company.overview.marketCap.value,
-              company.company.overview.marketCap.unit,
-            )}
-          </strong>
-        </div>
-
-        <div>
-          <span>Revenue</span>
-          <strong>
-            {formatFinancialValue(
-              company.company.overview.revenue.value,
-              company.company.overview.revenue.unit,
-            )}
-          </strong>
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
-          {/* Desktop table */}
-          <div
-  className="trending-desktop-table"
-  style={{
-    overflowX: "auto",
-  }}
->
-            <div
-              style={{
-                minWidth: 720,
-              }}
-            >
-              {/* Header */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "44px minmax(260px, 2fr) minmax(130px, 1fr) 96px 100px 100px",
-                  alignItems: "center",
-                  gap: 16,
-                  padding: "12px 0",
-                  borderBottom:
-                    "1px solid #e5e5e2",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "#9a9a96",
-                  }}
-                >
-                  #
-                </span>
-
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "#9a9a96",
-                  }}
-                >
-                  Company
-                </span>
-
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "#9a9a96",
-                  }}
-                >
-                  Sector
-                </span>
-
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "#9a9a96",
-                  }}
-                >
-                  Score
-                </span>
-
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "#9a9a96",
-                  }}
-                >
-                  Market Cap
-                </span>
-
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "#9a9a96",
-                  }}
-                >
-                  Revenue
-                </span>
-              </div>
-
-              {/* Rows */}
-              {visible.map(
-                ({ slug, company }, index) => (
-                  <div
-                    key={slug}
-                    onClick={() =>
-                      router.push(
-                        `/company/${slug}?from=${
-                          activeCategory === "all"
-                            ? "all-companies"
-                            : activeCategory
-                        }`,
-                      )
-                    }
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "44px minmax(260px, 2fr) minmax(130px, 1fr) 96px 100px 100px",
-                      alignItems: "center",
-                      gap: 16,
-                      padding: "16px 0",
-                      borderBottom:
-                        index === visible.length - 1
-                          ? "none"
-                          : "1px solid #f0f0ed",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 12,
-                        color: "#9a9a96",
-                      }}
-                    >
-                      {index + 1}
-                    </span>
-
-                    {/* Company */}
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        minWidth: 0,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 36,
-                          height: 36,
-                          flex: "0 0 36px",
-                          borderRadius: 9,
-                          border: "1px solid #eeeeeb",
-                          background: "#fafaf8",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {company.identity.logo ? (
-                          <Image
-  src={company.identity.logo}
-  alt=""
-  width={23}
-  height={23}
-  style={{
-    width: 23,
-    height: 23,
-    objectFit: "contain",
-  }}
-/>
-                        ) : (
-                          <span
-                            style={{
-                              fontSize: 13,
-                              fontWeight: 700,
-                              color: "#1a1a18",
-                            }}
-                          >
-                            {company.identity.logoInitial}
-                          </span>
-                        )}
-                      </div>
-
-                      <div
-                        style={{
-                          minWidth: 0,
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "baseline",
-                            gap: 7,
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: 14,
-                              fontWeight: 650,
-                              color: "#1a1a18",
-                            }}
-                          >
-                            {company.identity.name}
-                          </span>
-
-                          <span
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              color: "#9a9a96",
-                            }}
-                          >
-                            {company.identity.ticker}
-                          </span>
-                        </div>
-
-                        <div
-                          style={{
-                            fontSize: 12,
-                            color: "#777773",
-                            marginTop: 3,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {company.identity.tagline}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Sector */}
-                    <span
-                      style={{
-                        fontSize: 12,
-                        color: "#6b6b68",
-                      }}
-                    >
-                      {company.identity.industry}
-                    </span>
-
-                    {/* Score */}
-                    <div
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                        background:
-  company.scopeScore.score >= 9
-    ? "linear-gradient(135deg, #EA8C00, #f59e0b)"
-    : company.scopeScore.score >= 7.5
-      ? "linear-gradient(135deg, #3B82F6, #60A5FA)"
-      : "linear-gradient(135deg, #6B7280, #9CA3AF)",
-                        color: "#ffffff",
-                        borderRadius: 20,
-                        padding: "4px 10px 4px 7px",
-                        fontSize: 12,
-                        fontWeight: 600,
-                        width: "fit-content",
-                      }}
-                    >
-                      <i
-                        className="ti ti-star-filled"
-                        style={{
-                          fontSize: 11,
-                          color: "#ffffff",
-                        }}
-                      />
-                      {company.scopeScore.score.toFixed(1)}
-                    </div>
-
-                    {/* Market cap */}
-                    <span
-                      style={{
-                        fontSize: 13,
-                        color: "#1a1a18",
-                      }}
-                    >
-                      {formatFinancialValue(
-                        company.overview.marketCap.value,
-                        company.overview.marketCap.unit,
-                      )}
-                    </span>
-
-                    {/* Revenue */}
-                    <span
-                      style={{
-                        fontSize: 13,
-                        color: "#1a1a18",
-                      }}
-                    >
-                      {formatFinancialValue(
-                        company.overview.revenue.value,
-                        company.overview.revenue.unit,
-                      )}
-                    </span>
-                  </div>
-                ),
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Load more */}
-      {hasMore && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
           <button
             type="button"
-            onClick={() =>
-              setVisibleCount(
-                (value) => value + PAGE_SIZE,
-              )
-            }
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              background: "#ffffff",
-              border: "1px solid #e5e5e2",
-              borderRadius: 10,
-              padding: "10px 22px",
-              fontSize: 13,
-              fontWeight: 600,
-              color: "#1a1a18",
-              cursor: "pointer",
-            }}
+            onClick={handleScopeItOut}
+            className="hidden h-12 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-primary px-[22px] text-[15px] font-semibold text-white transition-colors hover:bg-primary-hover md:inline-flex"
           >
-            Load more
-
-            <i
-              className="ti ti-chevron-down"
-              style={{
-                fontSize: 14,
-              }}
-            />
+            Scope it out
           </button>
         </div>
-      )}
-      <style jsx>{`
-      .trending-desktop-table {
-  display: block;
-}
 
-@media (max-width: 700px) {
-  .trending-desktop-table {
-    display: none;
-  }
-}
-  .trending-mobile-cards {
-    display: none;
-  }
+        {/* Category filters */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          <Link
+            href={buildCategoryHref("all")}
+            scroll={false}
+            onClick={() => setVisibleCount(PAGE_SIZE)}
+            aria-current={activeCategory === "all" ? "true" : undefined}
+            className={`${CHIP} ${activeCategory === "all" ? CHIP_ACTIVE : CHIP_IDLE}`}
+          >
+            All
+            <span className="tabular-nums opacity-70">{companies.length}</span>
+          </Link>
 
-  @media (max-width: 700px) {
-    .trending-mobile-cards {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
+          {HOME_CATEGORIES.map(({ key, label }) => (
+            <Link
+              key={key}
+              href={buildCategoryHref(key)}
+              scroll={false}
+              onClick={() => setVisibleCount(PAGE_SIZE)}
+              aria-current={activeCategory === key ? "true" : undefined}
+              className={`${CHIP} ${activeCategory === key ? CHIP_ACTIVE : CHIP_IDLE}`}
+            >
+              {label}
+              <span className="tabular-nums opacity-70">
+                {categoryCounts[key] ?? 0}
+              </span>
+            </Link>
+          ))}
+        </div>
 
-    .trending-mobile-card {
-      background: #ffffff;
-      border: 1px solid #e5e5e2;
-      border-radius: 12px;
-      padding: 16px;
-      cursor: pointer;
-      transition:
-        border-color 160ms ease,
-        box-shadow 160ms ease,
-        transform 160ms ease;
-    }
+        <p
+          className="mb-3 text-[13px] tabular-nums text-ink-muted"
+          aria-live="polite"
+        >
+          {filtered.length} {filtered.length === 1 ? "company" : "companies"}
+        </p>
 
-    .trending-mobile-card:active {
-      transform: translateY(1px);
-    }
+        {visible.length === 0 ? (
+          <div className="rounded-[20px] border border-border bg-white px-6 py-14 text-center">
+            <i
+              className="ti ti-search-off mb-3 block text-3xl text-ink-muted"
+              aria-hidden="true"
+            />
+            <p className="text-[17px] font-semibold text-ink">
+              No companies found
+            </p>
+            <p className="mt-1 text-[15px] text-ink-muted">
+              Try another company name, ticker, or sector.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div
+              aria-hidden="true"
+              className={`hidden ${DESKTOP_COLUMNS} border-t border-ink px-1 py-2.5 text-[12.5px] text-ink-muted md:grid md:items-center md:gap-3`}
+            >
+              <span>#</span>
+              <span>Company</span>
+              <span>Industry</span>
+              <span className="text-right">Market cap</span>
+              <span className="text-right">Revenue</span>
+              <span className="text-right">Growth</span>
+              <span className="text-right">Scope Score</span>
+            </div>
 
-    .trending-mobile-card-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
+            <ul className="border-t border-border">
+              {visible.map(({ slug, company }, index) => {
+                const growth = company.overview.revenueYoY.value;
+                const tone = growthTone(growth);
 
-    .trending-mobile-company {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      min-width: 0;
-    }
+                return (
+                  <li key={slug}>
+                    <Link
+                      href={`/company/${slug}?from=${fromParam}`}
+                      className={`${ROW} border-b border-border px-1 py-4 text-[15px] text-ink transition-colors hover:bg-surface`}
+                    >
+                      <span className="hidden text-[13px] tabular-nums text-ink-muted md:block">
+                        {index + 1}
+                      </span>
 
-    .trending-mobile-logo {
-      width: 40px;
-      height: 40px;
-      flex: 0 0 40px;
-      border-radius: 10px;
-      border: 1px solid #eeeeeb;
-      background: #fafaf8;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
+                      <span className="flex min-w-0 items-center gap-3">
+                        <CompanyLogo company={company} />
+                        <span className="min-w-0">
+                          <span className="flex min-w-0 items-baseline gap-2">
+                            <b className="min-w-0 truncate font-semibold leading-tight">
+                              {company.identity.name}
+                            </b>
+                            <small className="shrink-0 text-[12.5px] text-ink-muted">
+                              {company.identity.ticker}
+                            </small>
+                          </span>
+                          {company.identity.tagline && (
+                            <span className="mt-0.5 hidden truncate text-[12.5px] text-ink-muted md:block">
+                              {company.identity.tagline}
+                            </span>
+                          )}
+                        </span>
+                      </span>
 
-    .trending-mobile-logo img {
-      width: 25px;
-      height: 25px;
-      object-fit: contain;
-    }
+                      <span className="hidden md:block">
+                        {company.identity.industry}
+                      </span>
 
-    .trending-mobile-logo span {
-      font-size: 14px;
-      font-weight: 700;
-      color: #1a1a18;
-    }
+                      <span className="hidden text-right tabular-nums md:block">
+                        <span className="sr-only">Market cap </span>
+                        {formatMoney(company.overview.marketCap)}
+                      </span>
 
-    .trending-mobile-company-info {
-      min-width: 0;
-    }
+                      <span className="hidden text-right tabular-nums md:block">
+                        <span className="sr-only">Revenue </span>
+                        {formatMoney(company.overview.revenue)}
+                      </span>
 
-    .trending-mobile-name-row {
-      display: flex;
-      align-items: baseline;
-      gap: 7px;
-      flex-wrap: wrap;
-    }
+                      <span
+                        className={`hidden text-right font-semibold tabular-nums md:block ${tone}`}
+                      >
+                        <span className="sr-only">Growth </span>
+                        {formatGrowth(growth)}
+                      </span>
 
-    .trending-mobile-name {
-      font-size: 14px;
-      font-weight: 650;
-      color: #1a1a18;
-    }
+                      <span className="flex justify-end">
+                        <ScopeScore
+                          score={company.scopeScore.score}
+                          label={company.scopeScore.label}
+                          className="shrink-0"
+                        />
+                      </span>
 
-    .trending-mobile-ticker {
-      font-size: 11px;
-      font-weight: 600;
-      color: #9a9a96;
-    }
+                      {/* Mobile details */}
+                      <span className="col-span-2 md:hidden">
+                        <span className="block text-[13px] text-ink-muted">
+                          {company.identity.industry}
+                        </span>
+                        <span className="mt-2.5 grid grid-cols-3 gap-3">
+                          <MobileStat label="Market cap">
+                            {formatMoney(company.overview.marketCap)}
+                          </MobileStat>
+                          <MobileStat label="Revenue">
+                            {formatMoney(company.overview.revenue)}
+                          </MobileStat>
+                          <MobileStat label="Growth" className={tone}>
+                            {formatGrowth(growth)}
+                          </MobileStat>
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
 
-    .trending-mobile-score {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      flex-shrink: 0;
-      background: linear-gradient(
-        135deg,
-        #ea8c00,
-        #f59e0b
-      );
-      color: #ffffff;
-      border-radius: 20px;
-      padding: 5px 9px 5px 7px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .trending-mobile-score i {
-      font-size: 11px;
-    }
-
-    .trending-mobile-sector {
-      margin-top: 14px;
-      font-size: 12px;
-      color: #6b6b68;
-    }
-
-    .trending-mobile-financials {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid #f0f0ed;
-    }
-
-    .trending-mobile-financials div {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 0;
-    }
-
-    .trending-mobile-financials span {
-      font-size: 11px;
-      color: #9a9a96;
-    }
-
-    .trending-mobile-financials strong {
-      font-size: 13px;
-      font-weight: 600;
-      color: #1a1a18;
-      overflow-wrap: break-word;
-    }
-  }
-    @media (max-width: 700px) {
-  .trending-results-container {
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
-    padding: 0 !important;
-    margin-bottom: 24px !important;
-  }
-}
-  @media (max-width: 700px) {
-  .trending-search-button {
-    display: none !important;
-  }
-}
-`}</style>
-    </div>
+        {hasMore && (
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setVisibleCount((value) => value + PAGE_SIZE)}
+              className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-white px-5 text-[15px] font-semibold text-ink transition-colors hover:border-primary hover:text-primary"
+            >
+              Load more
+              <i className="ti ti-chevron-down" aria-hidden="true" />
+            </button>
+          </div>
+        )}
+      </Container>
+    </section>
   );
 }

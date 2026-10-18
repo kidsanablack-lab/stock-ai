@@ -1,43 +1,45 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Container from "@/components/ui/Container";
+import ScopeScore from "@/components/ui/ScopeScore";
+import SectionHeading from "@/components/ui/SectionHeading";
+import FaqList from "@/components/about/FaqList";
 
 type ScoreFactor = {
   key: string;
   label: string;
   weightPct: number;
-  color: string;
+  dot: string;
   description: string;
 };
 
+// One blue ramp, dark to light (chart tokens).
 const SCORE_FACTORS: ScoreFactor[] = [
   {
     key: "business",
     label: "Business Quality",
     weightPct: 30,
-    color: "#1d3557",
+    dot: "bg-chart-1",
     description: "Market position, brand strength, and pricing power.",
   },
   {
     key: "growth",
     label: "Growth",
     weightPct: 25,
-    color: "#2a9d8f",
+    dot: "bg-chart-2",
     description: "Revenue and earnings trajectory, and how sustainable it looks.",
   },
   {
     key: "financial",
     label: "Financial Health",
     weightPct: 25,
-    color: "#e76f51",
+    dot: "bg-chart-3",
     description: "Balance sheet strength, cash flow, and debt levels.",
   },
   {
     key: "risk",
     label: "Risk",
     weightPct: 20,
-    color: "#8d99ae",
+    dot: "bg-chart-4",
     description: "Regulatory, competitive, and market threats to the business.",
   },
 ];
@@ -45,7 +47,6 @@ const SCORE_FACTORS: ScoreFactor[] = [
 type DataSource = {
   key: string;
   icon: string;
-  color: string;
   label: string;
   description: string;
 };
@@ -54,38 +55,33 @@ const DATA_SOURCES: DataSource[] = [
   {
     key: "sec",
     icon: "ti-file-certificate",
-    color: "#185FA5",
     label: "SEC filings",
     description: "10-Ks, 10-Qs, and other public disclosures.",
   },
   {
     key: "earnings",
     icon: "ti-microphone-2",
-    color: "#993C1D",
     label: "Earnings reports & calls",
     description: "Quarterly results and management commentary.",
   },
   {
     key: "market",
     icon: "ti-chart-candle",
-    color: "#854F0B",
     label: "Market data",
     description: "Prices, volume, and valuation multiples.",
   },
 ];
 
 const DISCLAIMERS: string[] = [
-  "The AI Score is not investment advice or a recommendation to buy or sell.",
+  "The Scope Score is not investment advice or a recommendation to buy or sell.",
   "It doesn't predict short-term stock price movements.",
   "It's Scope's own opinion of a business, not a guarantee of future performance.",
   "It doesn't replace advice from a licensed financial professional.",
 ];
 
-type FaqItem = { question: string; answer: string };
-
-const FAQ_ITEMS: FaqItem[] = [
+const FAQ_ITEMS = [
   {
-    question: 'Is a high AI Score a "buy" recommendation?',
+    question: 'Is a high Scope Score a "buy" recommendation?',
     answer:
       "No. It's Scope's summary of how strong we think the underlying business is — not a signal about where the stock price is headed. A great business can still be an expensive stock.",
   },
@@ -106,202 +102,157 @@ const FAQ_ITEMS: FaqItem[] = [
   },
 ];
 
+const BAR_LABEL = `Score weights: ${SCORE_FACTORS.map(
+  (factor) => `${factor.label} ${factor.weightPct}%`,
+).join(", ")}`;
+
 export default function AboutPage() {
-  const router = useRouter();
-  const [openFaq, setOpenFaq] = useState<number | null>(1);
-
-  const toggleFaq = (index: number) => {
-    setOpenFaq((prev) => (prev === index ? null : index));
-  };
-
   return (
-    <div style={{ width: "100%", maxWidth: 900, margin: "0 auto", padding: "32px 12px 64px" }}>
-      {/* Header */}
-      <div style={{ textAlign: "center", maxWidth: 520, margin: "0 auto 40px" }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: "#1a1a18", margin: "0 0 8px" }}>
-          How Scope works
-        </h1>
-        <p style={{ fontSize: 14, color: "#6b6b68", lineHeight: 1.6, margin: 0 }}>
-          The AI Score, the data behind it, and — just as important — what it isn&apos;t.
-        </p>
-      </div>
+    <>
+      {/* Header + Scope Score breakdown */}
+      <section className="pb-16 pt-10 lg:pb-[72px]">
+        <Container>
+          <SectionHeading
+            as="h1"
+            title="How Scope works"
+            description="The Scope Score, the data behind it, and — just as important — what it isn't."
+          />
 
-      {/* AI Score breakdown */}
-      <div
-      id="ai-score"   
-        style={{
-          background: "#ffffff",
-          border: "0.5px solid #e5e5e2",
-          borderRadius: 16,
-          padding: 28,
-          marginBottom: 40,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              background: "linear-gradient(135deg, #EA8C00, #f59e0b)",
-              color: "#ffffff",
-              borderRadius: 20,
-              padding: "4px 10px 4px 7px",
-              fontSize: 12,
-              fontWeight: 600,
-            }}
+            id="ai-score"
+            className="scroll-mt-24 rounded-[24px] border border-border bg-white p-6 shadow-card sm:p-8"
           >
-            <i className="ti ti-star-filled" style={{ fontSize: 11, color: "#fffff" }} />
-            9.1
-          </div>
-          <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18", margin: 0 }}>The AI Score</h2>
-        </div>
-        <p style={{ fontSize: 13, color: "#6b6b68", margin: "0 0 22px", lineHeight: 1.6 }}>
-          A single 0–100 number blending four weighted factors, recalculated every time a company
-          reports.
-        </p>
-
-        <div style={{ display: "flex", height: 10, borderRadius: 6, overflow: "hidden", marginBottom: 20 }}>
-          {SCORE_FACTORS.map((factor) => (
-            <div key={factor.key} style={{ width: `${factor.weightPct}%`, background: factor.color }} />
-          ))}
-        </div>
-
-        <div className="score-factor-grid">
-          {SCORE_FACTORS.map((factor) => (
-            <div key={factor.key}>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
-                <span style={{ width: 9, height: 9, borderRadius: "50%", background: factor.color, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#1a1a18" }}>{factor.label}</span>
-              </div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: factor.color, marginBottom: 4 }}>
-                {factor.weightPct}%
-              </div>
-              <p style={{ fontSize: 11, color: "#6b6b68", lineHeight: 1.5, margin: 0 }}>
-                {factor.description}
-              </p>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <h2 className="font-serif text-[26px] font-normal leading-tight text-ink">
+                The Scope Score
+              </h2>
+              <ScopeScore score={9.1} label="Example score" />
             </div>
-          ))}
-        </div>
-      </div>
+
+            <p className="mt-3 max-w-[620px] text-[17px] leading-relaxed text-ink-muted">
+              A single 0–10 number blending four weighted factors, recalculated
+              every time a company reports.
+            </p>
+
+            <div
+              role="img"
+              aria-label={BAR_LABEL}
+              className="mt-7 flex h-2.5 gap-0.5 overflow-hidden rounded-full"
+            >
+              {SCORE_FACTORS.map((factor) => (
+                <div
+                  key={factor.key}
+                  className={factor.dot}
+                  style={{ flex: factor.weightPct }}
+                />
+              ))}
+            </div>
+
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {SCORE_FACTORS.map((factor) => (
+                <div key={factor.key} className="border-t border-border pt-4">
+                  <h3 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
+                    <span
+                      className={`h-2.5 w-2.5 shrink-0 rounded-full ${factor.dot}`}
+                      aria-hidden="true"
+                    />
+                    {factor.label}
+                  </h3>
+                  <p className="mt-2 font-serif text-[32px] font-medium leading-none tabular-nums text-ink">
+                    {factor.weightPct}%
+                  </p>
+                  <p className="mt-3 text-[14.5px] leading-relaxed text-ink-muted">
+                    {factor.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Container>
+      </section>
 
       {/* Data sources */}
-      <div id="data" style={{ marginBottom: 40 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18", margin: "0 0 4px" }}>
-          Where the data comes from
-        </h2>
-        <p style={{ fontSize: 13, color: "#6b6b68", margin: "0 0 16px" }}>
-          Refreshed quarterly, or sooner when a company reports earnings.
-        </p>
-        <div className="data-source-grid">
-          {DATA_SOURCES.map((source) => (
-            <div
-              key={source.key}
-              style={{
-                background: "#ffffff",
-                border: "0.5px solid #e5e5e2",
-                borderRadius: 12,
-                padding: 16,
-                display: "flex",
-                gap: 10,
-                alignItems: "flex-start",
-              }}
-            >
-              <i className={`ti ${source.icon}`} style={{ fontSize: 18, color: source.color, flexShrink: 0 }} />
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a18", marginBottom: 3 }}>
-                  {source.label}
+      <section id="data" className="scroll-mt-24 bg-surface py-16 lg:py-[72px]">
+        <Container>
+          <SectionHeading
+            title="Where the data comes from"
+            description="Refreshed quarterly, or sooner when a company reports earnings."
+          />
+
+          <ul className="grid gap-6 md:grid-cols-3 md:gap-8">
+            {DATA_SOURCES.map((source) => (
+              <li
+                key={source.key}
+                className="flex items-start gap-4 border-t border-border pt-5"
+              >
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary-ink">
+                  <i className={`ti ${source.icon} text-xl`} aria-hidden="true" />
+                </span>
+                <div>
+                  <h3 className="text-[17px] font-semibold text-ink">
+                    {source.label}
+                  </h3>
+                  <p className="mt-1 text-[15px] leading-relaxed text-ink-muted">
+                    {source.description}
+                  </p>
                 </div>
-                <div style={{ fontSize: 11, color: "#9a9a96", lineHeight: 1.5 }}>{source.description}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </section>
 
       {/* What Scope doesn't do */}
-      <div style={{ background: "#FAFAF7", borderRadius: 16, padding: "24px 28px", marginBottom: 40 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18", margin: "0 0 14px" }}>
-          What Scope doesn&apos;t do
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {DISCLAIMERS.map((text) => (
-            <div key={text} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <i className="ti ti-point" style={{ fontSize: 8, color: "#9a9a96", marginTop: 6, flexShrink: 0 }} />
-              <span style={{ fontSize: 13, color: "#3a3a36", lineHeight: 1.6 }}>{text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <section className="py-16 lg:py-[72px]">
+        <Container>
+          <SectionHeading title="What Scope doesn't do" />
+
+          <ul className="max-w-[760px] border-t border-border">
+            {DISCLAIMERS.map((text) => (
+              <li
+                key={text}
+                className="flex items-start gap-3 border-b border-border px-1 py-4"
+              >
+                <i
+                  className="ti ti-point mt-0.5 shrink-0 text-lg text-ink-muted"
+                  aria-hidden="true"
+                />
+                <span className="text-[16px] leading-relaxed text-ink">
+                  {text}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </section>
 
       {/* FAQ */}
-      <div style={{ marginBottom: 40 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18", margin: "0 0 16px" }}>
-          Frequently asked questions
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {FAQ_ITEMS.map((item, index) => {
-            const isOpen = openFaq === index;
-            return (
-              <div
-                key={item.question}
-                style={{
-                  background: "#ffffff",
-                  border: "0.5px solid #e5e5e2",
-                  borderRadius: 12,
-                  padding: "16px 18px",
-                  cursor: "pointer",
-                }}
-                onClick={() => toggleFaq(index)}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: isOpen ? 10 : 0,
-                  }}
-                >
-                  <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1a18" }}>{item.question}</span>
-                  <i
-                    className={`ti ${isOpen ? "ti-chevron-up" : "ti-chevron-down"}`}
-                    style={{ fontSize: 15, color: "#9a9a96", flexShrink: 0, marginLeft: 12 }}
-                  />
-                </div>
-                {isOpen && (
-                  <p style={{ fontSize: 12, color: "#6b6b68", lineHeight: 1.6, margin: 0 }}>{item.answer}</p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <section className="bg-surface py-16 lg:py-[72px]">
+        <Container>
+          <SectionHeading title="Frequently asked questions" />
+          <div className="max-w-[760px]">
+            <FaqList items={FAQ_ITEMS} defaultOpen={1} />
+          </div>
+        </Container>
+      </section>
 
       {/* Closing */}
-      <div style={{ textAlign: "center", paddingTop: 8 }}>
-        <p style={{ fontSize: 15, color: "#1a1a18", fontWeight: 600, margin: "0 0 14px" }}>
-          Ready to see it in action?
-        </p>
-        <button
-          onClick={() => router.push("/trending")}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            background: "#2F4A32",
-            color: "#ffffff",
-            border: "none",
-            borderRadius: 10,
-            padding: "11px 22px",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          Look up a company
-          <i className="ti ti-arrow-right" style={{ fontSize: 14 }} />
-        </button>
-      </div>
-    </div>
+      <section className="py-16 lg:py-[72px]">
+        <Container>
+          <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="font-serif text-[26px] font-normal leading-tight text-ink">
+              Ready to see it in action?
+            </p>
+            <Link
+              href="/trending"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-[22px] text-[15px] font-semibold text-white transition-colors hover:bg-primary-hover"
+            >
+              Look up a company
+              <i className="ti ti-arrow-right" aria-hidden="true" />
+            </Link>
+          </div>
+        </Container>
+      </section>
+    </>
   );
 }
