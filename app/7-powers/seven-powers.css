@@ -359,3 +359,55 @@
     grid-column: auto;
   }
 }
+/* ---------- Big picture: blue colors ----------
+   Scoped to the Big Picture section so other sections keep their styles. */
+.sp-section:has(#sp-big-picture-title) .sp-section-lead,
+.sp-section:has(#sp-big-picture-title) .sp-level-text {
+  color: var(--color-ink-muted);
+}
+
+.sp-section:has(#sp-big-picture-title) .sp-level {
+  border-color: var(--color-border);
+}
+
+.sp-section:has(#sp-big-picture-title) .sp-level-bars span {
+  background: var(--color-border);
+}
+
+.sp-section:has(#sp-big-picture-title) .sp-level-bars span.is-on {
+  background: var(--color-primary);
+}
+
+.sp-section:has(#sp-big-picture-title) .sp-level-label,
+.sp-section:has(#sp-big-picture-title) .sp-chain-title,
+.sp-section:has(#sp-big-picture-title) .sp-chain-item > i {
+  color: var(--color-ink-muted);
+}
+
+.sp-section:has(#sp-big-picture-title) .sp-level-title,
+.sp-section:has(#sp-big-picture-title) .sp-chain-step {
+  color: var(--color-ink);
+}
+
+.sp-section:has(#sp-big-picture-title) .sp-chain-wrap {
+  background: var(--color-surface);
+}
+
+.sp-section:has(#sp-big-picture-title) .sp-chain-step {
+  border-color: var(--color-border);
+}
+
+.sp-section:has(#sp-big-picture-title) .sp-chain-item:last-child .sp-chain-step {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.sp-section:has(#sp-big-picture-title) .sp-note {
+  border-left-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary-soft) 45%, white);
+}
+
+.sp-section:has(#sp-big-picture-title) .sp-note i {
+  color: var(--color-primary);
+}

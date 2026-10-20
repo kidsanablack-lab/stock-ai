@@ -22,8 +22,10 @@ import BuilderSection from "./BuilderSection";
 import CalculatorSection from "./CalculatorSection";
 import DcaSection from "./DcaSection";
 import OverviewSection from "./OverviewSection";
+import RebalanceSection from "./RebalanceSection";
 import RiskSection from "./RiskSection";
 import TemplatesSection from "./TemplatesSection";
+import WhatIfSection from "./WhatIfSection";
 
 function scrollToId(id: string) {
   const element = document.getElementById(id);
@@ -152,6 +154,8 @@ export default function PortfolioLab() {
       <DcaSection currency={state.currency} summary={summary} />
 
       <CalculatorSection currency={state.currency} />
+      <WhatIfSection summary={summary} currency={state.currency} />
+      <RebalanceSection summary={summary} currency={state.currency} />
     </>
   );
 }

@@ -69,9 +69,30 @@ export default function Navbar({ companies }: NavbarProps) {
             <CompanySearch
               companies={companies}
               variant="compact"
-              className="min-w-0 flex-1 lg:w-56 lg:flex-none xl:w-64"
+              className="min-w-0 flex-1 lg:w-48 lg:flex-none xl:w-64"
             />
           )}
+
+          <Link
+            href="/watchlist"
+            aria-label="Watchlist"
+            aria-current={pathname === "/watchlist" ? "page" : undefined}
+            onClick={() => setMenuOpen(false)}
+            className={
+              pathname === "/watchlist"
+                ? "hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary bg-primary-soft text-primary-ink transition-colors lg:inline-flex"
+                : "hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border text-ink transition-colors hover:bg-surface lg:inline-flex"
+            }
+          >
+            <i
+              className={
+                pathname === "/watchlist"
+                  ? "ti ti-star-filled text-xl"
+                  : "ti ti-star text-xl"
+              }
+              aria-hidden="true"
+            />
+          </Link>
 
           <button
             type="button"
@@ -114,6 +135,25 @@ export default function Navbar({ companies }: NavbarProps) {
               </Link>
             );
           })}
+
+          <Link
+            href="/watchlist"
+            aria-current={pathname === "/watchlist" ? "page" : undefined}
+            onClick={() => setMenuOpen(false)}
+            className={
+              pathname === "/watchlist"
+                ? "flex items-center gap-2 rounded-lg bg-surface px-3 py-3 text-[15px] font-medium text-primary"
+                : "flex items-center gap-2 rounded-lg px-3 py-3 text-[15px] font-medium text-ink hover:bg-surface"
+            }
+          >
+            <i
+              className={
+                pathname === "/watchlist" ? "ti ti-star-filled" : "ti ti-star"
+              }
+              aria-hidden="true"
+            />
+            Watchlist
+          </Link>
         </nav>
       )}
     </header>

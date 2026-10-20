@@ -1,0 +1,106 @@
+/* =====================================================================
+   Portfolio Lab — What-if Simulator (Phase 5A).
+   Every class here starts with "pl-wi-" so nothing existing is affected.
+   Shared pieces (panels, cards, tables, buttons) come from the base CSS
+   and portfolio-lab-tools.css.
+   ===================================================================== */
+
+/* ---------- Starting examples ---------- */
+.pl-wi-presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.pl-wi-preset {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-height: 44px;
+  padding: 10px 12px;
+  text-align: left;
+  font: inherit;
+  color: #1a1a18;
+  background: #ffffff;
+  border: 0.5px solid #d6d6d1;
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.pl-wi-preset:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(26, 26, 24, 0.07);
+}
+
+.pl-wi-preset:focus-visible {
+  outline: 2px solid #2f5233;
+  outline-offset: 2px;
+}
+
+.pl-wi-preset.is-active {
+  background: #eef2e6;
+  border-color: #2f5233;
+}
+
+.pl-wi-preset-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.pl-wi-preset small {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #6b6b68;
+}
+
+/* ---------- Category fields ---------- */
+.pl-rates.pl-wi-fieldset {
+  margin: 20px 0 16px;
+}
+
+.pl-wi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 12px;
+  margin-bottom: 10px;
+}
+
+/* ---------- Table ---------- */
+.pl-wi-table {
+  min-width: 620px;
+}
+
+.pl-wi-cat {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #6b6b68;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 520px) {
+  .pl-wi-presets,
+  .pl-wi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-wi-preset {
+    transition: none;
+  }
+
+  .pl-wi-preset:hover {
+    transform: none;
+  }
+}

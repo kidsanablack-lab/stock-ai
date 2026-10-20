@@ -199,7 +199,11 @@ export default function TrendingContent({ profiles }: TrendingContentProps) {
 
         <SectionHeading
           as="h1"
-          title="Explore companies"
+                    title={
+            <>
+              Explore <em className="italic text-primary">companies</em>
+            </>
+          }
           description="Understand what companies do, how they make money, and how their businesses are structured."
         />
 

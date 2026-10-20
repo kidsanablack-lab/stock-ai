@@ -11,16 +11,19 @@ const ILLUSTRATION: { id: CategoryId; share: number }[] = [
 ];
 
 function IllustrationRing() {
-  let cumulative = 0;
+  
 
   return (
     <svg viewBox="0 0 42 42" className="pl-hero-ring" aria-hidden="true">
       <circle cx="21" cy="21" r="15.9155" fill="none" stroke="#eeeeea" strokeWidth="5.5" />
 
-      {ILLUSTRATION.map((segment) => {
+      {ILLUSTRATION.map((segment, index) => {
+        const before = ILLUSTRATION.slice(0, index).reduce(
+          (sum, s) => sum + s.share,
+          0,
+        );
         const dash = segment.share - 1;
-        const start = cumulative + 0.5;
-        cumulative += segment.share;
+        const start = before + 0.5;
 
         return (
           <circle

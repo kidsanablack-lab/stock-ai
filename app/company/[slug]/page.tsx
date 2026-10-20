@@ -15,6 +15,7 @@ import {
 } from "@/lib/company-data";
 import type { SnapshotMetric } from "@/types/company";
 import Image from "next/image";
+import WatchlistButton from "@/components/ui/WatchlistButton";
 import "../company.css";
 
 type CompanyPageParams = { slug: string };
@@ -156,6 +157,10 @@ export default async function CompanyPage({
       href: "/trending",
       label: "Back to trending",
     },
+    watchlist: {
+      href: "/watchlist",
+      label: "Back to watchlist",
+    },
     technology: {
   href: "/trending?category=technology",
   label: "Back to Technology",
@@ -236,6 +241,7 @@ const donutStops = businessSegments.segments
   return (
     <div className="min-h-full bg-white text-zinc-900">
       <main className="mx-auto max-w-6xl px-6 pb-24 pt-8 sm:px-10 sm:pt-12">
+        <div className="flex items-center justify-between gap-4">
         <Link
           href={backLink.href}
           className="interactive-link inline-flex items-center gap-2 text-sm text-zinc-500 transition-colors duration-200"
@@ -255,6 +261,8 @@ const donutStops = businessSegments.segments
           </svg>
            {backLink.label}
         </Link>
+        <WatchlistButton slug={slug} />
+        </div>
 
         {/* ===== COMPANY OVERVIEW CARD ===== */}
         <div className="overview-card">

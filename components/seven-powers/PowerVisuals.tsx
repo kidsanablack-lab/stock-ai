@@ -427,7 +427,7 @@ export function BrandingVisual() {
       </div>
 
       <p className="sp-fine">
-        The features are identical, so the difference sits in customers'
+        The features are identical, so the difference sits in customers &apos;
         minds. In real life, brand preference is hard to measure and can
         change.
       </p>

@@ -53,15 +53,15 @@ export default function DonutChart({
   status,
   totalPercent,
 }: DonutChartProps) {
-  let cumulative = 0;
-
-  const arcs = segments.map((segment) => {
+  
+    const arcs = segments.map((segment, index) => {
+    const cumulative = segments
+      .slice(0, index)
+      .reduce((sum, s) => sum + s.share, 0);
     const multiple = segments.length > 1;
     const gap = multiple ? Math.min(GAP, segment.share * 0.4) : 0;
     const dash = Math.max(segment.share - gap, 0.2);
     const start = cumulative + gap / 2;
-
-    cumulative += segment.share;
 
     return {
       segment,
