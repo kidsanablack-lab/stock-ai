@@ -144,7 +144,7 @@ export default function TemplatesSection({
                   type="button"
                   className="pl-btn pl-btn-primary pl-template-use"
                   onClick={() => handleUse(template)}
-                  aria-label={`Use the ${template.name} template`}
+                  aria-label={`Use this template: ${template.name}`}
                 >
                   Use This Template
                   <i className="ti ti-arrow-right" aria-hidden="true" />

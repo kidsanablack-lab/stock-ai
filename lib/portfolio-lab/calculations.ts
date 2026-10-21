@@ -321,7 +321,7 @@ export function generateObservations(summary: PortfolioSummary): Observation[] {
       id: "largest-holding",
       tone: "info",
       title: "Your largest holding is cash",
-      text: `${largest.displayName} is ${formatPercent(largest.percent)} of the initial investment. Money kept as cash is less exposed to market price swings, but cash can lose buying power to inflation and may earn little interest.`,
+      text: `${largest.displayName} is ${formatPercent(largest.percent)} of the initial investment. Money kept as cash is less exposed to market price swings, but cash can lose purchasing power to inflation and may earn little interest.`,
     });
   } else if (largest.percent >= LARGE_HOLDING_PERCENT) {
     observations.push({

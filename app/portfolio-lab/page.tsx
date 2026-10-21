@@ -5,6 +5,7 @@ import GettingStarted from "@/components/portfolio-lab/GettingStarted";
 import HeroSection from "@/components/portfolio-lab/HeroSection";
 import PortfolioLab from "@/components/portfolio-lab/PortfolioLab";
 import "./portfolio-lab.css";
+import LearnSection from "@/components/portfolio-lab/LearnSection";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function PortfolioLabPage() {
       <GettingStarted />
       <PortfolioLab />
       <Disclaimer />
+      <LearnSection />
     </div>
   );
 }

@@ -13,12 +13,12 @@
      currentPercent   = currentAmount / V * 100
      differencePoints = currentPercent - targetPercent   (percentage points)
 
-   Method 1 — buy and sell (theory, no trades are made):
+   Method 1 — adjust existing amounts (theory, no trades are made):
      targetAmount     = V * t / 100
      adjustment       = targetAmount - currentAmount
                         positive = add, negative = reduce
 
-   Method 2 — new contribution only (N = new money, nothing is sold):
+   Method 2 — new contribution only (N = new money, nothing is reduced):
      postTargetAmount = (V + N) * t / 100
      shortfall        = max(0, postTargetAmount - currentAmount)
      new money to a category = N * shortfall / (sum of all shortfalls)
@@ -123,7 +123,7 @@ export type RebalanceRow = {
   /** currentPercent - targetPercent, in percentage points. */
   differencePoints: number;
 
-  /* Method 1: buy and sell (theory) */
+  /* Method 1: adjust existing amounts (theory) */
   targetAmount: number;
   /** targetAmount - currentAmount. Positive = add, negative = reduce. */
   adjustment: number;

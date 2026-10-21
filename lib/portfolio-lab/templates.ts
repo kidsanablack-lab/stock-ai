@@ -15,7 +15,7 @@ export const TEMPLATES: PortfolioTemplate[] = [
     risks: [
       "A conservative label does not mean the portfolio cannot lose value.",
       "Bond prices can fall, for example when interest rates rise or an issuer struggles to repay.",
-      "Cash can lose buying power to inflation and may earn little interest.",
+      "Cash can lose purchasing power to inflation and may earn little interest.",
       "A smaller equity share means less exposure to stock-market growth, and also less exposure to stock-market declines.",
     ],
     context:
@@ -60,7 +60,7 @@ export const TEMPLATES: PortfolioTemplate[] = [
       "A single equity ETF may not be broadly diversified.",
     ],
     context:
-      "Shows how a higher equity share changes a portfolio. Anyone considering a real portfolio should think about how long they can leave the money invested and how they would handle large declines.",
+      "Shows how a higher equity share changes a portfolio. Anyone considering a real portfolio may want to think about how long they can leave the money invested and how they would handle large declines.",
     holdings: [
       { name: "Equity ETF", category: "equity-etf", percent: 80 },
       { name: "Bond ETF", category: "bond-etf", percent: 15 },
@@ -124,7 +124,7 @@ export const TEMPLATES: PortfolioTemplate[] = [
       "Rules, access, and security risks for cryptocurrency differ from traditional assets.",
     ],
     context:
-      "Shows how adding a high-volatility asset changes a portfolio. It is not a view that anyone should or should not own Bitcoin.",
+      "Shows how adding a high-volatility asset changes a portfolio. It is not a view on whether Bitcoin belongs in anyone's portfolio.",
     holdings: [
       { name: "Equity ETF", category: "equity-etf", percent: 70 },
       { name: "Bond ETF", category: "bond-etf", percent: 20 },

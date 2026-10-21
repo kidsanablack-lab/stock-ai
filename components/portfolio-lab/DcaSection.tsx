@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   formatMoney,
   formatPercent,
@@ -14,6 +14,10 @@ import {
   splitContribution,
   yearlyPoints,
 } from "@/lib/portfolio-lab/projection";
+import {
+  defaultDcaFields,
+  type DcaFields,
+} from "@/lib/portfolio-lab/toolInputs";
 import type { CurrencyCode, PortfolioSummary } from "@/lib/portfolio-lab/types";
 import AssumptionsList from "./AssumptionsList";
 import NumberField from "./NumberField";
@@ -23,13 +27,9 @@ import "./portfolio-lab-tools.css";
 type DcaSectionProps = {
   currency: CurrencyCode;
   summary: PortfolioSummary;
-};
-
-const DEFAULT_FIELDS = {
-  initial: "10000",
-  monthly: "500",
-  years: "10",
-  annualReturn: "6",
+  /** The typed values. They live in PortfolioLab so Saved Plans can keep them. */
+  fields: DcaFields;
+  onFieldsChange: (fields: DcaFields) => void;
 };
 
 function yearsText(years: number): string {
@@ -41,11 +41,14 @@ function rowLabel(month: number): string {
   return month % 12 === 0 ? `Year ${month / 12}` : `Month ${month} (end)`;
 }
 
-export default function DcaSection({ currency, summary }: DcaSectionProps) {
-  const [fields, setFields] = useState(DEFAULT_FIELDS);
-
-  const setField = (key: keyof typeof DEFAULT_FIELDS) => (value: string) =>
-    setFields((current) => ({ ...current, [key]: value }));
+export default function DcaSection({
+  currency,
+  summary,
+  fields,
+  onFieldsChange,
+}: DcaSectionProps) {
+  const setField = (key: keyof DcaFields) => (value: string) =>
+    onFieldsChange({ ...fields, [key]: value });
 
   const parsed = useMemo(() => parseProjectionInputs(fields), [fields]);
 
@@ -148,7 +151,7 @@ export default function DcaSection({ currency, summary }: DcaSectionProps) {
             <button
               type="button"
               className="pl-btn pl-btn-quiet"
-              onClick={() => setFields(DEFAULT_FIELDS)}
+              onClick={() => onFieldsChange(defaultDcaFields())}
             >
               <i className="ti ti-restore" aria-hidden="true" />
               Reset these fields

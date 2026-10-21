@@ -409,7 +409,7 @@ export default function WhatIfSection({ summary, currency }: WhatIfSectionProps)
               </li>
               <li>
                 <strong>Your portfolio is unchanged.</strong> Nothing here edits
-                your holdings, and it is not a suggestion to buy or sell
+                your holdings, and it is not a suggestion to change
                 anything.
               </li>
             </ul>

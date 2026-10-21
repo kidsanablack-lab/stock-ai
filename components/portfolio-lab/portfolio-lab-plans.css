@@ -1,0 +1,257 @@
+/* =====================================================================
+   Portfolio Lab — My Portfolio Plans (Phase 6A).
+   Every class here starts with "pl-pn-" so nothing existing is affected.
+   Panels, buttons, status boxes, and confirm boxes come from the base CSS.
+   ===================================================================== */
+
+/* ---------- Privacy note ---------- */
+.pl-pn-privacy {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  background: #eef2e6;
+  border: 0.5px solid #d6dfc7;
+  border-radius: 14px;
+  color: #24391f;
+}
+
+.pl-pn-privacy i {
+  font-size: 20px;
+  line-height: 1.4;
+  color: #2f5233;
+}
+
+.pl-pn-privacy p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+/* ---------- Messages ---------- */
+.pl-pn-message {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+}
+
+.pl-pn-message i {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.pl-pn-message.is-success {
+  background: #eef2e6;
+  border-color: #d6dfc7;
+  color: #24391f;
+}
+
+.pl-pn-message.is-success i {
+  color: #2f5233;
+}
+
+.pl-pn-message.is-error {
+  background: #fdf1ef;
+  border-color: #f1c9c2;
+  color: #5c1d14;
+}
+
+.pl-pn-message.is-error i {
+  color: #b42318;
+}
+
+/* ---------- Save panel ---------- */
+.pl-pn-save {
+  margin-bottom: 24px;
+}
+
+.pl-pn-help {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #6b6b68;
+}
+
+.pl-pn-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.pl-pn-problems {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.pl-pn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.pl-pn-active {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #3a3a36;
+}
+
+.pl-pn-active i {
+  font-size: 17px;
+  line-height: 1.3;
+  color: #2f5233;
+}
+
+.pl-pn-quiet p {
+  margin: 0;
+  color: #6b6b68;
+  font-size: 14px;
+}
+
+/* ---------- Saved list ---------- */
+.pl-pn-list-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 28px 0 14px;
+}
+
+.pl-pn-list-head .pl-h3 {
+  margin: 0;
+}
+
+.pl-pn-count {
+  font-weight: 400;
+  color: #6b6b68;
+}
+
+.pl-pn-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.pl-pn-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.pl-pn-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 18px;
+  background: #ffffff;
+  border: 0.5px solid #e5e5e2;
+  border-radius: 16px;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.pl-pn-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(26, 26, 24, 0.07);
+}
+
+.pl-pn-card.is-active {
+  border-color: #2f5233;
+  box-shadow: 0 0 0 1px #2f5233 inset;
+}
+
+.pl-pn-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pl-pn-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a18;
+  overflow-wrap: anywhere;
+}
+
+.pl-pn-badge {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #24391f;
+  background: #eef2e6;
+  border-radius: 999px;
+}
+
+.pl-pn-summary {
+  margin: 0;
+  font-size: 14px;
+  color: #3a3a36;
+}
+
+.pl-pn-dates {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: #6b6b68;
+}
+
+.pl-pn-rename {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+  .pl-pn-list {
+    grid-template-columns: 1fr;
+  }
+
+  .pl-pn-actions .pl-btn {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-pn-card {
+    transition: none;
+  }
+
+  .pl-pn-card:hover {
+    transform: none;
+  }
+}
+
+/* Disabled buttons must still read as buttons that are switched off. */
+.pl-pn-actions .pl-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

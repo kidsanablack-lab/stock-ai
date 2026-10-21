@@ -32,7 +32,7 @@ export const CATEGORY_NOTES: Record<CategoryId, CategoryNote> = {
   cash: {
     what: "Money held in cash or very short-term, low-risk accounts.",
     canAffect:
-      "Its value does not swing much, but inflation can reduce what it buys, and the interest it earns may be low.",
+      "Its value does not swing much, but inflation can reduce what it can pay for, and the interest it earns may be low.",
   },
   bitcoin: {
     what: "A digital currency.",

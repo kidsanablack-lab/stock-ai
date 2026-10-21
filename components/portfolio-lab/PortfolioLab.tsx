@@ -17,11 +17,14 @@ import {
   labReducer,
 } from "@/lib/portfolio-lab/state";
 import { getTemplate } from "@/lib/portfolio-lab/templates";
+import { defaultToolInputs, type ToolInputs } from "@/lib/portfolio-lab/toolInputs";
+import type { LabState } from "@/lib/portfolio-lab/state";
 import type { PortfolioTemplate } from "@/lib/portfolio-lab/types";
 import BuilderSection from "./BuilderSection";
 import CalculatorSection from "./CalculatorSection";
 import DcaSection from "./DcaSection";
 import OverviewSection from "./OverviewSection";
+import PlansSection from "./PlansSection";
 import RebalanceSection from "./RebalanceSection";
 import RiskSection from "./RiskSection";
 import TemplatesSection from "./TemplatesSection";
@@ -44,6 +47,10 @@ function scrollToId(id: string) {
 export default function PortfolioLab() {
   // The ONLY state. Everything below is derived from it.
   const [state, dispatch] = useReducer(labReducer, initialState);
+
+  // Typed values of the DCA planner, calculator, and rebalancing target.
+  // Kept here (not inside each tool) so Saved Plans can save and restore them.
+  const [tools, setTools] = useState<ToolInputs>(defaultToolInputs);
 
   const [focusId, setFocusId] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
@@ -105,6 +112,14 @@ export default function PortfolioLab() {
     });
   }
 
+  function handleLoadPlan(nextState: LabState, nextTools: ToolInputs) {
+    dispatch({ type: "replaceAll", state: nextState });
+    setTools(nextTools);
+    setAnnouncement("Loaded the saved plan.");
+
+    window.requestAnimationFrame(() => scrollToId("portfolio-builder"));
+  }
+
   function handleEditFromTable(id: string) {
     scrollToId("portfolio-builder");
     setFocusId(id);
@@ -151,11 +166,37 @@ export default function PortfolioLab() {
 
       <RiskSection analysis={analysis} notes={riskNotes} currency={state.currency} />
 
-      <DcaSection currency={state.currency} summary={summary} />
+      <DcaSection
+        currency={state.currency}
+        summary={summary}
+        fields={tools.dca}
+        onFieldsChange={(dca) => setTools((current) => ({ ...current, dca }))}
+      />
 
-      <CalculatorSection currency={state.currency} />
+      <CalculatorSection
+        currency={state.currency}
+        inputs={tools.calculator}
+        onInputsChange={(calculator) =>
+          setTools((current) => ({ ...current, calculator }))
+        }
+      />
+
       <WhatIfSection summary={summary} currency={state.currency} />
-      <RebalanceSection summary={summary} currency={state.currency} />
+
+      <RebalanceSection
+        summary={summary}
+        currency={state.currency}
+        targetInputs={tools.target}
+        onTargetInputsChange={(target) =>
+          setTools((current) => ({ ...current, target }))
+        }
+      />
+
+      <PlansSection
+        labState={state}
+        tools={tools}
+        onLoadPlan={handleLoadPlan}
+      />
     </>
   );
 }

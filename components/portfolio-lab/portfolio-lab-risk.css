@@ -117,7 +117,7 @@
 .pl-cat-row small {
   margin-left: 8px;
   font-size: 12px;
-  color: #9a9a96;
+  color: #6b6b68;
 }
 
 .pl-rank-value {
@@ -274,7 +274,7 @@
 
 .pl-checks i {
   font-size: 8px;
-  color: #9a9a96;
+  color: #6b6b68;
   margin-top: 7px;
 }
 
@@ -320,7 +320,7 @@
 }
 
 .pl-measure-col.is-limits li i {
-  color: #9a9a96;
+  color: #6b6b68;
 }
 
 .pl-risk-closing {

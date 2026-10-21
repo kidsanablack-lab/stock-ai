@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   formatMoney,
   formatPercent,
@@ -17,6 +17,12 @@ import {
   yearlyPoints,
   type ProjectionOutcome,
 } from "@/lib/portfolio-lab/projection";
+import {
+  defaultCalculatorInputs,
+  type CalculatorFields,
+  type CalculatorInputs,
+  type CalculatorMode,
+} from "@/lib/portfolio-lab/toolInputs";
 import type { CurrencyCode } from "@/lib/portfolio-lab/types";
 import AssumptionsList from "./AssumptionsList";
 import NumberField from "./NumberField";
@@ -25,12 +31,10 @@ import "./portfolio-lab-tools.css";
 
 type CalculatorSectionProps = {
   currency: CurrencyCode;
+  /** The typed values. They live in PortfolioLab so Saved Plans can keep them. */
+  inputs: CalculatorInputs;
+  onInputsChange: (inputs: CalculatorInputs) => void;
 };
-
-type Mode = "lump" | "monthly";
-
-const DEFAULT_FIELDS = { initial: "10000", monthly: "300", years: "15" };
-const DEFAULT_RATES = ["3", "6", "9"];
 
 // One color per scenario. The legend also shows the values, so color is
 // never the only way to tell the lines apart.
@@ -41,16 +45,23 @@ function rowLabel(month: number): string {
   return month % 12 === 0 ? `Year ${month / 12}` : `Month ${month} (end)`;
 }
 
-export default function CalculatorSection({ currency }: CalculatorSectionProps) {
-  const [mode, setMode] = useState<Mode>("lump");
-  const [fields, setFields] = useState(DEFAULT_FIELDS);
-  const [rates, setRates] = useState(DEFAULT_RATES);
+export default function CalculatorSection({
+  currency,
+  inputs,
+  onInputsChange,
+}: CalculatorSectionProps) {
+  const { mode, fields, rates } = inputs;
 
-  const setField = (key: keyof typeof DEFAULT_FIELDS) => (value: string) =>
-    setFields((current) => ({ ...current, [key]: value }));
+  const setMode = (next: CalculatorMode) => onInputsChange({ ...inputs, mode: next });
+
+  const setField = (key: keyof CalculatorFields) => (value: string) =>
+    onInputsChange({ ...inputs, fields: { ...fields, [key]: value } });
 
   const setRate = (index: number) => (value: string) =>
-    setRates((current) => current.map((rate, i) => (i === index ? value : rate)));
+    onInputsChange({
+      ...inputs,
+      rates: rates.map((rate, i) => (i === index ? value : rate)),
+    });
 
   // Everything except the return, parsed with the same rules as the DCA planner.
   const base = useMemo(
@@ -221,8 +232,8 @@ export default function CalculatorSection({ currency }: CalculatorSectionProps) 
               type="button"
               className="pl-btn pl-btn-quiet"
               onClick={() => {
-                setFields(DEFAULT_FIELDS);
-                setRates(DEFAULT_RATES);
+                // Resets the numbers only. The chosen mode is kept, as before.
+                onInputsChange({ ...defaultCalculatorInputs(), mode });
               }}
             >
               <i className="ti ti-restore" aria-hidden="true" />

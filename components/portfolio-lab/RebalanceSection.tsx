@@ -27,6 +27,9 @@ type RebalanceSectionProps = {
   /** Read-only. The rebalancing tool never changes the portfolio. */
   summary: PortfolioSummary;
   currency: CurrencyCode;
+  /** The typed target. It lives in PortfolioLab so Saved Plans can keep it. */
+  targetInputs: TargetInputs;
+  onTargetInputsChange: (inputs: TargetInputs) => void;
 };
 
 type Method = "trade" | "contribute";
@@ -38,9 +41,14 @@ function formatPoints(value: number): string {
   return formatSignedPercent(value).replace("%", " pp");
 }
 
-export default function RebalanceSection({ summary, currency }: RebalanceSectionProps) {
-  // Target and settings live here, separate from the portfolio state.
-  const [targetInputs, setTargetInputs] = useState<TargetInputs>(emptyTargetInputs);
+export default function RebalanceSection({
+  summary,
+  currency,
+  targetInputs,
+  onTargetInputsChange,
+}: RebalanceSectionProps) {
+  // The method and the new-contribution amount are view settings, so they
+  // stay here. The target itself belongs to the plan.
   const [method, setMethod] = useState<Method>("trade");
   const [contributionInput, setContributionInput] = useState("0");
 
@@ -76,7 +84,7 @@ export default function RebalanceSection({ summary, currency }: RebalanceSection
   );
 
   function setTargetField(id: CategoryId, value: string) {
-    setTargetInputs((existing) => ({ ...existing, [id]: value }));
+    onTargetInputsChange({ ...targetInputs, [id]: value });
   }
 
   /* ---------- Target status message ---------- */
@@ -144,7 +152,7 @@ export default function RebalanceSection({ summary, currency }: RebalanceSection
               type="button"
               className="pl-btn pl-btn-ghost"
               disabled={baseValue <= 0}
-              onClick={() => setTargetInputs(targetInputsFromCurrent(current))}
+              onClick={() => onTargetInputsChange(targetInputsFromCurrent(current))}
             >
               <i className="ti ti-copy" aria-hidden="true" />
               Copy my current portfolio
@@ -153,7 +161,7 @@ export default function RebalanceSection({ summary, currency }: RebalanceSection
             <button
               type="button"
               className="pl-btn pl-btn-quiet"
-              onClick={() => setTargetInputs(emptyTargetInputs())}
+              onClick={() => onTargetInputsChange(emptyTargetInputs())}
             >
               <i className="ti ti-restore" aria-hidden="true" />
               Clear target
@@ -193,8 +201,8 @@ export default function RebalanceSection({ summary, currency }: RebalanceSection
             <div className="pl-segmented pl-segmented-2">
               {(
                 [
-                  ["trade", "Buy and sell", "A theoretical comparison"],
-                  ["contribute", "New money only", "Add money, sell nothing"],
+                  ["trade", "Adjust existing amounts", "A theoretical comparison"],
+                  ["contribute", "New money only", "Add money, reduce nothing"],
                 ] as const
               ).map(([value, title, note]) => (
                 <label key={value} className="pl-segment">
@@ -221,7 +229,7 @@ export default function RebalanceSection({ summary, currency }: RebalanceSection
               value={contributionInput}
               onChange={setContributionInput}
               error={contribution.error}
-              hint="Money you would add. Nothing is sold."
+              hint="Money you would add. Nothing is reduced."
               prefix={currency}
             />
           )}
@@ -342,8 +350,8 @@ export default function RebalanceSection({ summary, currency }: RebalanceSection
                       {result.contribution <= 0
                         ? " Enter a contribution to see how it could be split."
                         : result.contributionBalances
-                          ? " This new money is enough to reach the target without selling anything."
-                          : " Nothing is sold, so some categories stay above target."}
+                          ? " This new money is enough to reach the target without reducing anything."
+                          : " Nothing is reduced, so some categories stay above target."}
                     </p>
                   </div>
 
@@ -524,7 +532,7 @@ export default function RebalanceSection({ summary, currency }: RebalanceSection
                 unallocated money is not part of the comparison.
               </li>
               <li>
-                <strong>Buy and sell is theory.</strong> It shows the calculated
+                <strong>Adjusting existing amounts is theory.</strong> It shows the calculated
                 difference between your amounts and the target amounts. It is
                 not a list of trades, and Scope never places or connects to
                 orders.
@@ -533,13 +541,13 @@ export default function RebalanceSection({ summary, currency }: RebalanceSection
                 <strong>New money only is different.</strong> New money can only
                 be added, so it can move a mix toward the target but cannot
                 lower a category that is already above it. That is why
-                something may remain above target. It is not the same as selling
-                and buying.
+                something may remain above target. It is not the same as
+                reducing some holdings and adding to others.
               </li>
               <li>
                 <strong>Real life adds costs and limits.</strong> Taxes, trading
                 fees, minimum trade sizes, trading restrictions, price moves
-                before an order is filled, how easily something can be sold,
+                before an order is filled, how easily something can be turned into cash,
                 whether fractional shares are available, and currency
                 conversion costs are all left out. None of them are assumed to
                 be zero. They are simply not modelled, so real results would

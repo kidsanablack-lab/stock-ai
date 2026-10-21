@@ -36,6 +36,7 @@ export type LabAction =
     }
   | { type: "removeHolding"; id: string }
   | { type: "loadTemplate"; templateId: string; holdings: HoldingDraft[] }
+  | { type: "replaceAll"; state: LabState }
   | { type: "reset" };
 
 export function labReducer(state: LabState, action: LabAction): LabState {
@@ -72,6 +73,10 @@ export function labReducer(state: LabState, action: LabAction): LabState {
         holdings: action.holdings,
         loadedTemplateId: action.templateId,
       };
+
+    case "replaceAll":
+      // Used when a saved plan is loaded. The state was validated before.
+      return action.state;
 
     case "reset":
       return initialState;
