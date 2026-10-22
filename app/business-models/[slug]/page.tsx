@@ -181,7 +181,6 @@ export default async function BusinessModelDetailPage({ params }: PageProps) {
   } as CSSProperties;
 
   const chain = detail.howItWorks.chain;
-  const rampSteps = Math.max(chain.length - 2, 1);
 
   return (
     <div className={`bm-shell ${fraunces.variable}`} style={theme}>
