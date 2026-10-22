@@ -1,7 +1,7 @@
 // Run with:  npx tsx --test lib/portfolio-lab/learn.test.ts
 // (run it from the project root: it reads the components folder)
 
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";

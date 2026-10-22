@@ -7,7 +7,7 @@
 // complete, and over-allocated ones. The generator is seeded, so a failure
 // can always be reproduced.
 
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 
 import { buildChartSegments, calculatePortfolio } from "./calculations";

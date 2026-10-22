@@ -1,6 +1,6 @@
 // Run with:  npx tsx --test lib/portfolio-lab/rebalance.test.ts
 
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 
 import { calculatePortfolio } from "./calculations";

@@ -1,7 +1,7 @@
 // Run with:  npx tsx --test lib/portfolio-lab/calculations.test.ts
 // Uses Node's built-in test runner, so no test framework is needed.
 
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 
 import {

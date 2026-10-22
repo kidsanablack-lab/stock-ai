@@ -5,7 +5,7 @@
 // advice, a promise, a prediction, or live market data. This reads the real
 // source files, so a sentence added later is checked too.
 
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";

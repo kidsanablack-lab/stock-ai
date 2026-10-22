@@ -27,12 +27,12 @@ export const metadata: Metadata = {
 
 export default function PortfolioLabPage() {
   return (
-    <div className={`pl-page ${fraunces.variable}`}>
+      <main className={`pl-page ${fraunces.variable}`}>
       <HeroSection />
       <GettingStarted />
       <PortfolioLab />
       <Disclaimer />
       <LearnSection />
-    </div>
+      </main>
   );
 }
