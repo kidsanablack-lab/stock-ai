@@ -46,4 +46,12 @@
   --radius-card: 16px;
   --shadow-card: 0 1px 2px rgba(23, 43, 77, 0.04),
     0 8px 24px rgba(23, 43, 77, 0.06);
+
+    
+      /* สีแยกส่วนแบ่ง (treemap) ใช้เฉพาะแยกหมวดสินค้า */
+  --color-share-1: #2563eb;
+  --color-share-2: #7c3aed;
+  --color-share-3: #06b6d4;
+  --color-share-4: #db2777;
+  --color-share-5: #64748b;
 }

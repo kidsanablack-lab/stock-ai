@@ -8,36 +8,21 @@ export default function KeyTakeaways() {
       className="sp-section"
       aria-labelledby="sp-takeaways-title"
     >
-      <p className="mb-3 text-[12.5px] font-semibold uppercase tracking-[0.14em] text-primary">
-        Key takeaways
-      </p>
+      <p className="sp-section-eyebrow">Key takeaways</p>
 
-      <h2
-        id="sp-takeaways-title"
-        className="mb-10 max-w-[640px] font-serif text-[clamp(30px,4vw,44px)] font-normal leading-[1.08] tracking-[-0.02em] text-ink"
-      >
+      <h2 id="sp-takeaways-title" className="sp-h2">
         What Makes a Business Hard to Beat?
       </h2>
 
-      <ol className="border-t border-border">
+      <ol className="sp-takeaways">
         {TAKEAWAYS.map((item) => (
-          <li
-            key={item.number}
-            className="grid gap-x-8 gap-y-2 border-b border-border px-1 py-6 md:grid-cols-[72px_minmax(0,1fr)_minmax(0,1.5fr)] md:items-baseline"
-          >
-            <span
-              className="font-serif text-[34px] font-medium leading-none tabular-nums text-primary"
-              aria-hidden="true"
-            >
+          <li key={item.number} className="sp-takeaway">
+            <span className="sp-takeaway-number" aria-hidden="true">
               {item.number}
             </span>
 
-            <h3 className="text-[18px] font-semibold leading-snug text-ink">
-              {item.title}
-            </h3>
-            <p className="text-[16px] leading-relaxed text-ink-muted">
-              {item.text}
-            </p>
+            <h3 className="sp-takeaway-title">{item.title}</h3>
+            <p className="sp-takeaway-text">{item.text}</p>
           </li>
         ))}
       </ol>
