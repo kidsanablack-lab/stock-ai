@@ -1,6 +1,23 @@
 import { supabase } from "@/lib/supabase";
 import type { CompanyProfile } from "@/types/company";
+import type { CompanyPageData } from "@/lib/company-next/apple";
 
+export async function getCompanyPage(
+  slug: string,
+): Promise<CompanyPageData | undefined> {
+  const { data, error } = await supabase
+    .from("company_pages")
+    .select("data")
+    .eq("slug", slug.toLowerCase())
+    .maybeSingle();
+
+  if (error) {
+    console.error("Supabase company page query error:", error);
+    return undefined;
+  }
+
+  return (data?.data as CompanyPageData | undefined) ?? undefined;
+}
 type CompanyRow = {
   id: string;
   slug: string;

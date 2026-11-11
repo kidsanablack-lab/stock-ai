@@ -14,15 +14,26 @@ export default function KeyTakeaways() {
         What Makes a Business Hard to Beat?
       </h2>
 
-      <ol className="sp-takeaways">
+      {/* Original look: 3 columns on wide screens, one row per item on phones. */}
+      <ol className="mb-10 mt-7 grid grid-cols-1 border-t-[0.5px] border-[#dcdcd6] min-[901px]:grid-cols-3">
         {TAKEAWAYS.map((item) => (
-          <li key={item.number} className="sp-takeaway">
-            <span className="sp-takeaway-number" aria-hidden="true">
+          <li
+            key={item.number}
+            className="min-w-0 border-b-[0.5px] border-[#dcdcd6] py-6 last:border-b-0 min-[901px]:border-b-0 min-[901px]:border-l-[0.5px] min-[901px]:pb-2 min-[901px]:pl-7 min-[901px]:pr-7 min-[901px]:pt-7 min-[901px]:first:border-l-0 min-[901px]:first:pl-0"
+          >
+            <span
+              className="mb-4 block font-serif text-[52px] leading-none tracking-[-1.5px] text-primary"
+              aria-hidden="true"
+            >
               {item.number}
             </span>
 
-            <h3 className="sp-takeaway-title">{item.title}</h3>
-            <p className="sp-takeaway-text">{item.text}</p>
+            <h3 className="mb-2.5 font-serif text-[22px] font-normal leading-[1.25] tracking-[-0.3px] text-[#1a1a18]">
+              {item.title}
+            </h3>
+            <p className="text-[14px] leading-[1.7] text-[#6b6b68]">
+              {item.text}
+            </p>
           </li>
         ))}
       </ol>

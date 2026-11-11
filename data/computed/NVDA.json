@@ -1,0 +1,36 @@
+{
+ "ticker": "NVDA",
+ "fetchedAt": "2026-11-09T01:35:28.849Z",
+ "computed": {
+  "roic": 87.3,
+  "cashConversion": 82.97,
+  "marginRange": 46.76,
+  "marketCap": 4498.02,
+  "revenueTtm": 302.97,
+  "operatingMargin": 65.21,
+  "netMargin": 63.66,
+  "fcfMargin": 41.92,
+  "growthTtm": 83.38,
+  "growthForecast": 62.42,
+  "growthCagr": 68.3,
+  "topProductShare": null,
+  "netDebtEbitda": -0.37,
+  "worstGrowth": 0.22,
+  "peVsAvg": 0.4,
+  "evEbitdaVsAvg": 0.39,
+  "fcfYield": 2.82
+ },
+ "extra": {
+  "price": 186.64,
+  "pe": 23.595448798988624,
+  "peAvg": 59.712599739337705,
+  "evEbitda": 19.2344865622889,
+  "evAvg": 48.88485162687828,
+  "epsTtm": 7.909999999999999,
+  "fiscalYearEnd": "2026-01-25",
+  "latestQuarter": "2026-07-26",
+  "targetConsensus": 339.17,
+  "targetHigh": 515,
+  "targetLow": 210
+ }
+}

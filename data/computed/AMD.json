@@ -1,0 +1,36 @@
+{
+ "ticker": "AMD",
+ "fetchedAt": "2026-11-09T01:36:47.227Z",
+ "computed": {
+  "roic": 6,
+  "cashConversion": 146.71,
+  "marginRange": 20.43,
+  "marketCap": 733.05,
+  "revenueTtm": 45.44,
+  "operatingMargin": 17.72,
+  "netMargin": 16.77,
+  "fcfMargin": 15.53,
+  "growthTtm": 41.87,
+  "growthForecast": 56.8,
+  "growthCagr": 20.49,
+  "topProductShare": null,
+  "netDebtEbitda": -0.92,
+  "worstGrowth": -3.9,
+  "peVsAvg": 0.79,
+  "evEbitdaVsAvg": 1.59,
+  "fcfYield": 0.96
+ },
+ "extra": {
+  "price": 449.04,
+  "pe": 97.61739130434783,
+  "peAvg": 122.95910138737808,
+  "evEbitda": 64.6627048763251,
+  "evAvg": 40.650387746319076,
+  "epsTtm": 4.6,
+  "fiscalYearEnd": "2025-12-27",
+  "latestQuarter": "2026-09-26",
+  "targetConsensus": 653.81,
+  "targetHigh": 1250,
+  "targetLow": 465
+ }
+}

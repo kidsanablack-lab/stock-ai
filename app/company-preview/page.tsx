@@ -13,6 +13,7 @@ import StrengthsRisks, { type StrengthsRisksData } from "@/components/company-ne
 import MoatEcosystem, { type MoatEcosystemData } from "@/components/company-next/MoatEcosystem";
 import Competitors, { type CompetitorsData } from "@/components/company-next/Competitors";
 import SourcesMethod, { type SourcesMethodData } from "@/components/company-next/SourcesMethod";
+import BottomLine, { type BottomLineData } from "@/components/company-next/BottomLine";
 import ClosingPanel, { type ClosingPanelData } from "@/components/company-next/ClosingPanel";
 export const metadata: Metadata = {
   title: "Company page preview",
@@ -427,9 +428,7 @@ const strengthsRisks: StrengthsRisksData = {
     { icon: "ti-cpu-2", name: "Memory costs and supply", level: 2, finding: "Memory chip prices are rising, supply is tight, and tariffs still matter.", evidence: [{ value: "47% to 48%", label: "gross margin guided for the September quarter, against 50.1% last quarter" }, { value: "−22%", label: "global phone shipments in Q3 2026 (IDC), as memory runs short" }], why: "Apple said it paid significantly more for memory and expects supply limits on iPhone, Mac and iPad next quarter. Last quarter’s margin also included about 2 points of one-time tariff refunds. Apple is better placed than most rivals, so the damage is limited." },
     { icon: "ti-chart-pie", name: "Concentration risk", level: 2, finding: "One product and one region carry a lot of sales.", evidence: [{ value: "49.6%", label: "of Q3 FY26 sales from iPhone" }, { value: "17.2%", label: "of Q3 FY26 sales from Greater China, up from 15.5% in FY25" }], why: "China swung from −3.8% in FY25 to +22% last quarter, which shows how much one region can move results. A weak iPhone cycle would hit half of sales." },
     { icon: "ti-trending-down", name: "Growth risk", level: 2, finding: "Growth is strong now, but Apple expects it to slow.", evidence: [{ value: "+16.4%", label: "revenue growth in Q3 FY26" }, { value: "+9% to +11%", label: "guided for the September quarter" }], why: "At a P/E near 40, slower growth can pull the share price down even when sales still rise." },
-    
     { icon: "ti-user-star", name: "Leadership change", level: 1, finding: "Apple has a new CEO for the first time in 15 years.", evidence: [{ value: "Sep 1, 2026", label: "John Ternus became CEO" }, { value: "Nov 2", label: "his first earnings report as CEO" }], why: "Ternus is a long-time Apple executive, so the strategy is likely to continue. The first quarters under a new CEO are watched closely." },
-    
   ],
   risksHowToRead:
     "Three filled bars mean High, two mean Medium, one means Low. Ratings are Scope’s own assessment from the evidence shown, not investment advice.",
@@ -461,23 +460,12 @@ const moatEcosystem: MoatEcosystemData = {
       { title: "Buy a device", text: "The first purchase brings the customer in. Nearly half of Mac buyers in the December quarter were new to the Mac." },
       { title: "Use apps and services", text: "Apps, photos and messages build up on the device." },
       { title: "Subscribe and store data", text: "iCloud, Apple Music and Apple TV turn into monthly payments." },
-      { title: "Switching feels painful", text: "Leaving means losing the data, apps and habits." },
+      { title: "Switching feels painful", text: "Leaving means losing years of photos, paid apps, iMessage chats, the paired Watch and AirPods, and Apple Pay cards." },
       { title: "Buy the next device", text: "The customer stays and buys the next iPhone." },
     ],
     center: "Flywheel",
     centerSub: "each turn adds revenue",
     note: "This is a loop that can happen, not a result that is guaranteed.",
-  },
-  switching: {
-    title: "What a customer gives up by leaving",
-    items: [
-      { icon: "ti-photo", name: "Photos", text: "Years of photos in iCloud" },
-      { icon: "ti-apps", name: "Apps", text: "Paid apps and in-app purchases" },
-      { icon: "ti-message-circle", name: "iMessage", text: "Chats, group chats, FaceTime" },
-      { icon: "ti-device-watch", name: "Watch and AirPods", text: "Work best with an iPhone" },
-      { icon: "ti-credit-card", name: "Apple Pay", text: "Cards and passes already set up" },
-    ],
-    closing: "Switching phones means rebuilding all five, even with transfer tools.",
   },
   reliance: {
     title: "Who Apple relies on",
@@ -487,7 +475,7 @@ const moatEcosystem: MoatEcosystemData = {
       { group: "Partners", level: 2, who: "Mobile carriers, payment networks, content studios", gives: "Reach and content", gets: "Shared revenue and traffic", note: "Useful but replaceable, as long as Apple keeps its own channels." },
       { group: "Distributors", level: 2, who: "Retail chains, resellers, online marketplaces", gives: "Shelf space and local reach", gets: "A margin on each sale", note: "Apple also sells directly, which limits how much it needs them." },
       { group: "Competitors", level: 2, who: "Phone makers, software platforms, search companies", gives: "Pressure on price and features", gets: "A rival to beat, sometimes a partner", note: "Some rivals also supply parts or pay for placement. Google pays Apple billions of dollars a year to be Safari’s default search, which a court still allows, though not exclusively.", rival: true },
-      { group: "Developers", level: 1, who: "App makers, game studios, accessory makers", gives: "Apps that make devices more useful", gets: "Access to users and payments", note: "Each side needs the other, though regulators are changing what Apple can charge."},
+      { group: "Developers", level: 1, who: "App makers, game studios, accessory makers", gives: "Apps that make devices more useful", gets: "Access to users and payments", note: "Each side needs the other, though regulators are changing what Apple can charge." },
       { group: "Customers", level: 1, who: "Consumers, small business, enterprise and education", gives: "Money and repeat purchases", gets: "Devices, software and services", note: "Spread across a very large base, so no single customer matters much." },
     ],
     howToRead: "Reliance is Scope’s assessment of how hard it would be to replace the group, not a measured figure. Only groups named in company filings are shown.",
@@ -725,10 +713,36 @@ const sourcesMethod: SourcesMethodData = {
   source:
     "Sources: Apple, Alphabet and Microsoft filings and earnings materials, StockAnalysis (S&P Global) market data and IDC smartphone data, as of Oct 25, 2026. The score, fair value and ratings are Scope’s own methods, shown in full above.",
 };
+const bottomLine: BottomLineData = {
+  title: "A very strong business, bought at a high price",
+  lead: "Three things to take away from this page before you read the sources.",
+  score: sample.score,
+  scoreLabel: sample.scoreLabel,
+  scoreHref: "#score",
+  scoreSummary: "Top grades for quality and profit, held back by a price above our fair value and slowing growth.",
+  items: [
+    { icon: "ti-briefcase", label: "The business", verdict: "Excellent", tone: "positive", text: "Top grades for quality and profit: 67% return on invested capital, a 33% operating margin and a wide moat. Growth and risk are only fair.", href: "#moat", hrefLabel: "See the moat" },
+    { icon: "ti-tag", label: "The price", verdict: "Expensive", tone: "negative", text: "A P/E of 39.9× against 29.9× on average, and about 29% above our base-case fair value of $269.", href: "#valuation", hrefLabel: "See the valuation" },
+    { icon: "ti-trending-down", label: "What to watch", verdict: "Growth to slow", tone: "caution", text: "Apple guides growth down from 16% to 9% to 11% and gross margin to 47% to 48%. The Nov 2 report is the next check.", href: "#strengths-risks", hrefLabel: "See the risks" },
+  ],
+  note: "This is Scope’s summary of the evidence above, not a call to buy or sell. A great business can still be a poor purchase at the wrong price.",
+};
 const closing: ClosingPanelData = {
-  title: ["Understand the business.", "Understand its advantage."],
-  buttonLabel: "Review the 7 Powers",
-  href: "/7-powers",
+  title: ["That is one company.", "Here is where to go next."],
+  lead: "You have seen what Apple earns, what protects it and what it costs. Keep building the picture.",
+  // TODO: change the company hrefs to the real company page route.
+  companies: [
+    { name: "Alphabet", ticker: "GOOGL", reason: "Apple’s rival and partner: it pays Apple billions to be Safari’s default search.", href: "/company/googl" },
+    { name: "NVIDIA", ticker: "NVDA", reason: "The chip maker at the center of the AI boom, the shift that may reshape tech.", href: "/company/nvda" },
+    { name: "Amazon", ticker: "AMZN", reason: "Another giant platform that keeps its customers inside its own ecosystem.", href: "/company/amzn" },
+  ],
+  links: [
+    { icon: "ti-git-compare", title: "Compare", href: "/compare" },
+    { icon: "ti-calculator", title: "Valuation Lab", href: "/valuation-lab" },
+    { icon: "ti-compass", title: "7 Powers", href: "/7-powers" },
+  ],
+  allLabel: "See all companies",
+  allHref: "/trending",
   note: "The 7 Powers framework was developed by Hamilton Helmer in 7 Powers: The Foundations of Business Strategy (2016). Scope's explanations and examples are its own. Scope is built for understanding businesses, not for investment advice.",
 };
 export default function CompanyPreviewPage() {
@@ -759,7 +773,8 @@ export default function CompanyPreviewPage() {
       <MoatEcosystem data={moatEcosystem} />
       <Competitors data={competitors} />
  
-      {/* 6. Trust and close */}
+      {/* 6. The verdict, then trust, then the next step */}
+      <BottomLine data={bottomLine} />
       <SourcesMethod data={sourcesMethod} />
       <ClosingPanel data={closing} />
     </main>

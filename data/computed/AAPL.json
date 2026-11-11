@@ -1,0 +1,36 @@
+{
+ "ticker": "AAPL",
+ "fetchedAt": "2026-11-07T13:23:27.127Z",
+ "computed": {
+  "roic": 71.97,
+  "cashConversion": 103.73,
+  "marginRange": 3.19,
+  "marketCap": 4996.62,
+  "revenueTtm": 478.83,
+  "operatingMargin": 33.01,
+  "netMargin": 27.6,
+  "fcfMargin": 28.41,
+  "growthTtm": 15.06,
+  "growthForecast": 7.27,
+  "growthCagr": 4.97,
+  "topProductShare": null,
+  "netDebtEbitda": 0.14,
+  "worstGrowth": -2.8,
+  "peVsAvg": 1.18,
+  "evEbitdaVsAvg": 1.18,
+  "fcfYield": 2.72
+ },
+ "extra": {
+  "price": 342.37,
+  "pe": 38.16833890746935,
+  "peAvg": 32.299382914176775,
+  "evEbitda": 29.192761809336268,
+  "evAvg": 24.696593306211593,
+  "epsTtm": 8.969999999999999,
+  "fiscalYearEnd": "2026-09-26",
+  "latestQuarter": "2026-09-26",
+  "targetConsensus": 344.46,
+  "targetHigh": 400,
+  "targetLow": 245
+ }
+}

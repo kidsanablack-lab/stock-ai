@@ -21,9 +21,17 @@ export type FinancialHighlightsData = {
   metrics: Metric[];
   howToRead: string;
   source: string;
+  // Year labels of the series, oldest first. Optional: falls back to FY21 to FY25.
+  years?: string[];
 };
 
-const YEARS = ["FY21", "FY22", "FY23", "FY24", "FY25"];
+const DEFAULT_YEARS = ["FY21", "FY22", "FY23", "FY24", "FY25"];
+
+// A round step so the y axis shows about 8 labels at most, even when a line grows 10 times over.
+function niceStep(span: number, maxIntervals = 7) {
+  const steps = [10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000];
+  return steps.find((s) => span / s <= maxIntervals) ?? 10000;
+}
 
 // สีของแต่ละเส้น เรียงตามอันดับการเติบโต (เร็วสุด -> ช้าสุด) ใช้สีทึบ ไม่ไล่สี
 // แก้สีตรงนี้ที่เดียว กราฟกับตัวอธิบายด้านล่างจะเปลี่ยนตามกัน
@@ -47,7 +55,7 @@ function pct(v: number) {
   return `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}%`;
 }
 
-function GrowthChart({ metrics }: { metrics: Metric[] }) {
+function GrowthChart({ metrics, years: YEARS }: { metrics: Metric[]; years: string[] }) {
   // ทุกการ์ดมีเส้นของตัวเอง (ทำดัชนีจากค่าปีแรกของแต่ละชุด) ข้ามเฉพาะชุดที่ปีแรกเป็น 0 หรือติดลบ เพราะหารไม่ได้
   const rows = metrics
     .filter((m) => m.series.length >= 2 && m.series[0] > 0)
@@ -61,7 +69,7 @@ function GrowthChart({ metrics }: { metrics: Metric[] }) {
 
   const all = rows.flatMap((r) => r.idx).concat(100);
   const span = Math.max(...all) - Math.min(...all);
-  const step = span > 60 ? 20 : 10;
+  const step = niceStep(span);
   const lo = Math.floor(Math.min(...all) / step) * step;
   const hi = Math.ceil(Math.max(...all) / step) * step;
 
@@ -83,15 +91,15 @@ function GrowthChart({ metrics }: { metrics: Metric[] }) {
   return (
     <div className="mt-3 rounded-3xl border border-border bg-white p-5 sm:p-8">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h3 className="font-serif text-xl font-semibold tracking-tight text-ink sm:text-2xl">Growth since FY21</h3>
-        <span className="text-sm text-ink-muted">Index, FY21 = 100</span>
+        <h3 className="font-serif text-xl font-semibold tracking-tight text-ink sm:text-2xl">Growth since {YEARS[0]}</h3>
+        <span className="text-sm text-ink-muted">Index, {YEARS[0]} = 100</span>
       </div>
 
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="mt-4 h-auto w-full"
         role="img"
-        aria-label={`Line chart indexed to FY21 = 100: ${rows.map((r) => `${r.m.label} ${pct(r.growth)}`).join(", ")}`}
+        aria-label={`Line chart indexed to ${YEARS[0]} = 100: ${rows.map((r) => `${r.m.label} ${pct(r.growth)}`).join(", ")}`}
       >
         {/* gridlines + y labels */}
         <g className="text-border">
@@ -104,9 +112,10 @@ function GrowthChart({ metrics }: { metrics: Metric[] }) {
               y2={y(v)}
               stroke="currentColor"
               strokeWidth={1}
-              strokeDasharray={v === 100 ? "4 4" : undefined}
             />
           ))}
+          {/* the starting level (100) is always marked, even when it is not one of the labels */}
+          <line x1={L} x2={R} y1={y(100)} y2={y(100)} stroke="currentColor" strokeWidth={1.5} strokeDasharray="4 4" />
         </g>
         <g className="text-ink-muted" fill="currentColor" fontSize="14">
           {ticks.map((v) => (
@@ -211,7 +220,7 @@ export default function FinancialHighlights({ data }: { data: FinancialHighlight
           </div>
         )}
 
-        <GrowthChart metrics={data.metrics} />
+        <GrowthChart metrics={data.metrics} years={data.years ?? DEFAULT_YEARS} />
 
         <p className="mt-5 max-w-[780px] border-l-2 border-[#1B5CE8] pl-3 text-[13px] leading-relaxed text-ink-muted">
           {data.howToRead}

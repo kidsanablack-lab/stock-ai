@@ -1,0 +1,36 @@
+{
+ "ticker": "GOOGL",
+ "fetchedAt": "2026-11-09T07:11:58.090Z",
+ "computed": {
+  "roic": 26.92,
+  "cashConversion": 77.48,
+  "marginRange": 5.65,
+  "marketCap": 3471.99,
+  "revenueTtm": 471.1,
+  "operatingMargin": 33.32,
+  "netMargin": 50.03,
+  "fcfMargin": 4.19,
+  "growthTtm": 22.21,
+  "growthForecast": 24.59,
+  "growthCagr": 11.82,
+  "topProductShare": null,
+  "netDebtEbitda": -0.44,
+  "worstGrowth": 8.68,
+  "peVsAvg": 0.61,
+  "evEbitdaVsAvg": 0.62,
+  "fcfYield": 0.57
+ },
+ "extra": {
+  "price": 284.78,
+  "pe": 14.863256784968684,
+  "peAvg": 24.215405277095158,
+  "evEbitda": 10.983625182094583,
+  "evAvg": 17.83554704513071,
+  "epsTtm": 19.16,
+  "fiscalYearEnd": "2025-12-31",
+  "latestQuarter": "2026-09-30",
+  "targetConsensus": 400.32,
+  "targetHigh": 485,
+  "targetLow": 325
+ }
+}

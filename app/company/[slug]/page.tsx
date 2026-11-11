@@ -12,11 +12,13 @@ import {
   getCompanySlugs,
   getCompany,
   getOtherCompanyProfiles,
+  getCompanyPage,
 } from "@/lib/company-data";
 import type { SnapshotMetric } from "@/types/company";
 import Image from "next/image";
 import WatchlistButton from "@/components/ui/WatchlistButton";
 import "../company.css";
+import CompanyNextView from "@/components/company-next/CompanyNextView";
 
 type CompanyPageParams = { slug: string };
 type CompanyBackLink = {
@@ -186,6 +188,13 @@ energy: {
   const backLink: CompanyBackLink =
     backLinks[from ?? ""] ?? backLinks.home;
 
+      const nextPage = await getCompanyPage(slug);
+
+  if (nextPage) {
+    return (
+      <CompanyNextView data={nextPage} slug={slug} backLink={backLink} />
+    );
+  }
   const {
     identity,
     scopeScore,

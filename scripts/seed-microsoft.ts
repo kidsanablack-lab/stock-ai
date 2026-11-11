@@ -1,0 +1,25 @@
+import { createClient } from "@supabase/supabase-js";
+import { microsoftPage } from "../lib/company-next/microsoft";
+
+async function main() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SECRET_KEY;
+  if (!url || !key) {
+    throw new Error("Missing SUPABASE_URL or SUPABASE_SECRET_KEY in .env.local");
+  }
+
+  const supabase = createClient(url, key);
+  const { error } = await supabase.from("company_pages").upsert({
+    slug: "microsoft",
+    data: microsoftPage,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error("Failed:", error.message);
+    process.exit(1);
+  }
+  console.log("Saved Microsoft page data.");
+}
+
+main();

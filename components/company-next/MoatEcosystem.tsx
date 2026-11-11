@@ -48,7 +48,7 @@ export type MoatEcosystemData = {
     centerSub: string;
     note: string;
   };
-  switching: { title: string; items: SwitchItem[]; closing: string };
+  switching?: { title: string; items: SwitchItem[]; closing: string };
   reliance: {
     title: string;
     intro: string;
@@ -271,7 +271,7 @@ export default function MoatEcosystem({ data }: { data: MoatEcosystemData }) {
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
         {/* Header */}
         <header>
-          <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-bold leading-[1.12] tracking-[-0.02em] text-[#0b1220]">
+          <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
             {data.title}
           </h2>
           <p className="mt-3 max-w-[680px] text-[15px] leading-relaxed text-ink-muted sm:text-base">{data.lead}</p>
@@ -325,20 +325,20 @@ export default function MoatEcosystem({ data }: { data: MoatEcosystemData }) {
                 const rating = ratingOf(s.score);
                 return (
                   <li key={s.name} className="overflow-hidden rounded-[28px] border border-border bg-white">
-                    {/* header: filled with the rating color, content centered */}
+                    {/* header: filled with the rating color, compact, content centered */}
                     <div
-                      className={`flex flex-wrap items-center justify-center gap-x-6 gap-y-3 px-5 py-5 text-center text-white sm:px-7 ${RATING_HEAD[rating]}`}
+                      className={`flex flex-wrap items-center justify-center gap-x-5 gap-y-2 px-5 py-3 text-center text-white sm:px-7 sm:py-3.5 ${RATING_HEAD[rating]}`}
                     >
-                      <h4 className="font-serif text-[clamp(22px,2.6vw,28px)] font-bold leading-tight tracking-tight">
+                      <h4 className="font-serif text-[clamp(18px,2vw,22px)] font-bold leading-tight tracking-tight">
                         {s.name}
                       </h4>
                       <div className="flex items-baseline gap-1">
-                        <span className="font-serif text-[44px] font-bold leading-none tabular-nums">{s.score}</span>
-                        <span className="text-sm font-medium opacity-80">/ 10</span>
+                        <span className="font-serif text-[30px] font-bold leading-none tabular-nums">{s.score}</span>
+                        <span className="text-[13px] font-medium opacity-80">/ 10</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-ink">{rating}</span>
-                        <span className="text-sm font-medium tabular-nums opacity-90">Weight {s.weight}%</span>
+                      <div className="flex items-center gap-2.5">
+                        <span className="rounded-full bg-white px-2.5 py-0.5 text-[13px] font-semibold text-ink">{rating}</span>
+                        <span className="text-[13px] font-medium tabular-nums opacity-90">Weight {s.weight}%</span>
                       </div>
                     </div>
 
@@ -388,7 +388,7 @@ export default function MoatEcosystem({ data }: { data: MoatEcosystemData }) {
             <LoopFlow loop={data.loop} />
           </div>
 
-          {data.switching.items.length > 0 && (
+          {data.switching && data.switching.items.length > 0 && (
             <div className="mt-4 rounded-[28px] border border-border bg-white p-5 sm:p-6">
               <h4 className="font-serif text-[22px] font-normal leading-tight tracking-tight text-ink">
                 {data.switching.title}

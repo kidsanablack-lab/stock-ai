@@ -1,0 +1,35 @@
+{
+ "ticker": "AVGO",
+ "fetchedAt": "2026-11-09T01:37:05.055Z",
+ "computed": {
+  "roic": null,
+  "cashConversion": null,
+  "marginRange": null,
+  "marketCap": null,
+  "revenueTtm": null,
+  "operatingMargin": null,
+  "netMargin": null,
+  "fcfMargin": null,
+  "growthTtm": null,
+  "growthForecast": null,
+  "growthCagr": null,
+  "topProductShare": null,
+  "netDebtEbitda": null,
+  "worstGrowth": null,
+  "peVsAvg": null,
+  "evEbitdaVsAvg": null,
+  "fcfYield": null
+ },
+ "extra": {
+  "price": null,
+  "pe": null,
+  "peAvg": null,
+  "evEbitda": null,
+  "evAvg": null,
+  "epsTtm": null,
+  "fiscalYearEnd": "",
+  "targetConsensus": null,
+  "targetHigh": null,
+  "targetLow": null
+ }
+}

@@ -1,0 +1,36 @@
+{
+ "ticker": "AMZN",
+ "fetchedAt": "2026-11-10T02:01:50.800Z",
+ "computed": {
+  "roic": 15.75,
+  "cashConversion": 20.8,
+  "marginRange": 8.77,
+  "marketCap": 2886.34,
+  "revenueTtm": 797.46,
+  "operatingMargin": 13.09,
+  "netMargin": 16.9,
+  "fcfMargin": -5.88,
+  "growthTtm": 15.35,
+  "growthForecast": 16.04,
+  "growthCagr": 11.14,
+  "topProductShare": null,
+  "netDebtEbitda": -0.35,
+  "worstGrowth": 9.4,
+  "peVsAvg": 0.5,
+  "evEbitdaVsAvg": 0.57,
+  "fcfYield": -1.62
+ },
+ "extra": {
+  "price": 266.93,
+  "pe": 21.57881972514147,
+  "peAvg": 43.11258310156099,
+  "evEbitda": 11.44395608880689,
+  "evAvg": 20.15688175926877,
+  "epsTtm": 12.37,
+  "fiscalYearEnd": "2025-12-31",
+  "latestQuarter": "2026-09-30",
+  "targetConsensus": 328.48,
+  "targetHigh": 390,
+  "targetLow": 250
+ }
+}

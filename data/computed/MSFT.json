@@ -1,0 +1,36 @@
+{
+ "ticker": "MSFT",
+ "fetchedAt": "2026-11-07T13:23:48.348Z",
+ "computed": {
+  "roic": 28.79,
+  "cashConversion": 71.95,
+  "marginRange": 5.01,
+  "marketCap": 3940.41,
+  "revenueTtm": 346.45,
+  "operatingMargin": 47.1,
+  "netMargin": 41.17,
+  "fcfMargin": 17.31,
+  "growthTtm": 17.91,
+  "growthForecast": 20.59,
+  "growthCagr": 13.74,
+  "topProductShare": null,
+  "netDebtEbitda": -0.18,
+  "worstGrowth": 6.88,
+  "peVsAvg": 0.88,
+  "evEbitdaVsAvg": 0.84,
+  "fcfYield": 1.52
+ },
+ "extra": {
+  "price": 530.61,
+  "pe": 27.70809399477807,
+  "peAvg": 31.41060993174968,
+  "evEbitda": 18.158625531084596,
+  "evAvg": 21.59514027412096,
+  "epsTtm": 19.15,
+  "fiscalYearEnd": "2026-06-30",
+  "latestQuarter": "2026-09-30",
+  "targetConsensus": 611.74,
+  "targetHigh": 750,
+  "targetLow": 440
+ }
+}

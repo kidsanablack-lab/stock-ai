@@ -128,7 +128,10 @@ function SubHeading({ title, intro }: { title: string; intro: string }) {
 }
 
 // Zoom the axes to where the companies sit.
-function niceAxis(min: number, max: number, padLo: number, padHi: number, step: number) {
+function niceAxis(min: number, max: number, padLo: number, padHi: number, minStep: number) {
+  // Pick a round step so the axis shows about 8 labels at most, however wide the range is.
+  const span = max + padHi - (min - padLo);
+  const step = [1, 2, 5, 10, 20, 25, 50, 100].find((s) => s >= minStep && span / s <= 7) ?? 100;
   const lo = Math.floor((min - padLo) / step) * step;
   let hi = Math.ceil((max + padHi) / step) * step;
   if (hi <= lo) hi = lo + step;
@@ -174,7 +177,7 @@ function Scatter({ rows }: { rows: { name: string; x: number; y: number; self: b
       className="block h-auto w-full min-w-[520px]"
     >
       <rect x={f(zx)} y={f(zy)} width={f(zw)} height={f(zh)} rx={18} className="fill-success" fillOpacity={0.12} />
-      <text x={f(zx + zw - 14)} y={f(zy + 22)} textAnchor="end" fontSize={12} fontWeight={600} className="fill-success">
+      <text x={f(zx + 14)} y={f(zy + zh - 12)} textAnchor="start" fontSize={12} fontWeight={600} className="fill-success">
         Fast and profitable
       </text>
 

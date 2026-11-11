@@ -468,35 +468,35 @@ export default function SourcesMethod({ data }: { data: SourcesMethodData }) {
             </div>
           </div>
 
-                    <ul className="mt-8 grid gap-4">
+          <ul className="mt-8 grid gap-4">
             {data.categories.map((c, i) => {
               const t = c.score !== undefined ? tone(c.score) : null;
               const partial = c.coverage < 90;
               return (
                 <li key={c.name} className={`overflow-hidden rounded-3xl border border-border bg-white ${CARD_SHADOW}`}>
-                  {/* Header: filled with the category color from the weight tiles, content centered */}
+                  {/* Header: filled with the category color from the weight tiles, compact, content centered */}
                   <div
-                    className={`flex flex-wrap items-center justify-center gap-x-6 gap-y-3 px-6 py-5 text-center sm:px-8 sm:py-6 ${
+                    className={`flex flex-wrap items-center justify-center gap-x-5 gap-y-2 px-5 py-3 text-center sm:px-8 sm:py-3.5 ${
                       CAT_BG[i % CAT_BG.length]
                     } ${CAT_DARK_TEXT[i % CAT_DARK_TEXT.length] ? "text-ink" : "text-white"}`}
                   >
-                    <h4 className="font-serif text-[clamp(24px,2.6vw,32px)] font-bold leading-none tracking-tight">
+                    <h4 className="font-serif text-[clamp(18px,2vw,22px)] font-bold leading-tight tracking-tight">
                       {c.name}
                     </h4>
                     {c.score !== undefined && t && (
                       <>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="font-serif text-[clamp(36px,4vw,46px)] font-bold leading-none tabular-nums">
+                        <div className="flex items-baseline gap-1">
+                          <span className="font-serif text-[30px] font-bold leading-none tabular-nums">
                             {c.score.toFixed(1)}
                           </span>
-                          <span className="text-[15px] opacity-80">/ 10</span>
+                          <span className="text-[13px] opacity-80">/ 10</span>
                         </div>
-                        <span className="rounded-full bg-white px-4 py-1.5 text-[15px] font-semibold text-ink">
+                        <span className="rounded-full bg-white px-2.5 py-0.5 text-[13px] font-semibold text-ink">
                           {level(c.score)}
                         </span>
                       </>
                     )}
-                    <span className="text-[15px] font-medium tabular-nums opacity-90">Weight {c.weight}%</span>
+                    <span className="text-[13px] font-medium tabular-nums opacity-90">Weight {c.weight}%</span>
                   </div>
 
                   {/* Body: this company's figures, and how data becomes a score */}

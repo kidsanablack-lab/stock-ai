@@ -3,6 +3,7 @@ import {
   getCompanyByTicker as getCompanyByTickerFromSource,
   getCompanySlugs as getCompanySlugsFromSource,
   getAllCompanies as getAllCompaniesFromSource,
+  getCompanyPage as getCompanyPageFromSource,
 } from "@/lib/company-source";
 import type { CompanyProfile } from "@/types/company";
 import type {
@@ -150,4 +151,8 @@ export async function getCompanyWithExternalData(
     curated: company,
     external,
   };
+}
+
+export async function getCompanyPage(slug: string) {
+  return getCompanyPageFromSource(slug);
 }
