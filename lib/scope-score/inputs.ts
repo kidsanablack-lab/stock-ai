@@ -63,3 +63,22 @@ export const googleScore: { raw: RawInputs; display: DisplayValues } = {
     peVsAvg: { value: "0.61×" }, evEbitdaVsAvg: { value: "0.62×" }, fcfYield: { value: "0.6%" },
   },
 };
+
+// Amazon. Numbers come from data/computed/AMZN.json (fetched Nov 10, 2026).
+// topProductShare is entered by hand: Online stores were $68.47B of $201.94B net sales in Q3 2026 (33.9%).
+// Two inputs are flattered by gains on Amazon's stake in Anthropic (about $69.5B of other income in the last 12 months):
+// net margin (16.9%) and the P/E against its average (0.50×). Free cash flow is negative (−5.9% of sales).
+// Net debt uses the Dec 31, 2025 balance sheet; by Sep 30, 2026 Amazon had about $66B more debt than cash.
+export const amazonScore: { raw: RawInputs; display: DisplayValues } = {
+  raw: { roic: 15.75, cashConversion: 20.8, marginRange: 8.77, marketCap: 2886, revenueTtm: 797.46, operatingMargin: 13.09, netMargin: 16.9, fcfMargin: -5.88, growthTtm: 15.35, growthForecast: 16.04, growthCagr: 11.14, topProductShare: 33.9, netDebtEbitda: -0.35, worstGrowth: 9.4, peVsAvg: 0.5, evEbitdaVsAvg: 0.57, fcfYield: -1.62 },
+  display: {
+    roic: { value: "15.8%" }, cashConversion: { value: "20.8%" }, marginRange: { value: "8.8 points" },
+    marketCap: { value: "$2.89T" }, revenueTtm: { value: "$797.5B" },
+    operatingMargin: { value: "13.1%" }, netMargin: { value: "16.9%" }, fcfMargin: { value: "−5.9%" },
+    growthTtm: { value: "+15.4%", name: "Revenue growth, last 12 months" },
+    growthForecast: { value: "+16.0% a year" },
+    growthCagr: { value: "+11.1% a year", name: "Revenue growth a year, FY21 to FY25" },
+    topProductShare: { value: "33.9% (Online stores)" }, netDebtEbitda: { value: "−0.35" }, worstGrowth: { value: "+9.4%" },
+    peVsAvg: { value: "0.50×" }, evEbitdaVsAvg: { value: "0.57×" }, fcfYield: { value: "−1.6%" },
+  },
+};

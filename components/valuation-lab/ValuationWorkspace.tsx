@@ -49,6 +49,25 @@ const SHARES_OPTIONS: { value: SharesMeasure; label: string }[] = [
   { value: "basic", label: "Basic shares" },
 ];
 
+function formatMoney(value: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(
+      value,
+    );
+  } catch {
+    return value.toFixed(2);
+  }
+}
+
+const times = (value: number) => `${value.toFixed(1)}×`;
+
+const MOS_LABELS: Record<string, string> = {
+  main: "main DCF",
+  bear: "lower-growth",
+  base: "base-case",
+  bull: "higher-growth",
+};
+
 const NAV = [
   { href: "#inputs", label: "Inputs" },
   { href: "#relative", label: "P/E and P/S" },
@@ -72,6 +91,10 @@ export default function ValuationWorkspace() {
   );
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const [mosChoice, setMosChoice] = useState<ValuationSource>("base");
+
+  // True only while the form is untouched example data (any edit makes a new
+  // object). Used to label invented numbers as a hypothetical example.
+  const isExample = form === EXAMPLE_FORM;
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((current) => ({ ...current, [key]: value }));
@@ -175,6 +198,52 @@ export default function ValuationWorkspace() {
     bull: scenarios.bull.result,
   };
 
+  // Section titles state the result in one sentence. Each one falls back to a
+  // plain title when its inputs are missing, so nothing ever shows a made-up
+  // number or a zero for a missing value.
+  const rawPrice = readNumber(form.sharePrice);
+  const price =
+    typeof rawPrice === "number" && Number.isFinite(rawPrice) ? rawPrice : null;
+  const money = (value: number) => formatMoney(value, form.currency);
+
+  const peValue = pe.status === "ok" ? pe.value : null;
+  const psValue = ps.status === "ok" ? ps.value : null;
+
+  let relativeTitle = "Ratios compare the price with earnings and revenue";
+  if (price !== null && peValue !== null && psValue !== null) {
+    relativeTitle = `At ${money(price)}, investors pay ${times(peValue)} earnings and ${times(psValue)} revenue`;
+  } else if (price !== null && peValue !== null) {
+    relativeTitle = `At ${money(price)}, investors pay ${times(peValue)} earnings`;
+  } else if (price !== null && psValue !== null) {
+    relativeTitle = `At ${money(price)}, investors pay ${times(psValue)} revenue`;
+  }
+
+  let dcfTitle = "A DCF turns your growth and discount rate into one estimate";
+  if (dcf.status === "ok") {
+    const share = dcf.terminalValueShareOfEv;
+    dcfTitle =
+      share !== null && share >= 0 && share <= 1
+        ? `About ${Math.round(share * 100)}% of the estimated value comes from cash flows after year ${dcf.forecast.length}`
+        : `The estimate is ${money(dcf.valuePerShare)} per share, based on your assumptions`;
+  }
+
+  let scenarioTitle = "Three sets of assumptions show a range of estimates";
+  const scenarioValues = [
+    scenarios.bear.result,
+    scenarios.base.result,
+    scenarios.bull.result,
+  ].flatMap((result) => (result.status === "ok" ? [result.valuePerShare] : []));
+  if (scenarioValues.length === 3) {
+    scenarioTitle = `Three sets of assumptions give estimates from ${money(Math.min(...scenarioValues))} to ${money(Math.max(...scenarioValues))}`;
+  }
+
+  let mosTitle =
+    "A margin of safety compares an estimate with the price you entered";
+  const chosen = valuations[mosChoice];
+  if (price !== null && chosen.status === "ok") {
+    mosTitle = `The ${MOS_LABELS[mosChoice] ?? "selected"} estimate is ${money(chosen.valuePerShare)} per share, compared with the ${money(price)} you entered`;
+  }
+
   return (
     <section
       id="workspace"
@@ -184,7 +253,7 @@ export default function ValuationWorkspace() {
       <p className="vl-section-eyebrow">Workspace</p>
 
       <h2 id="vl-workspace-title" className="vl-h2">
-        Build Your Valuation
+        Your inputs decide the result, so every step stays visible
       </h2>
 
       <p className="vl-section-lead">
@@ -227,6 +296,9 @@ export default function ValuationWorkspace() {
         >
           Clear all inputs
         </button>
+        {isExample && (
+          <span className="vl-chip">Hypothetical example loaded</span>
+        )}
       </div>
 
       {/* Company and market */}
@@ -326,11 +398,17 @@ export default function ValuationWorkspace() {
 
       {/* Relative valuation */}
       <div id="relative" className="vl-anchor">
-        <h2 className="vl-h2 vl-h2-sub">Relative Valuation</h2>
+        <h2 className="vl-h2 vl-h2-sub">{relativeTitle}</h2>
         <p className="vl-section-lead">
           Ratios relate the price of a business to its results. They are a
           starting point for questions, not a verdict.
         </p>
+
+        {isExample && (
+          <p className="vl-section-chip">
+            <span className="vl-chip">Hypothetical example</span>
+          </p>
+        )}
 
         <div className="vl-two-col">
           <PePanel form={form} result={pe} />
@@ -340,12 +418,18 @@ export default function ValuationWorkspace() {
 
       {/* DCF */}
       <div id="dcf" className="vl-anchor">
-        <h2 className="vl-h2 vl-h2-sub">Discounted Cash Flow</h2>
+        <h2 className="vl-h2 vl-h2-sub">{dcfTitle}</h2>
         <p className="vl-section-lead">
           A two-stage model of free cash flow to the firm. You choose the
           growth, discount rate, and terminal growth, and the table shows
           every step.
         </p>
+
+        {isExample && (
+          <p className="vl-section-chip">
+            <span className="vl-chip">Hypothetical example</span>
+          </p>
+        )}
 
         <DcfSection
           form={form}
@@ -375,11 +459,17 @@ export default function ValuationWorkspace() {
 
       {/* Scenarios */}
       <div id="scenarios" className="vl-anchor">
-        <h2 className="vl-h2 vl-h2-sub">Scenario Analysis</h2>
+        <h2 className="vl-h2 vl-h2-sub">{scenarioTitle}</h2>
         <p className="vl-section-lead">
           Compare three sets of assumptions side by side. Each one runs
           through the same DCF engine.
         </p>
+
+        {isExample && (
+          <p className="vl-section-chip">
+            <span className="vl-chip">Hypothetical example</span>
+          </p>
+        )}
 
         <ScenarioSection
           forms={scenarioForms}
@@ -392,11 +482,19 @@ export default function ValuationWorkspace() {
 
       {/* Sensitivity */}
       <div id="sensitivity" className="vl-anchor">
-        <h2 className="vl-h2 vl-h2-sub">Sensitivity Analysis</h2>
+        <h2 className="vl-h2 vl-h2-sub">
+          Small changes in the discount rate can move the estimate a lot
+        </h2>
         <p className="vl-section-lead">
           See how much the estimate moves when the discount rate and terminal
           growth change a little. Small changes can have large effects.
         </p>
+
+        {isExample && (
+          <p className="vl-section-chip">
+            <span className="vl-chip">Hypothetical example</span>
+          </p>
+        )}
 
         <SensitivitySection
           currency={form.currency}
@@ -410,7 +508,7 @@ export default function ValuationWorkspace() {
 
       {/* Margin of safety */}
       <div id="margin-of-safety" className="vl-anchor">
-        <h2 className="vl-h2 vl-h2-sub">Margin of Safety</h2>
+        <h2 className="vl-h2 vl-h2-sub">{mosTitle}</h2>
         <p className="vl-section-lead">
           Compare an estimated value per share with the share price you
           entered. It depends entirely on the assumptions behind the estimate.
@@ -430,7 +528,9 @@ export default function ValuationWorkspace() {
 
       {/* Summary */}
       <div id="summary" className="vl-anchor">
-        <h2 className="vl-h2 vl-h2-sub">Valuation Summary</h2>
+        <h2 className="vl-h2 vl-h2-sub">
+          One place shows everything you entered and everything calculated
+        </h2>
         <p className="vl-section-lead">
           Everything you entered and everything the calculators returned, in
           one place.

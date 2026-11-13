@@ -22,9 +22,16 @@ export type ValuationData = {
   labels: string[];
   price: number;
   priceDate: string;
-  fair: number;
-  field: { max: number; howToRead: string; rows: FieldRow[] };
-  implied: {
+  // fair is null when Scope does not show a fair value (for example when free cash flow is negative).
+  // In that case also fill noFair, and leave implied out.
+  fair: number | null;
+  noFair?: {
+    title: string;
+    text: string;
+    points: { label: string; value: string; note: string }[];
+  };
+  field: { max: number; howToRead: string; rows: FieldRow[]; title?: string };
+  implied?: {
     title: string;
     needed: number; // % per year the price needs
     actual: number; // % per year actually grown
@@ -65,7 +72,9 @@ function Heading({ children }: { children: ReactNode }) {
 
 export default function Valuation({ data }: { data: ValuationData }) {
   const { field, implied, history } = data;
-  const gap = (data.price / (data.fair || 1) - 1) * 100;
+  const fair = data.fair;
+  const hasFair = fair !== null && implied !== undefined;
+  const gap = hasFair ? (data.price / (fair || 1) - 1) * 100 : 0;
   const above = gap >= 0;
 
   // Average of the past years only: the last bar is "now" and is left out.
@@ -81,7 +90,7 @@ export default function Valuation({ data }: { data: ValuationData }) {
     .sort((a, b) => b.premium - a.premium);
 
   // Scale for the price vs fair value strip
-  const stripMax = Math.max(data.price, data.fair) * 1.15;
+  const stripMax = Math.max(data.price, fair ?? 0) * 1.15;
 
   return (
     <section id="valuation" className="scroll-mt-24 bg-white py-10 sm:py-12">
@@ -95,7 +104,8 @@ export default function Valuation({ data }: { data: ValuationData }) {
           {/* data.labels is no longer shown (the source line at the bottom says the same); it stays in the data type */}
         </header>
 
-        {/* Hero: price vs fair value */}
+        {/* Hero: price vs fair value (or, when there is no fair value, the price and why) */}
+        {hasFair ? (
         <div className="mt-8 grid gap-6 rounded-[28px] border border-border bg-white p-5 sm:p-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-10">
           <div>
             <div className="text-sm text-ink-muted">Price vs base-case fair value</div>
@@ -123,7 +133,7 @@ export default function Valuation({ data }: { data: ValuationData }) {
               <div className="rounded-xl bg-surface p-4">
                 <div className="text-[13px] text-ink-muted">Fair value, base case</div>
                 <div className="mt-1 font-serif text-[30px] font-medium leading-none tabular-nums text-ink">
-                  {usd(data.fair)}
+                  {usd(fair)}
                 </div>
                 <div className="mt-2 text-[13px] text-ink-muted">Our cash flow (DCF) estimate</div>
               </div>
@@ -133,18 +143,18 @@ export default function Valuation({ data }: { data: ValuationData }) {
             <div
               className="relative mt-6 h-3 rounded-full bg-border"
               role="img"
-              aria-label={`Fair value ${usd(data.fair)}, price ${usd(data.price)}, a gap of ${Math.abs(Math.round(gap))} percent`}
+              aria-label={`Fair value ${usd(fair)}, price ${usd(data.price)}, a gap of ${Math.abs(Math.round(gap))} percent`}
             >
               <div
                 className={`absolute inset-y-0 ${above ? "bg-warning-soft" : "bg-success-soft"}`}
                 style={{
-                  left: pos(Math.min(data.fair, data.price), stripMax),
-                  width: `${(Math.abs(data.price - data.fair) / stripMax) * 100}%`,
+                  left: pos(Math.min(fair, data.price), stripMax),
+                  width: `${(Math.abs(data.price - fair) / stripMax) * 100}%`,
                 }}
               />
               <div
                 className="absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white bg-primary shadow-sm"
-                style={{ left: pos(data.fair, stripMax) }}
+                style={{ left: pos(fair, stripMax) }}
               />
               <div
                 className="absolute top-1/2 h-7 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded bg-ink"
@@ -157,11 +167,46 @@ export default function Valuation({ data }: { data: ValuationData }) {
             </div>
           </div>
         </div>
+        ) : (
+          <div className="mt-8 grid gap-6 rounded-[28px] border border-border bg-white p-5 sm:p-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-10">
+            <div>
+              <div className="text-sm text-ink-muted">Share price</div>
+              <div className="mt-2 font-serif text-[clamp(52px,7vw,72px)] font-medium leading-none tracking-tight tabular-nums text-ink">
+                {usd(data.price)}
+              </div>
+              <p className="mt-3 text-[15px] text-ink-muted">As of {data.priceDate}</p>
+              <div className="mt-5 inline-block rounded-full bg-surface px-3 py-1 text-[13px] font-semibold text-ink-muted">
+                No fair value shown
+              </div>
+            </div>
+            <div className="min-w-0">
+              {data.noFair && (
+                <>
+                  <h3 className="font-serif text-[clamp(20px,2.4vw,26px)] font-normal leading-[1.2] tracking-[-0.02em] text-ink">
+                    {data.noFair.title}
+                  </h3>
+                  <p className="mt-3 text-[15px] leading-relaxed text-ink">{data.noFair.text}</p>
+                  {data.noFair.points.length > 0 && (
+                    <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                      {data.noFair.points.map((p) => (
+                        <div key={p.label} className="rounded-xl bg-surface p-4">
+                          <div className="text-[13px] text-ink-muted">{p.label}</div>
+                          <div className="mt-1 font-serif text-[26px] font-medium leading-none tabular-nums text-ink">{p.value}</div>
+                          <div className="mt-2 text-[13px] leading-snug text-ink-muted">{p.note}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Football field */}
         {field.rows.length > 0 && (
           <div className="pt-12">
-            <Heading>Three reference points, and where today’s price sits</Heading>
+            <Heading>{field.title ?? "Three reference points, and where today’s price sits"}</Heading>
             <div className="mt-5 rounded-[28px] border border-border bg-white p-5 sm:p-6">
               <div className="relative pt-8">
                 {/* dashed price line across every row */}
@@ -218,7 +263,8 @@ export default function Valuation({ data }: { data: ValuationData }) {
           </div>
         )}
 
-        {/* What the price expects */}
+        {/* What the price expects (left out when there is no fair value model) */}
+        {implied && (
         <div className="pt-12">
           <Heading>{implied.title}</Heading>
           <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1.2fr]">
@@ -319,6 +365,7 @@ export default function Valuation({ data }: { data: ValuationData }) {
             </div>
           </div>
         </div>
+        )}
 
         {/* History */}
         <div className="pt-12">
@@ -342,8 +389,8 @@ export default function Valuation({ data }: { data: ValuationData }) {
                 </div>
                 <p className="mt-4 max-w-[340px] text-lg leading-snug text-ink">
                   {peIsHighest
-                    ? "Higher than at any fiscal year end in the last ten years."
-                    : `${peNow >= peAvg ? "Above" : "Below"} its ten-year average of ${peAvg.toFixed(1)}×.`}
+                    ? `Higher than at any of the last ${past.length} fiscal year ends.`
+                    : `${peNow >= peAvg ? "Above" : "Below"} the average of ${peAvg.toFixed(1)}× over the last ${past.length} fiscal year ends.`}
                 </p>
 
                 <div

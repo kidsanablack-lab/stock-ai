@@ -1,8 +1,10 @@
 import { type ReactNode } from "react";
 
-// How much cash Apple makes, how much it pays back, and whether the cash cushion is still safe.
+// How much cash the company makes, how much it pays back, and whether the cash cushion is still safe.
 // Main visuals: paired yearly bars (free cash flow vs cash paid out), buybacks vs dividends bar,
 // ownership donuts, and five-year net cash.
+// Company-neutral: no company name or fixed fiscal years in this file. Everything comes from `data`.
+// Handles zero payouts, negative free cash flow, negative net cash and a rising share count.
 // Server Component.
 
 type Stat = { label: string; value: string; note: string };
@@ -11,7 +13,7 @@ export type CashAndReturnsData = {
   title: string;
   lead: string;
   labels: string[];
-  years: string[]; // FY21..FY25
+  years: string[]; // fiscal year labels, oldest first (for example FY22..FY26)
   fcf: number[];
   dividends: number[];
   buybacks: number[];
@@ -41,7 +43,9 @@ export type CashAndReturnsData = {
   source: string;
 };
 
-const usd0 = (v: number) => `$${Math.round(v).toLocaleString("en-US")}`;
+const sgn = (v: number) => (v < 0 ? "−" : "");
+const usd0 = (v: number) => `${sgn(v)}$${Math.round(Math.abs(v)).toLocaleString("en-US")}`;
+const int0 = (v: number) => `${sgn(Math.round(v))}${Math.abs(Math.round(v))}`;
 const f1 = (v: number) => v.toFixed(1);
 const sum = (a: number[]) => a.reduce((s, v) => s + v, 0);
 const safeDiv = (a: number, b: number) => (b ? a / b : 0);
@@ -92,7 +96,7 @@ function OwnRing({ pct, label }: { pct: number; label: string }) {
   const filled = Math.min(100, Math.max(0, pct));
   return (
     <div className="relative w-[clamp(120px,15vw,168px)]">
-      <svg viewBox="0 0 120 120" className="block h-auto w-full" role="img" aria-label={`${label}: ${pct}% of Apple`}>
+      <svg viewBox="0 0 120 120" className="block h-auto w-full" role="img" aria-label={`${label}: ${pct}% of the company`}>
         <circle cx="60" cy="60" r={r} fill="none" strokeWidth="14" className="stroke-ink/10" />
         <circle
           cx="60"
@@ -122,23 +126,35 @@ export default function CashAndReturns({ data }: { data: CashAndReturnsData }) {
   const totalFcf = sum(fcf);
   const totalReturned = sum(returned);
 
-  // Latest-year split between buybacks and dividends
-  const buyShare = Math.round(safeDiv(buybacks[last], returned[last]) * 100);
-  const divShare = 100 - buyShare;
+  // Latest-year split between buybacks and dividends. When nothing was paid, there is no split to show.
+  const paidLast = returned[last];
+  const buyShare = paidLast > 0 ? Math.round(safeDiv(buybacks[last], paidLast) * 100) : 0;
+  const divShare = paidLast > 0 ? 100 - buyShare : 0;
 
-  // Share count: own 10% at the start, how much of Apple that slice is today
+  // Share count: own 10% at the start, how much of the company that slice is today.
+  // The count can fall (buybacks) or rise (new shares), and the wording follows.
   const sh = how.shares;
   const shChange = sh.length > 1 ? Math.round((sh[sh.length - 1] / sh[0] - 1) * 100) : 0;
   const ownNow = sh.length > 1 ? Math.round((sh[0] / sh[sh.length - 1]) * 100) / 10 : null;
+  const shChip =
+    shChange < 0
+      ? { cls: "bg-success-soft text-success", text: `▼ ${Math.abs(shChange)}% fewer shares` }
+      : shChange > 0
+        ? { cls: "bg-warning-soft text-warning", text: `▲ ${shChange}% more shares` }
+        : { cls: "bg-surface text-ink-muted", text: "Share count unchanged" };
 
   // Total shareholder return (optional)
   const tsr = how.tsr;
   const maxTsr = tsr ? Math.max(1, ...tsr.rows.map((r) => r.value)) : 1;
 
-  // Net cash
+  // Net cash (negative means net debt)
   const net = cushion.cash.map((c, i) => c - cushion.debt[i]);
   const maxNet = Math.max(1, ...net);
-  const netChange = Math.round((safeDiv(net[last], net[0]) - 1) * 100);
+  const netDelta = net[last] - net[0];
+  const netPill =
+    net[0] > 0
+      ? `${netDelta >= 0 ? "▲ +" : "▼ −"}${Math.abs(Math.round((net[last] / net[0] - 1) * 100))}% since ${years[0]}`
+      : `${netDelta >= 0 ? "▲ +" : "▼ −"}$${Math.abs(Math.round(netDelta))}B since ${years[0]}`;
   const de = cushion.debt.map((d, i) => safeDiv(d, cushion.equity[i]));
   const currentRatio = safeDiv(cushion.currentAssets, cushion.currentLiabilities);
 
@@ -185,27 +201,37 @@ export default function CashAndReturns({ data }: { data: CashAndReturnsData }) {
             className="mt-6 overflow-x-auto"
             role="img"
             aria-label={years
-              .map((y, i) => `${y}: earned $${Math.round(fcf[i])}B, paid out $${Math.round(returned[i])}B`)
+              .map((y, i) => `${y}: earned ${usd0(fcf[i])}B, paid out ${usd0(returned[i])}B`)
               .join("; ")}
           >
             <div className="grid min-w-[460px] gap-3" style={{ gridTemplateColumns: `repeat(${years.length}, minmax(0, 1fr))` }}>
               {years.map((y, i) => {
-                const pct = Math.round(safeDiv(returned[i], fcf[i]) * 100);
                 const isLast = i === last;
+                const nothingPaid = returned[i] === 0;
+                const negativeFcf = fcf[i] <= 0;
+                const pct = Math.round(safeDiv(returned[i], fcf[i]) * 100);
+                const pillText = nothingPaid ? "Nothing paid out" : negativeFcf ? "Cash flow negative" : `${pct}% paid out`;
+                const pillCls = nothingPaid
+                  ? "bg-surface text-ink-muted"
+                  : negativeFcf
+                    ? "bg-warning-soft text-warning"
+                    : pct > 100
+                      ? "bg-primary text-white"
+                      : "bg-primary-soft text-primary-ink";
                 return (
                   <div key={y} className="flex flex-col items-center">
                     <div className="flex h-[170px] w-full items-end justify-center gap-1.5">
                       {[
-                        { v: fcf[i], c: "bg-chart-5" },
+                        { v: fcf[i], c: fcf[i] < 0 ? "bg-danger" : "bg-chart-5" },
                         { v: returned[i], c: "bg-primary" },
                       ].map((b, k) => (
                         <div key={k} className="flex h-full w-[38%] max-w-[44px] flex-col items-center justify-end">
                           <span className={`mb-1 text-xs tabular-nums ${isLast ? "font-semibold text-ink" : "text-ink-muted"}`}>
-                            {Math.round(b.v)}
+                            {int0(b.v)}
                           </span>
                           <div
                             className={`w-full rounded-t-lg transition-[filter] duration-200 hover:brightness-110 ${b.c}`}
-                            style={{ height: `${Math.max(3, (b.v / maxA) * 88)}%` }}
+                            style={{ height: `${Math.max(3, (Math.max(b.v, 0) / maxA) * 88)}%` }}
                           />
                         </div>
                       ))}
@@ -213,13 +239,9 @@ export default function CashAndReturns({ data }: { data: CashAndReturnsData }) {
                     <span className={`mt-2 text-[13px] tabular-nums ${isLast ? "font-semibold text-ink" : "text-ink-muted"}`}>
                       {y}
                     </span>
-                    <span
-                      className={`mt-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums ${
-                        pct > 100 ? "bg-primary text-white" : "bg-primary-soft text-primary-ink"
-                      }`}
-                    >
-                      {pct > 100 ? "▲ " : ""}
-                      {pct}% paid out
+                    <span className={`mt-1.5 rounded-full px-2.5 py-0.5 text-center text-xs font-semibold tabular-nums ${pillCls}`}>
+                      {!nothingPaid && !negativeFcf && pct > 100 ? "▲ " : ""}
+                      {pillText}
                     </span>
                   </div>
                 );
@@ -240,31 +262,45 @@ export default function CashAndReturns({ data }: { data: CashAndReturnsData }) {
             <div className="min-w-0 rounded-2xl border border-border bg-white p-6 sm:p-8">
               <div className="text-[15px] text-ink-muted">Paid to shareholders in {years[last]}</div>
 
-              <div
-                className="mt-4 flex h-[72px] gap-2 overflow-hidden rounded-2xl"
-                role="img"
-                aria-label={`Buybacks ${buyShare}%, dividends ${divShare}%`}
-              >
-                <div
-                  className="flex min-w-0 flex-col justify-center bg-primary px-4 text-white"
-                  style={{ flex: `${Math.max(buyShare, 1)} 1 0` }}
-                >
-                  <span className="truncate text-[15px]">Buybacks</span>
-                  <span className="text-[clamp(18px,2.2vw,24px)] font-semibold leading-tight tabular-nums">
-                    {buyShare}% · ${f1(buybacks[last])}B
-                  </span>
+              {paidLast > 0 ? (
+                <>
+                  <div
+                    className="mt-4 flex h-[72px] gap-2 overflow-hidden rounded-2xl"
+                    role="img"
+                    aria-label={`Buybacks ${buyShare}%, dividends ${divShare}%`}
+                  >
+                    {buyShare > 0 && (
+                      <div
+                        className="flex min-w-0 flex-col justify-center bg-primary px-4 text-white"
+                        style={{ flex: `${buyShare} 1 0` }}
+                      >
+                        <span className="truncate text-[15px]">Buybacks</span>
+                        <span className="text-[clamp(18px,2.2vw,24px)] font-semibold leading-tight tabular-nums">
+                          {buyShare}% · ${f1(buybacks[last])}B
+                        </span>
+                      </div>
+                    )}
+                    {divShare > 0 && (
+                      <div
+                        className="flex min-w-[88px] flex-col justify-center bg-share-2 px-4 text-white"
+                        style={{ flex: `${divShare} 1 0` }}
+                      >
+                        <span className="truncate text-[15px]">Dividends</span>
+                        <span className="text-[clamp(18px,2.2vw,24px)] font-semibold leading-tight tabular-nums">
+                          {divShare}%
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-2 text-right text-[14px] tabular-nums text-ink-muted">
+                    Dividends ${f1(dividends[last])}B
+                  </p>
+                </>
+              ) : (
+                <div className="mt-4 flex h-[72px] items-center rounded-2xl bg-surface px-5 text-[17px] font-semibold text-ink">
+                  Nothing paid out in {years[last]}: no buybacks and no dividends
                 </div>
-                <div
-                  className="flex min-w-[88px] flex-col justify-center bg-share-2 px-4 text-white"
-                  style={{ flex: `${Math.max(divShare, 1)} 1 0` }}
-                >
-                  <span className="truncate text-[15px]">Dividends</span>
-                  <span className="text-[clamp(18px,2.2vw,24px)] font-semibold leading-tight tabular-nums">
-                    {divShare}%
-                  </span>
-                </div>
-              </div>
-              <p className="mt-2 text-right text-[14px] tabular-nums text-ink-muted">Dividends ${f1(dividends[last])}B</p>
+              )}
 
               <ul className="mt-5 grid gap-x-8 gap-y-7 border-t border-border pt-6 sm:grid-cols-2">
                 {how.stats.map((s) => (
@@ -303,13 +339,13 @@ export default function CashAndReturns({ data }: { data: CashAndReturnsData }) {
               )}
             </div>
 
-            {/* Right: your slice of Apple, then vs now */}
+            {/* Right: your slice of the company, then vs now */}
             {sh.length > 1 && ownNow !== null && (
               <div className="flex min-w-0 flex-col rounded-2xl border border-border bg-white p-6 sm:p-8">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[15px] text-ink-muted">Your slice of Apple</span>
-                  <span className="rounded-full bg-success-soft px-3 py-1 text-[14px] font-semibold tabular-nums text-success">
-                    ▼ {Math.abs(shChange)}% fewer shares
+                  <span className="text-[15px] text-ink-muted">Your slice of the company</span>
+                  <span className={`rounded-full px-3 py-1 text-[14px] font-semibold tabular-nums ${shChip.cls}`}>
+                    {shChip.text}
                   </span>
                 </div>
 
@@ -332,7 +368,7 @@ export default function CashAndReturns({ data }: { data: CashAndReturnsData }) {
                 </div>
 
                 <p className="mt-auto text-[17px] leading-relaxed text-ink">
-                  Own 10% of Apple in {years[0]} and buy nothing more, and you own {ownNow}% today.
+                  Own 10% of the company in {years[0]} and buy nothing more, and you own {ownNow}% today.
                 </p>
               </div>
             )}
@@ -347,20 +383,19 @@ export default function CashAndReturns({ data }: { data: CashAndReturnsData }) {
           <div className="mt-5 grid gap-6 rounded-2xl border border-border bg-white p-5 sm:p-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[14px] text-ink-muted">Net cash ($B)</span>
+                <span className="text-[14px] text-ink-muted">Net cash ($B), a minus sign means net debt</span>
                 <span
                   className={`rounded-full px-2.5 py-0.5 text-[13px] font-semibold tabular-nums ${
-                    netChange < 0 ? "bg-danger-soft text-danger" : "bg-success-soft text-success"
+                    netDelta < 0 ? "bg-danger-soft text-danger" : "bg-success-soft text-success"
                   }`}
                 >
-                  {netChange < 0 ? "▼ −" : "▲ +"}
-                  {Math.abs(netChange)}% since {years[0]}
+                  {netPill}
                 </span>
               </div>
               <div
                 className="mt-4 flex items-end gap-2.5"
                 role="img"
-                aria-label={`Net cash: ${net.map((v, i) => `${years[i]} $${Math.round(v)}B`).join(", ")}`}
+                aria-label={`Net cash: ${net.map((v, i) => `${years[i]} ${usd0(v)}B`).join(", ")}`}
               >
                 {net.map((v, i) => {
                   const isLast = i === net.length - 1;
@@ -372,7 +407,7 @@ export default function CashAndReturns({ data }: { data: CashAndReturnsData }) {
                       </span>
                       <div className="flex h-[130px] w-full items-end">
                         <div
-                          className={`w-full rounded-t-lg ${isLast ? "bg-primary" : "bg-ink/10"}`}
+                          className={`w-full rounded-t-lg ${v < 0 ? "bg-danger" : isLast ? "bg-primary" : "bg-ink/10"}`}
                           style={{ height: `${Math.max(3, (Math.max(v, 0) / maxNet) * 100)}%` }}
                         />
                       </div>
@@ -385,8 +420,8 @@ export default function CashAndReturns({ data }: { data: CashAndReturnsData }) {
 
             <div className="min-w-0 lg:pt-8">
               <p className="text-[clamp(17px,1.8vw,20px)] leading-snug text-ink">
-                Cash and securities ${f1(cushion.cash[last])}B minus debt ${f1(cushion.debt[last])}B leaves net cash of{" "}
-                {net[last] >= 0 ? "+" : "−"}${f1(Math.abs(net[last]))}B.
+                Cash and securities ${f1(cushion.cash[last])}B minus debt ${f1(cushion.debt[last])}B leaves{" "}
+                {net[last] >= 0 ? "net cash" : "net debt"} of {net[last] >= 0 ? "+" : "−"}${f1(Math.abs(net[last]))}B.
               </p>
               <p className="mt-3 text-[14px] leading-relaxed text-ink-muted">{cushion.howToRead}</p>
             </div>

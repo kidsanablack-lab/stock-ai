@@ -1,5 +1,10 @@
 import { type ReactNode } from "react";
 
+// What changed in the latest quarter: key numbers, growth against a year earlier, beats and misses, and what drove it.
+// Company-neutral: no company name, month or fiscal quarter is written in this file. Everything specific comes from `data`.
+// Handles negative values (for example negative free cash flow) and series of different lengths.
+// Server Component.
+
 export type MetricCardData = {
   label: string;
   value: string;
@@ -30,9 +35,10 @@ export type WhatChangedData = {
   source: string;
 };
 
+const sgn = (v: number) => (v < 0 ? "−" : "");
 const signed = (v: number) => `${v >= 0 ? "▲ +" : "▼ −"}${Math.abs(v).toFixed(1)}%`;
 const money = (v: number, unit: "B" | "$") =>
-  unit === "B" ? `$${v.toFixed(1)}B` : `$${v.toFixed(2)}`;
+  unit === "B" ? `${sgn(v)}$${Math.abs(v).toFixed(1)}B` : `${sgn(v)}$${Math.abs(v).toFixed(2)}`;
 
 /* ---------- Sparkline ---------- */
 /* "light" = green/red line on a white card. "dark" = white line on the blue card. */
@@ -193,11 +199,17 @@ export default function WhatChanged({ data }: { data: WhatChangedData }) {
   const { growth } = data;
   const max = Math.max(1, ...growth.bars.map((b) => b.value));
   const [lead, ...others] = data.metrics;
-  // The latest four quarters are highlighted; earlier ones are grey.
+  // The latest four quarters are highlighted; earlier ones are grey. With four bars or fewer, all are "latest".
   const firstCurrent = Math.max(0, growth.bars.length - 4);
 
-  // Beat / miss tally for the estimates block
-  const diffs = data.estimates.map((r) => (r.estimate ? (r.actual / r.estimate - 1) * 100 : 0));
+  // Is growth faster or slower than before? Read from the two numbers the data gives, so the card never says "up" when it is down.
+  const before = parseFloat(growth.before);
+  const after = parseFloat(growth.after);
+  const speedingUp = Number.isNaN(before) || Number.isNaN(after) ? true : after >= before;
+
+  // Beat / miss tally for the estimates block. The gap is measured against the size of the estimate,
+  // so a negative estimate (for example negative free cash flow) still gives the right sign.
+  const diffs = data.estimates.map((r) => (r.estimate ? ((r.actual - r.estimate) / Math.abs(r.estimate)) * 100 : 0));
   const beats = diffs.filter((d) => d >= 0.5).length;
   const misses = diffs.filter((d) => d <= -0.5).length;
 
@@ -215,7 +227,7 @@ export default function WhatChanged({ data }: { data: WhatChangedData }) {
         {lead && (
           <Block
             title="The numbers that moved"
-            text="Each line shows the last five quarters. The ring marks the latest one."
+            text="Each line shows the recent quarters, oldest to newest. The ring marks the latest one."
           >
             <div className="grid gap-4">
               <article className="grid items-center gap-6 rounded-[28px] bg-primary p-6 text-white sm:p-9 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-10">
@@ -246,7 +258,7 @@ export default function WhatChanged({ data }: { data: WhatChangedData }) {
                 />
               </article>
 
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className={`grid gap-4 ${others.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
                 {others.map((m) => (
                   <article
                     key={m.label}
@@ -289,18 +301,20 @@ export default function WhatChanged({ data }: { data: WhatChangedData }) {
         {growth.bars.length > 0 && (
           <Block
             title="Is growth speeding up?"
-            text="Compare each quarter with the same quarter a year earlier. Apple’s holiday quarter (Q1) is always the biggest, so comparing with the quarter before would mislead."
+            text="Compare each quarter with the same quarter a year earlier. Sales are seasonal, so comparing with the quarter before would mislead."
           >
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
               <div className="rounded-3xl border border-border bg-white p-4 sm:p-5">
                 <div className="mb-4 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-ink-muted">
-                  <span className="flex items-center gap-2">
-                    <i className="size-3 rounded bg-chart-5" aria-hidden="true" />
-                    Earlier quarters
-                  </span>
+                  {firstCurrent > 0 && (
+                    <span className="flex items-center gap-2">
+                      <i className="size-3 rounded bg-chart-5" aria-hidden="true" />
+                      Earlier quarters
+                    </span>
+                  )}
                   <span className="flex items-center gap-2">
                     <i className="size-3 rounded bg-primary" aria-hidden="true" />
-                    Latest four quarters
+                    {firstCurrent > 0 ? "Latest four quarters" : "Quarters shown"}
                   </span>
                   <span>Bars: sales in $ billions. Below each bar: growth vs the same quarter a year earlier.</span>
                 </div>
@@ -346,10 +360,14 @@ export default function WhatChanged({ data }: { data: WhatChangedData }) {
                 <p className="mt-3 text-[13px] text-ink-muted sm:hidden">Swipe sideways to see all quarters.</p>
               </div>
 
-              {/* Vivid blue verdict card */}
+              {/* Vivid blue verdict card. Icon and color follow the direction of growth. */}
               <aside className="rounded-3xl bg-primary p-5 text-white sm:p-6">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[13px] font-semibold text-success">
-                  <i className="ti ti-trending-up" aria-hidden="true" />
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[13px] font-semibold ${
+                    speedingUp ? "text-success" : "text-warning"
+                  }`}
+                >
+                  <i className={`ti ${speedingUp ? "ti-trending-up" : "ti-trending-down"}`} aria-hidden="true" />
                   {growth.verdictLabel}
                 </span>
                 <div className="mt-4 flex items-baseline gap-3 font-serif font-medium tabular-nums">
@@ -357,9 +375,7 @@ export default function WhatChanged({ data }: { data: WhatChangedData }) {
                   <i className="ti ti-arrow-right text-xl text-white/70" aria-hidden="true" />
                   <span className="text-[44px] leading-none">{growth.after}</span>
                 </div>
-                <p className="mt-2 text-[13px] text-white/75">
-                  Average sales growth: the two quarters before, then the last two
-                </p>
+                <p className="mt-2 text-[13px] text-white/75">Sales growth versus a year earlier: before, then now</p>
                 <p className="mt-4 border-t border-white/20 pt-3 text-[15px] font-semibold leading-snug">
                   {growth.verdict}
                 </p>
@@ -372,8 +388,8 @@ export default function WhatChanged({ data }: { data: WhatChangedData }) {
         {/* 3. Against analyst estimates */}
         {data.estimates.length > 0 && (
           <Block
-            title="Did Apple beat expectations?"
-            text="Actual results for the June quarter against what analysts expected."
+            title="Did it beat expectations?"
+            text="Actual results for the latest quarter against what analysts expected."
             aside={
               <ul className="flex flex-wrap gap-2" aria-label="Beats and misses">
                 {beats > 0 && (
@@ -418,6 +434,12 @@ export default function WhatChanged({ data }: { data: WhatChangedData }) {
                     flat: "bg-surface text-ink-muted",
                   }[kind];
                   const word = { beat: "▲ Beat", miss: "▼ Miss", flat: "● In line" }[kind];
+                  // A gap above 100% of the estimate is shown in dollars instead, which is easier to read.
+                  const gap = r.actual - r.estimate;
+                  const gapText =
+                    Math.abs(d) > 100
+                      ? `${gap > 0 ? "+" : ""}${money(gap, r.unit)}`
+                      : `${d > 0 ? "+" : d < 0 ? "−" : ""}${Math.abs(d).toFixed(1)}%`;
                   return (
                     <li
                       key={r.label}
@@ -433,7 +455,7 @@ export default function WhatChanged({ data }: { data: WhatChangedData }) {
                       <div
                         className="relative h-10 w-full"
                         role="img"
-                        aria-label={`${r.label}: ${word.slice(2)} by ${Math.abs(d).toFixed(1)}%`}
+                        aria-label={`${r.label}: ${word.slice(2)} by ${gapText.replace(/^[+−]/, "")}`}
                       >
                         <span className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-surface" />
                         {[0, 25, 75, 100].map((t) => (
@@ -469,8 +491,7 @@ export default function WhatChanged({ data }: { data: WhatChangedData }) {
                       <span
                         className={`inline-flex w-fit shrink-0 rounded-full px-3 py-2 text-[13px] font-semibold tabular-nums md:w-[132px] md:justify-center ${pill}`}
                       >
-                        {word} {d > 0 ? "+" : d < 0 ? "−" : ""}
-                        {Math.abs(d).toFixed(1)}%
+                        {word} {gapText}
                       </span>
                     </li>
                   );

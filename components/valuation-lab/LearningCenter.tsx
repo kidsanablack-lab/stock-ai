@@ -10,13 +10,12 @@ export default function LearningCenter() {
       <p className="vl-section-eyebrow">Learn</p>
 
       <h2 id="vl-learning-title" className="vl-h2">
-        Valuation Learning Center
+        Eight short lessons explain the ideas behind each tool
       </h2>
 
       <p className="vl-section-lead">
-        Eight short lessons behind the tools above. Every example uses
-        made-up numbers to show the idea. None of them describes a real
-        company.
+        Every example uses made-up numbers to show the idea. None of them
+        describes a real company.
       </p>
 
       <div className="vl-lessons">
@@ -39,9 +38,8 @@ export default function LearningCenter() {
               ))}
 
               <div className="vl-example">
-                <p className="vl-example-tag">
-                  Hypothetical example · {lesson.exampleTitle}
-                </p>
+                <p className="vl-example-tag">Hypothetical example</p>
+                <p className="vl-example-title">{lesson.exampleTitle}</p>
                 <ul>
                   {lesson.example.map((line) => (
                     <li key={line}>{line}</li>

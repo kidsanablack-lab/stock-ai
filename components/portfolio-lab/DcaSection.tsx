@@ -1,6 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import DeltaPill, { directionOf } from "@/components/ui/DeltaPill";
+import NoteBox from "@/components/ui/NoteBox";
+import { HowToRead } from "@/components/ui/Notes";
 import {
   formatMoney,
   formatPercent,
@@ -14,15 +19,15 @@ import {
   splitContribution,
   yearlyPoints,
 } from "@/lib/portfolio-lab/projection";
-import {
-  defaultDcaFields,
-  type DcaFields,
-} from "@/lib/portfolio-lab/toolInputs";
+import { defaultDcaFields, type DcaFields } from "@/lib/portfolio-lab/toolInputs";
 import type { CurrencyCode, PortfolioSummary } from "@/lib/portfolio-lab/types";
 import AssumptionsList from "./AssumptionsList";
+import DataTable from "./DataTable";
+import FactList from "./FactList";
+import LeadPanel from "./LeadPanel";
 import NumberField from "./NumberField";
-import ProjectionChart from "./ProjectionChart";
-import "./portfolio-lab-tools.css";
+import PlSection from "./PlSection";
+import ProjectionChart, { LineSample } from "./ProjectionChart";
 
 type DcaSectionProps = {
   currency: CurrencyCode;
@@ -61,37 +66,24 @@ export default function DcaSection({
   const hasFieldErrors = Object.keys(parsed.errors).length > 0;
 
   const split = result
-    ? splitContribution(
-        summary.rows,
-        summary.status,
-        result.input.monthly,
-        result.periods,
-      )
+    ? splitContribution(summary.rows, summary.status, result.input.monthly, result.periods)
     : null;
 
   return (
-    <section
+    <PlSection
       id="dca-planner"
-      className="pl-section"
-      aria-labelledby="pl-dca-title"
+      titleId="pl-dca-title"
+      title="Plan regular monthly investing"
+      lead="Dollar-cost averaging (DCA) means investing a fixed amount on a regular schedule instead of all at once. See how an initial amount plus monthly contributions could add up under an assumed return. It is an illustration, not a prediction."
+      labels={["hypothetical"]}
+      source="Source: the amounts, years and assumed return you entered. No market data is used. Hypothetical example, not a forecast. The assumptions and the formula are listed above."
     >
-      <p className="pl-eyebrow">DCA Planner</p>
-      <h2 id="pl-dca-title" className="pl-h2">
-        Plan regular monthly investing
-      </h2>
-      <p className="pl-lead">
-        Dollar-cost averaging (DCA) means investing a fixed amount on a regular
-        schedule instead of all at once. See how an initial amount plus monthly
-        contributions could add up under an assumed return. It is an
-        illustration, not a prediction.
-      </p>
-
-      <div className="pl-tool-grid">
+      <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
         {/* Inputs */}
-        <div className="pl-panel pl-tool-inputs">
-          <h3 className="pl-h3">Your plan</h3>
+        <Card>
+          <h3 className="font-serif text-h4 font-normal text-ink">Your plan</h3>
 
-          <div className="pl-fields">
+          <div className="mt-5 grid gap-4">
             <NumberField
               id="dca-initial"
               label="Initial investment"
@@ -129,104 +121,82 @@ export default function DcaSection({
               error={parsed.errors.annualReturn}
               hint={
                 parsed.returnIsBlank && !parsed.errors.annualReturn
-                  ? "Blank, so 0% is used. Negative values such as -5 are allowed."
-                  : "An illustrative assumption, not a forecast. Between -50% and 50%."
+                  ? "Blank, so 0% is used. Negative values such as −5 are allowed."
+                  : "An illustrative assumption, not a forecast. Between −50% and 50%."
               }
               suffix="% a year"
             />
           </div>
 
-          <div className="pl-tool-actions">
+          <div className="mt-5 flex flex-wrap gap-2">
             {summary.investment > 0 && (
-              <button
-                type="button"
-                className="pl-btn pl-btn-ghost"
+              <Button
+                variant="secondary"
                 onClick={() => setField("initial")(String(summary.investment))}
               >
                 <i className="ti ti-arrow-back-up" aria-hidden="true" />
                 Use my builder amount ({formatMoney(summary.investment, currency)})
-              </button>
+              </Button>
             )}
 
-            <button
-              type="button"
-              className="pl-btn pl-btn-quiet"
-              onClick={() => onFieldsChange(defaultDcaFields())}
-            >
+            <Button variant="quiet" onClick={() => onFieldsChange(defaultDcaFields())}>
               <i className="ti ti-restore" aria-hidden="true" />
               Reset these fields
-            </button>
+            </Button>
           </div>
 
-          <p className="pl-hint">
-            Amounts use your display currency ({currency}). Nothing is
-            converted.
+          <p className="mt-4 text-small text-ink-muted">
+            Amounts use your display currency ({currency}). Nothing is converted.
           </p>
-        </div>
+        </Card>
 
         {/* Results */}
-        <div className="pl-tool-results" aria-live="polite">
+        <div className="grid min-w-0 gap-4" aria-live="polite">
           {hasFieldErrors ? (
-            <div className="pl-panel pl-empty">
-              <i className="ti ti-alert-circle" aria-hidden="true" />
-              <p className="pl-empty-title">Check the highlighted fields</p>
-              <p className="pl-empty-text">
-                Results appear as soon as every field has a valid number.
-              </p>
-            </div>
+            <NoteBox tone="problem" title="Check the highlighted fields">
+              <p>Results appear as soon as every field has a valid number.</p>
+            </NoteBox>
           ) : outcome && !outcome.ok ? (
-            <div className="pl-panel pl-empty">
-              <i className="ti ti-alert-triangle" aria-hidden="true" />
-              <p className="pl-empty-title">This can&apos;t be calculated</p>
-              <p className="pl-empty-text">{outcome.error}</p>
-            </div>
+            <NoteBox tone="problem" title="This can’t be calculated">
+              <p>{outcome.error}</p>
+            </NoteBox>
           ) : result ? (
             <>
-              <div className={`pl-result-hero${result.isLoss ? " is-loss" : ""}`}>
-                <p className="pl-card-label">Hypothetical future value</p>
-                <p className="pl-result-value">
-                  {formatMoney(result.futureValue, currency)}
-                </p>
-                <p className="pl-result-growth">
-                  <strong>{growthLabel(result)}:</strong>{" "}
-                  {formatSignedMoney(result.growth, currency)}
+              <LeadPanel
+                label="Hypothetical future value"
+                value={formatMoney(result.futureValue, currency)}
+              >
+                <p className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold">{growthLabel(result)}:</span>
+                  <DeltaPill
+                    direction={directionOf(result.growth)}
+                    text={formatSignedMoney(result.growth, currency)}
+                  />
                   {result.growthPercent !== null && (
-                    <> ({formatSignedPercent(result.growthPercent)} of the money you put in)</>
+                    <span>{formatSignedPercent(result.growthPercent)} of the money you put in</span>
                   )}
                 </p>
-                <p className="pl-result-sub">
+                <p>
                   After {yearsText(result.input.years)} at an assumed{" "}
-                  {formatPercent(result.input.annualReturnPercent)} a year.
-                  Not a forecast.
+                  {formatPercent(result.input.annualReturnPercent)} a year. Not a forecast.
                 </p>
-              </div>
+              </LeadPanel>
 
-              <div className="pl-mini-cards">
-                <div className="pl-card">
-                  <p className="pl-card-label">Initial investment</p>
-                  <p className="pl-card-value pl-card-value-sm">
-                    {formatMoney(result.initial, currency)}
-                  </p>
-                </div>
-
-                <div className="pl-card">
-                  <p className="pl-card-label">Additional contributions</p>
-                  <p className="pl-card-value pl-card-value-sm">
-                    {formatMoney(result.totalContributions, currency)}
-                  </p>
-                  <p className="pl-card-note">
-                    {result.periods} × {formatMoney(result.input.monthly, currency)}
-                  </p>
-                </div>
-
-                <div className="pl-card">
-                  <p className="pl-card-label">Total contributed principal</p>
-                  <p className="pl-card-value pl-card-value-sm">
-                    {formatMoney(result.principal, currency)}
-                  </p>
-                  <p className="pl-card-note">What you put in</p>
-                </div>
-              </div>
+              <FactList
+                facts={[
+                  { label: "Initial investment", value: formatMoney(result.initial, currency) },
+                  {
+                    label: "Additional contributions",
+                    value: formatMoney(result.totalContributions, currency),
+                    note: `${result.periods} × ${formatMoney(result.input.monthly, currency)}`,
+                  },
+                  {
+                    label: "Total contributed principal",
+                    value: formatMoney(result.principal, currency),
+                    note: "What you put in",
+                  },
+                ]}
+              />
             </>
           ) : null}
         </div>
@@ -234,135 +204,146 @@ export default function DcaSection({
 
       {result && (
         <>
-          <div className="pl-panel">
-            <h3 className="pl-h3">Projection over time</h3>
+          <Card>
+            <h3 className="font-serif text-h3 font-normal text-ink">
+              The hypothetical balance reaches {formatMoney(result.futureValue, currency)} after{" "}
+              {yearsText(result.input.years)}
+            </h3>
+            <p className="mt-3 text-note text-ink-muted">
+              The solid line is the hypothetical value. The dashed line is the money you put in.
+            </p>
 
-            <ProjectionChart
-              currency={currency}
-              summary={`Projection over ${yearsText(result.input.years)}.`}
-              series={[
-                {
-                  id: "principal",
-                  label: "Contributed principal",
-                  color: "#8a8a86",
-                  dashed: true,
-                  values: result.points.map((point) => point.principal),
-                },
-                {
-                  id: "balance",
-                  label: "Hypothetical value",
-                  color: "#2f5233",
-                  values: result.points.map((point) => point.balance),
-                },
-              ]}
-            />
+            <figure className="mt-5">
+              <ProjectionChart
+                currency={currency}
+                summary={`Projection over ${yearsText(result.input.years)}.`}
+                series={[
+                  {
+                    id: "principal",
+                    label: "Contributed principal",
+                    tone: "principal",
+                    values: result.points.map((point) => point.principal),
+                  },
+                  {
+                    id: "balance",
+                    label: "Hypothetical value",
+                    tone: "balance",
+                    values: result.points.map((point) => point.balance),
+                  },
+                ]}
+              />
 
-            <ul className="pl-chart-legend" aria-label="Chart legend">
-              <li>
-                <span className="pl-line is-dashed" aria-hidden="true" />
-                Contributed principal
-                <strong>{formatMoney(result.principal, currency)}</strong>
-              </li>
-              <li>
-                <span className="pl-line" aria-hidden="true" />
-                Hypothetical value
-                <strong>{formatMoney(result.futureValue, currency)}</strong>
-              </li>
-            </ul>
+              <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2" aria-label="Chart legend">
+                <li className="flex items-center gap-2 text-small text-ink">
+                  <LineSample tone="principal" />
+                  Contributed principal
+                  <strong className="font-semibold tabular-nums">
+                    {formatMoney(result.principal, currency)}
+                  </strong>
+                </li>
+                <li className="flex items-center gap-2 text-small text-ink">
+                  <LineSample tone="balance" />
+                  Hypothetical value
+                  <strong className="font-semibold tabular-nums">
+                    {formatMoney(result.futureValue, currency)}
+                  </strong>
+                </li>
+              </ul>
 
-            <div
-              className="pl-scroll"
-              role="region"
-              aria-label="Year-by-year projection table"
-              tabIndex={0}
-            >
-              <table className="pl-table pl-proj-table">
-                <caption className="pl-sr-only">
-                  Year-by-year hypothetical projection: money contributed,
-                  hypothetical value, and the difference
-                </caption>
-                <thead>
-                  <tr>
-                    <th scope="col">When</th>
-                    <th scope="col" className="pl-num">Contributed principal</th>
-                    <th scope="col" className="pl-num">Hypothetical value</th>
-                    <th scope="col" className="pl-num">Growth or loss</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {yearlyPoints(result).map((point) => (
-                    <tr key={point.month}>
-                      <th scope="row">{rowLabel(point.month)}</th>
-                      <td className="pl-num">{formatMoney(point.principal, currency)}</td>
-                      <td className="pl-num">{formatMoney(point.balance, currency)}</td>
-                      <td className="pl-num">
-                        {formatSignedMoney(point.balance - point.principal, currency)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <HowToRead>
+                Each line shows the balance month by month, in {currency}. The table below lists
+                the same values for every year.
+              </HowToRead>
+            </figure>
+
+            <div className="mt-5">
+              <DataTable
+                caption="Year-by-year hypothetical projection: money contributed, hypothetical value, and the difference"
+                regionLabel="Year-by-year projection table"
+                firstColumn="When"
+                columns={[
+                  { label: "Contributed principal", numeric: true },
+                  { label: "Hypothetical value", numeric: true },
+                  { label: "Growth or loss", numeric: true },
+                ]}
+                rows={yearlyPoints(result).map((point) => {
+                  const difference = point.balance - point.principal;
+
+                  return {
+                    id: point.month,
+                    header: rowLabel(point.month),
+                    cells: [
+                      formatMoney(point.principal, currency),
+                      formatMoney(point.balance, currency),
+                      <DeltaPill
+                        key="delta"
+                        direction={directionOf(difference)}
+                        text={formatSignedMoney(difference, currency)}
+                      />,
+                    ],
+                  };
+                })}
+              />
             </div>
-          </div>
+          </Card>
 
           {/* How each contribution would be split */}
-          <div className="pl-panel">
-            <h3 className="pl-h3">How each monthly contribution could be split</h3>
+          <Card>
+            <h3 className="font-serif text-h3 font-normal text-ink">
+              How each monthly contribution could be split
+            </h3>
 
-            {result.input.monthly <= 0 ? (
-              <p className="pl-hint">
-                Add a monthly contribution to see how it would be divided.
-              </p>
-            ) : summary.holdingCount === 0 ? (
-              <p className="pl-hint">
-                Build a portfolio above and the planner will show how each
-                contribution would be divided across your holdings.
-              </p>
-            ) : split ? (
-              <>
-                <div className="pl-scroll" role="region" aria-label="Contribution split table" tabIndex={0}>
-                  <table className="pl-table pl-proj-table">
-                    <caption className="pl-sr-only">
-                      Contribution split by portfolio allocation
-                    </caption>
-                    <thead>
-                      <tr>
-                        <th scope="col">Holding</th>
-                        <th scope="col" className="pl-num">Allocation</th>
-                        <th scope="col" className="pl-num">Each month</th>
-                        <th scope="col" className="pl-num">Over the whole plan</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {split.map((row) => (
-                        <tr key={row.id}>
-                          <th scope="row">{row.name}</th>
-                          <td className="pl-num">{formatPercent(row.percent)}</td>
-                          <td className="pl-num">{formatMoney(row.monthlyAmount, currency)}</td>
-                          <td className="pl-num">{formatMoney(row.totalAmount, currency)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <p className="pl-footnote">
-                  The projection above uses one return for the whole plan. It
-                  does not give each holding its own return.
+            <div className="mt-5">
+              {result.input.monthly <= 0 ? (
+                <p className="text-note text-ink-muted">
+                  Not available. Add a monthly contribution to see how it would be divided.
                 </p>
-              </>
-            ) : (
-              <p className="pl-hint">
-                Your portfolio is not fully allocated (it totals{" "}
-                {formatPercent(summary.totalPercent)}), so a split would not add
-                up to your contribution. Make the allocation exactly 100% in the
-                builder to see it here.
-              </p>
-            )}
-          </div>
+              ) : summary.holdingCount === 0 ? (
+                <p className="text-note text-ink-muted">
+                  Not available. Build a portfolio above and the planner will show how each
+                  contribution would be divided across your holdings.
+                </p>
+              ) : split ? (
+                <>
+                  <DataTable
+                    caption="Contribution split by portfolio allocation"
+                    regionLabel="Contribution split table"
+                    firstColumn="Holding"
+                    columns={[
+                      { label: "Allocation", numeric: true },
+                      { label: "Each month", numeric: true },
+                      { label: "Over the whole plan", numeric: true },
+                    ]}
+                    rows={split.map((row) => ({
+                      id: row.id,
+                      header: row.name,
+                      cells: [
+                        formatPercent(row.percent),
+                        formatMoney(row.monthlyAmount, currency),
+                        formatMoney(row.totalAmount, currency),
+                      ],
+                    }))}
+                  />
+                  <p className="mt-3 text-caption text-ink-muted">
+                    The projection above uses one return for the whole plan. It does not give each
+                    holding its own return.
+                  </p>
+                </>
+              ) : (
+                <NoteBox>
+                  <p>
+                    Your portfolio is not fully allocated (it totals{" "}
+                    {formatPercent(summary.totalPercent)}), so a split would not add up to your
+                    contribution. Make the allocation exactly 100% in the builder to see it here.
+                  </p>
+                </NoteBox>
+              )}
+            </div>
+          </Card>
 
           <AssumptionsList variant="dca" />
         </>
       )}
-    </section>
+    </PlSection>
   );
 }

@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import { Fraunces } from "next/font/google";
-import Disclaimer from "@/components/portfolio-lab/Disclaimer";
+import Container from "@/components/ui/Container";
+import Disclaimer, { DisclaimerShort } from "@/components/portfolio-lab/Disclaimer";
 import GettingStarted from "@/components/portfolio-lab/GettingStarted";
 import HeroSection from "@/components/portfolio-lab/HeroSection";
-import PortfolioLab from "@/components/portfolio-lab/PortfolioLab";
-import "./portfolio-lab.css";
 import LearnSection from "@/components/portfolio-lab/LearnSection";
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--pl-serif",
-  display: "swap",
-});
+import PortfolioLab from "@/components/portfolio-lab/PortfolioLab";
 
 export const metadata: Metadata = {
   title: "Portfolio Lab: Build and Understand a Hypothetical Portfolio | Scope",
@@ -25,14 +18,19 @@ export const metadata: Metadata = {
   },
 };
 
+// Fraunces and Geist are loaded once in the root layout (font-serif, font-sans),
+// and the design tokens are imported by globals.css. This page needs no CSS file.
 export default function PortfolioLabPage() {
   return (
-      <main className={`pl-page ${fraunces.variable}`}>
-      <HeroSection />
-      <GettingStarted />
-      <PortfolioLab />
-      <Disclaimer />
-      <LearnSection />
-      </main>
+    <main>
+      <Container className="space-y-12 py-8 sm:space-y-16 sm:py-12">
+        <HeroSection />
+        <DisclaimerShort />
+        <GettingStarted />
+        <PortfolioLab />
+        <Disclaimer />
+        <LearnSection />
+      </Container>
+    </main>
   );
 }

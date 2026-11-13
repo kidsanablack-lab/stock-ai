@@ -3,6 +3,7 @@
 // The one question it answers: what should I watch in the next report,
 // and what would count as good or bad?
 // Visual: one range track per signal (weak zone, strong zone, three markers).
+// Company-neutral: no company name is written in this file. Everything specific comes from `data`.
 // Server Component. Data types unchanged.
 
 type ValueFormat = "percent" | "signedPercent" | "billions";
@@ -31,7 +32,14 @@ export type SignalsToWatchData = {
   lead: string;
   /** Section-level labels, shown once (for example "Example data"). */
   labels: string[];
-  /** date is written like "Monday, Nov 2, 2026". The calendar tile is built from it. */
+  /**
+   * The calendar tile is built from `date`. These forms are understood:
+   *   "Monday, Nov 2, 2026"                       exact day
+   *   "Around Thursday, Feb 4, 2027 (tentative)"  day, marked as approximate
+   *   "Early February 2027 (tentative)"           month only
+   *   "Late January 2027"                         month only
+   * Anything else is shown as plain text.
+   */
   next: { date: string; note: string };
   howToRead: string;
   signals: SignalItem[];
@@ -41,13 +49,13 @@ export type SignalsToWatchData = {
 type Zone = "strong" | "middle" | "weak";
 
 function formatValue(value: number, format: ValueFormat): string {
-  if (format === "billions") return `$${value.toFixed(1)}B`;
+  if (format === "billions") return `${value < 0 ? "−" : ""}$${Math.abs(value).toFixed(1)}B`;
   const text = `${Math.abs(value).toFixed(1)}%`;
   if (format === "signedPercent") {
     if (value > 0) return `+${text}`;
     if (value < 0) return `−${text}`;
   }
-  return text;
+  return value < 0 ? `−${text}` : text;
 }
 
 function position(value: number, range: [number, number]): number {
@@ -62,24 +70,52 @@ function zoneOf(item: SignalItem, v: number): Zone {
   return "middle";
 }
 
-// Turns "Monday, Nov 2, 2026" into the parts of a calendar tile and a "in N days" hint.
-// Returns null if the text does not look like that, and the card then shows plain text.
+// Reads the date text of the next report. Returns null if it does not look like any of the forms above,
+// and the card then shows plain text.
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+const QUALIFIER = /^(around|about|early|mid|late)\s+/i;
 
-function parseNextDate(text: string) {
-  const m = text.match(/^(?:([A-Za-z]+),\s*)?([A-Za-z]{3,9})\.?\s+(\d{1,2}),\s*(\d{4})$/);
-  if (!m) return null;
-  const month = MONTHS.indexOf(m[2].slice(0, 3).toLowerCase());
-  if (month < 0) return null;
-  const day = Number(m[3]);
-  const year = Number(m[4]);
-  const target = Date.UTC(year, month, day);
-  const weekday =
-    m[1] ?? new Date(target).toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" });
-  const now = new Date();
-  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-  const daysLeft = Math.round((target - today) / 86_400_000);
-  return { month: m[2].slice(0, 3).toUpperCase(), year, day, weekday, daysLeft };
+type ParsedDate =
+  | { kind: "day"; month: string; year: number; day: number; weekday: string; approx: boolean; daysLeft: number }
+  | { kind: "month"; month: string; year: number; qualifier: string | null; approx: true };
+
+function parseNextDate(text: string): ParsedDate | null {
+  const raw = text.trim();
+  const qualifier = raw.match(QUALIFIER)?.[1]?.toLowerCase() ?? null;
+  const tentative = /\(\s*tentative\s*\)/i.test(raw);
+  const approx = tentative || qualifier !== null;
+  // Remove "(tentative)" and a leading "Around", "Early", "Late" and so on.
+  const clean = raw.replace(/\([^)]*\)/g, "").replace(QUALIFIER, "").trim();
+
+  const full = clean.match(/^(?:([A-Za-z]+),\s*)?([A-Za-z]{3,9})\.?\s+(\d{1,2}),\s*(\d{4})$/);
+  if (full) {
+    const month = MONTHS.indexOf(full[2].slice(0, 3).toLowerCase());
+    if (month < 0) return null;
+    const day = Number(full[3]);
+    const year = Number(full[4]);
+    const target = Date.UTC(year, month, day);
+    const weekday = full[1] ?? new Date(target).toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" });
+    const now = new Date();
+    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    return {
+      kind: "day",
+      month: full[2].slice(0, 3).toUpperCase(),
+      year,
+      day,
+      weekday,
+      approx,
+      daysLeft: Math.round((target - today) / 86_400_000),
+    };
+  }
+
+  const monthOnly = clean.match(/^([A-Za-z]{3,9})\.?\s+(\d{4})$/);
+  if (monthOnly) {
+    const month = MONTHS.indexOf(monthOnly[1].slice(0, 3).toLowerCase());
+    if (month < 0) return null;
+    return { kind: "month", month: monthOnly[1].slice(0, 3).toUpperCase(), year: Number(monthOnly[2]), qualifier, approx: true };
+  }
+
+  return null;
 }
 
 function inDays(n: number): string | null {
@@ -88,6 +124,8 @@ function inDays(n: number): string | null {
   if (n === 1) return "tomorrow";
   return `in ${n} days`;
 }
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // Each zone has a word and an icon as well as a color.
 const ZONE = {
@@ -196,9 +234,11 @@ function Stat({
 }
 
 // Vivid blue card: a small calendar tile on the left, the date and the note on the right.
+// The "in N days" hint is only shown for an exact day that is not marked approximate.
+// A tentative or month-only date never gets a countdown, because it would be a guess.
 function NextReportCard({ next }: { next: SignalsToWatchData["next"] }) {
   const parsed = parseNextDate(next.date);
-  const hint = parsed ? inDays(parsed.daysLeft) : null;
+  const hint = parsed && parsed.kind === "day" && !parsed.approx ? inDays(parsed.daysLeft) : null;
 
   return (
     <div className="flex items-center gap-4 rounded-[28px] bg-primary p-5 text-white sm:gap-5 sm:p-6">
@@ -208,13 +248,15 @@ function NextReportCard({ next }: { next: SignalsToWatchData["next"] }) {
           aria-hidden="true"
         >
           <div className="bg-primary-ink px-2 py-1.5 text-[12px] font-bold uppercase tracking-[0.08em] text-white">
-            {parsed.month} {parsed.year}
+            {parsed.kind === "day" ? `${parsed.month} ${parsed.year}` : parsed.year}
           </div>
           <div className="pb-2.5 pt-1">
             <div className="font-serif text-[48px] font-semibold leading-none tabular-nums text-ink sm:text-[54px]">
-              {parsed.day}
+              {parsed.kind === "day" ? parsed.day : parsed.month}
             </div>
-            <div className="mt-1 text-sm text-ink-muted">{parsed.weekday}</div>
+            <div className="mt-1 text-sm text-ink-muted">
+              {parsed.kind === "day" ? parsed.weekday : parsed.qualifier ? capitalize(parsed.qualifier) : "Expected"}
+            </div>
           </div>
         </div>
       )}
@@ -239,8 +281,8 @@ export default function SignalsToWatch({ data }: { data: SignalsToWatchData }) {
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
         {/* Title runs the full width */}
         <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
-            {data.title}
-          </h2>
+          {data.title}
+        </h2>
 
         {/* Lead and labels on the left, next report card level with them on the right */}
         <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center lg:gap-12">
@@ -308,7 +350,7 @@ export default function SignalsToWatch({ data }: { data: SignalsToWatchData }) {
                     </div>
                     {item.guidance && (
                       <p className="mt-3 text-[13.5px] leading-relaxed text-ink-muted">
-                        Apple guided <span className="font-semibold text-ink">{item.guidance}</span>.
+                        Company guidance: <span className="font-semibold text-ink">{item.guidance}</span>.
                       </p>
                     )}
                   </div>

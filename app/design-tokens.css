@@ -1,31 +1,46 @@
-/*
-  Scope design tokens: single source of truth for the redesign.
-  Imported from globals.css. Tailwind v4 turns these into utilities
-  (bg-surface, text-ink, border-border, text-primary, rounded-card, shadow-card)
-  and into CSS variables (var(--color-ink)) usable from any .css file.
+/* =============================================================================
+   Scope design tokens  ·  Nov 12, 2026
 
-  `static` makes Tailwind always emit the variables, even if a utility
-  does not use them yet, so legacy .css files can reference them safely.
-*/
+   THE SOURCE OF TRUTH for every token value. DESIGN.md explains the rules;
+   if a hex value in a doc differs from this file, this file wins.
+
+   Written for Tailwind v4 (@theme). Namespaces, checked with a scratch build
+   (Tailwind 4.3.5 CLI, normal and --minify):
+     --color-*    -> bg-*, text-*, border-*, fill-*, stroke-*
+     --text-*     -> text-<name>   (with --text-<name>--line-height)
+     --radius-*   -> rounded-<name>
+     --tracking-* -> tracking-<name>
+     --font-*     -> font-<name>
+     --shadow-*   -> shadow-<name>
+
+   Import this file from the stylesheet that contains @import "tailwindcss".
+   @theme is a Tailwind directive; a file that Tailwind does not process
+   leaves it unread and no variable is defined.
+
+   Scope colors: use a utility or var(--color-*), don't type the hex.
+   A company's own brand colors may be hex, kept in one place per company.
+   ========================================================================== */
+
+/* `static` makes Tailwind always emit every variable below. By default it emits
+   only the ones it finds in use, and it cannot see a name built at run time
+   (for example var(--color-chart-${i})), so that variable would be undefined.
+   Utilities are still generated only when used. */
 @theme static {
-  /* Surfaces */
+  /* ---- Base ------------------------------------------------------------- */
   --color-bg: #ffffff;
-  --color-surface: #f5f8fc;
+  --color-ink: #172b4d;
+  --color-ink-muted: #52627a;
+  --color-border: #dce4ee;
 
-  /* Brand blue */
+  /* ---- Brand ------------------------------------------------------------ */
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
   --color-primary-soft: #dbeafe;
   --color-primary-ink: #1e40af;
+  --color-navy: #0b1f4b; /* logo, dark stage color. Not a general background */
 
-  /* Text */
-  --color-ink: #172b4d;
-  --color-ink-muted: #52627a;
-
-  /* Lines */
-  --color-border: #dce4ee;
-
-  /* Meaning only: use for financial up / down / caution, never decoration */
+  /* ---- Meaning. Only for good / bad / caution. Do NOT lighten: ----------
+          text on its own -soft fill is 4.57 / 4.51 / 5.30 : 1 (limit 4.5) */
   --color-success: #15803d;
   --color-success-soft: #dcfce7;
   --color-warning: #b45309;
@@ -33,25 +48,196 @@
   --color-danger: #b91c1c;
   --color-danger-soft: #fee2e2;
 
-  /* Chart ramp: one hue, dark to light (revenue mix, bars) */
+  /* ---- Magnitude ramp, dark -> light -------------------------------------
+     chart-3 … chart-6 are below 3:1 on white. When they carry data they MUST
+     be drawn with a 1.5px chart-outline stroke (WCAG 1.4.11).              */
   --color-chart-1: #1e40af;
   --color-chart-2: #2563eb;
   --color-chart-3: #60a5fa;
   --color-chart-4: #93c5fd;
   --color-chart-5: #bfdbfe;
   --color-chart-6: #dbeafe;
+  --color-chart-outline: #3b82f6; /* 3.68:1 on white */
+  --color-chart-compare: #8691a2; /* comparison companies / other series, 3.19:1 */
 
-  /* Shape and depth */
-  --radius-control: 12px;
-  --radius-card: 16px;
-  --shadow-card: 0 1px 2px rgba(23, 43, 77, 0.04),
-    0 8px 24px rgba(23, 43, 77, 0.06);
+  /* ---- Stages of one flow (sales -> gross -> operating -> net profit) ----
+     One hue on purpose, so stages never collide with category colors.      */
+  --color-stage-1: #0b1f4b;
+  --color-stage-2: #1e40af;
+  --color-stage-3: #2563eb;
+  --color-stage-4: #3b82f6;
 
-    
-      /* สีแยกส่วนแบ่ง (treemap) ใช้เฉพาะแยกหมวดสินค้า */
-  --color-share-1: #2563eb;
-  --color-share-2: #7c3aed;
-  --color-share-3: #06b6d4;
-  --color-share-4: #db2777;
-  --color-share-5: #64748b;
+  /* ---- Category palette, in this order. All give >= 4.5:1 with white text */
+  --color-share-1: #2563eb; /* blue   5.17 */
+  --color-share-2: #7c3aed; /* violet 5.70 */
+  --color-share-3: #0e7490; /* cyan   5.36  (was #0891b2, 3.68: failed) */
+  --color-share-4: #be185d; /* pink   6.04  (was #db2777, 4.60) */
+  --color-share-5: #0f766e; /* teal   5.47  (was #0d9488, 3.74: failed) */
+  --color-share-6: #c2410c; /* orange 5.18  (was #ea580c, 3.56: failed) */
+  --color-share-other: #64748b; /* 4.76 */
+
+  /* ---- Theme triples (7 Powers). accent / tint / ink ---------------------
+     No theme uses a red, amber or green hue, so a theme can never be read
+     as good / bad / caution. Keep accent on white, accent on
+     its tint and ink on its tint at 4.5:1 or more.                         */
+  --color-theme-scale-accent: #185fa5;
+  --color-theme-scale-tint: #e6f1fb;
+  --color-theme-scale-ink: #042c53;
+
+  --color-theme-network-accent: #0f766e;
+  --color-theme-network-tint: #e6f5f3;
+  --color-theme-network-ink: #042f2e;
+
+  --color-theme-counter-accent: #6d28d9;
+  --color-theme-counter-tint: #f1effb;
+  --color-theme-counter-ink: #2a1259;
+
+  --color-theme-switching-accent: #4338ca;
+  --color-theme-switching-tint: #eef0fd;
+  --color-theme-switching-ink: #1e1b4b;
+
+  --color-theme-branding-accent: #993556;
+  --color-theme-branding-tint: #fbeaf0;
+  --color-theme-branding-ink: #4b1528;
+
+  --color-theme-cornered-accent: #86198f;
+  --color-theme-cornered-tint: #faeefb;
+  --color-theme-cornered-ink: #4a044e;
+
+  --color-theme-process-accent: #0e7490;
+  --color-theme-process-tint: #e3f3f8;
+  --color-theme-process-ink: #083344;
+
+  /* ---- Typography -------------------------------------------------------
+     Checked on the upstream font files: Geist has tnum and pnum. Fraunces has
+     no tnum (its GSUB features are case, liga, rvrn, ss01) and its digits are
+     proportional, so tabular-nums does nothing for serif numbers.           */
+  --font-serif: "Fraunces", "Noto Serif Thai", Georgia, "Times New Roman", serif;
+  --font-sans: "Geist", "Noto Sans Thai", ui-sans-serif, system-ui, sans-serif;
+
+  --text-caption: 12px;
+  --text-caption--line-height: 1.5;
+  --text-small: 13px;
+  --text-small--line-height: 1.5;
+  --text-note: 14px;
+  --text-note--line-height: 1.6;
+  --text-body: 16px;
+  --text-body--line-height: 1.65;
+  --text-lead: 17px;
+  --text-lead--line-height: 1.6;
+
+  --text-h4: 20px;
+  --text-h4--line-height: 1.3;
+  --text-h3: clamp(22px, 2.6vw, 28px);
+  --text-h3--line-height: 1.2;
+  --text-h2: clamp(28px, 4vw, 40px);
+  --text-h2--line-height: 1.12;
+  --text-page: clamp(34px, 6vw, 56px);
+  --text-page--line-height: 1.05;
+  --text-display: clamp(34px, 6vw, 60px);
+  --text-display--line-height: 1.08;
+
+  --text-num-s: 22px; /* score */
+  --text-num-s--line-height: 1.1;
+  --text-num-m: 28px; /* key facts, KPI cards */
+  --text-num-m--line-height: 1.1;
+  --text-num-l: 40px; /* margin cards */
+  --text-num-l--line-height: 1.05;
+  --text-num-xl: clamp(48px, 7vw, 68px); /* the lead metric */
+  --text-num-xl--line-height: 1;
+
+  --tracking-title: -0.02em;
+  --tracking-eyebrow: 0.1em; /* Latin script only. Never on Thai */
+
+  /* ---- Shape ------------------------------------------------------------
+     Use Tailwind's rounded-xl (12) / 2xl (16) / 3xl (24) for the rest.     */
+  --radius-panel: 28px;
+  --radius-panel-lg: 36px; /* from the sm breakpoint up */
+
+  --shadow-card: 0 1px 2px rgba(23, 43, 77, 0.04), 0 8px 24px rgba(23, 43, 77, 0.06);
+
+  /* ---- Motion ----------------------------------------------------------- */
+  --default-transition-duration: 180ms;
+}
+
+/* Light only. No dark mode (see DESIGN.md). */
+:root {
+  color-scheme: light;
+}
+
+/* -----------------------------------------------------------------------------
+   Aliases that components read. Components never name a theme or a company.
+   ------------------------------------------------------------------------- */
+
+/* Category palette: default. Charts use var(--cat-1) … var(--cat-6), var(--cat-other). */
+:root {
+  --cat-1: var(--color-share-1);
+  --cat-2: var(--color-share-2);
+  --cat-3: var(--color-share-3);
+  --cat-4: var(--color-share-4);
+  --cat-5: var(--color-share-5);
+  --cat-6: var(--color-share-6);
+  --cat-other: var(--color-share-other);
+}
+
+/* Theme triples. Components read --theme-accent / --theme-tint / --theme-ink.
+   Set data-theme="<id>" on the section wrapper (one per section). */
+[data-theme="scale"] {
+  --theme-accent: var(--color-theme-scale-accent);
+  --theme-tint: var(--color-theme-scale-tint);
+  --theme-ink: var(--color-theme-scale-ink);
+}
+[data-theme="network"] {
+  --theme-accent: var(--color-theme-network-accent);
+  --theme-tint: var(--color-theme-network-tint);
+  --theme-ink: var(--color-theme-network-ink);
+}
+[data-theme="counter"] {
+  --theme-accent: var(--color-theme-counter-accent);
+  --theme-tint: var(--color-theme-counter-tint);
+  --theme-ink: var(--color-theme-counter-ink);
+}
+[data-theme="switching"] {
+  --theme-accent: var(--color-theme-switching-accent);
+  --theme-tint: var(--color-theme-switching-tint);
+  --theme-ink: var(--color-theme-switching-ink);
+}
+[data-theme="branding"] {
+  --theme-accent: var(--color-theme-branding-accent);
+  --theme-tint: var(--color-theme-branding-tint);
+  --theme-ink: var(--color-theme-branding-ink);
+}
+[data-theme="cornered"] {
+  --theme-accent: var(--color-theme-cornered-accent);
+  --theme-tint: var(--color-theme-cornered-tint);
+  --theme-ink: var(--color-theme-cornered-ink);
+}
+[data-theme="process"] {
+  --theme-accent: var(--color-theme-process-accent);
+  --theme-tint: var(--color-theme-process-tint);
+  --theme-ink: var(--color-theme-process-ink);
+}
+
+/* Focus. Set once here; components do not restyle it. These rules are outside
+   every @layer, so they also win over focus utilities such as outline-none.
+   On a solid blue panel the ring turns white (blue on blue is invisible).
+   KNOWN ISSUE: the white ring also applies to controls inside a white card
+   that sits on the panel, where it is white on white (1.0:1). Decision pending. */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.on-primary :focus-visible {
+  outline-color: var(--color-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

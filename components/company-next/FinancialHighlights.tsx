@@ -1,6 +1,7 @@
-// ส่วน 8: Apple ทำเงินได้เท่าไรต่อปี และคุณภาพกำไรดีแค่ไหน
-// ภาพหลัก: การ์ดตัวเลขสรุป + กราฟเส้น "Growth since FY21" (FY21 = 100) เส้นเต็มความกว้าง ตัวอธิบายเส้นอยู่ด้านล่าง
-// Server Component. Data type unchanged.
+// ส่วน 8: บริษัททำเงินได้เท่าไรต่อปี และคุณภาพกำไรดีแค่ไหน
+// ภาพหลัก: การ์ดตัวเลขสรุป + กราฟเส้น "Growth since <ปีแรก>" (ปีแรก = 100) เส้นเต็มความกว้าง ตัวอธิบายเส้นอยู่ด้านล่าง
+// ไม่มีชื่อบริษัทหรือปีที่ฝังไว้ในไฟล์นี้ ปีทั้งหมดมาจาก data.years (บังคับส่ง)
+// Server Component.
 
 type Tone = "positive" | "negative";
 
@@ -9,7 +10,7 @@ type Metric = {
   value: string;
   change: string;
   tone: Tone;
-  series: number[]; // FY21..FY25
+  series: number[]; // one value per year, oldest first, same length as `years`
   note: string;
   unit: "B" | "$" | "%"; // ใช้แสดงตัวเลขบนแท่ง
 };
@@ -21,11 +22,9 @@ export type FinancialHighlightsData = {
   metrics: Metric[];
   howToRead: string;
   source: string;
-  // Year labels of the series, oldest first. Optional: falls back to FY21 to FY25.
-  years?: string[];
+  // Year labels of the series, oldest first. Required: there is no default, so a page can never show the wrong years.
+  years: string[];
 };
-
-const DEFAULT_YEARS = ["FY21", "FY22", "FY23", "FY24", "FY25"];
 
 // A round step so the y axis shows about 8 labels at most, even when a line grows 10 times over.
 function niceStep(span: number, maxIntervals = 7) {
@@ -64,6 +63,9 @@ function GrowthChart({ metrics, years: YEARS }: { metrics: Metric[]; years: stri
       return { m, idx, offset: YEARS.length - m.series.length, growth: idx[idx.length - 1] - 100 };
     })
     .sort((a, b) => b.growth - a.growth);
+
+  // ชุดที่ถูกข้าม บอกผู้อ่านด้วย ไม่ปล่อยให้หายเงียบๆ
+  const skipped = metrics.filter((m) => m.series.length >= 2 && m.series[0] <= 0);
 
   if (rows.length < 2) return null;
 
@@ -183,6 +185,13 @@ function GrowthChart({ metrics, years: YEARS }: { metrics: Metric[]; years: stri
           </li>
         ))}
       </ul>
+
+      {skipped.length > 0 && (
+        <p className="mt-4 text-[13px] leading-relaxed text-ink-muted">
+          Not on this chart, because the value in {YEARS[0]} was zero or negative:{" "}
+          {skipped.map((m) => m.label.toLowerCase()).join(", ")}.
+        </p>
+      )}
     </div>
   );
 }
@@ -220,9 +229,9 @@ export default function FinancialHighlights({ data }: { data: FinancialHighlight
           </div>
         )}
 
-        <GrowthChart metrics={data.metrics} years={data.years ?? DEFAULT_YEARS} />
+        <GrowthChart metrics={data.metrics} years={data.years} />
 
-        <p className="mt-5 max-w-[780px] border-l-2 border-[#1B5CE8] pl-3 text-[13px] leading-relaxed text-ink-muted">
+        <p className="mt-5 max-w-[780px] border-l-2 border-primary pl-3 text-[13px] leading-relaxed text-ink-muted">
           {data.howToRead}
         </p>
         <p className="mt-5 border-t border-border pt-4 text-[13px] leading-relaxed text-ink-muted">{data.source}</p>

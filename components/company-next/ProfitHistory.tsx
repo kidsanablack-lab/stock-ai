@@ -1,14 +1,17 @@
 import type { ReactNode } from "react";
 
-// How steadily Apple grew, and whether it keeps more profit from each sale.
+// How steadily the company grew, and whether it keeps more profit from each sale.
 // Main visuals: $100 waterfall, five-year margin lines, growth (three summary cards + grouped bars with years), ROIC vs cost of capital.
+// Company-neutral: no company name, fixed fiscal years or product words are written in this file. Everything specific comes from `data`.
+// Growth rates are only calculated when the starting value is above zero. Otherwise the chart shows nothing for that
+// year and the table shows "n/m" (not meaningful), so a loss year can no longer produce a huge or false percentage.
 // Server Component.
 
 export type ProfitHistoryData = {
   title: string;
   lead: string;
   labels: string[];
-  years: string[]; // FY21..FY25
+  years: string[]; // fiscal year labels, oldest first (for example FY22..FY26)
   revenue: number[];
   grossProfit: number[];
   operatingIncome: number[];
@@ -28,11 +31,19 @@ export type ProfitHistoryData = {
   source: string;
 };
 
-const f1 = (v: number) => v.toFixed(1);
-const money = (v: number) => `$${v.toFixed(2)}`;
-const yoy = (s: number[]) => s.slice(1).map((v, i) => (v / (s[i] || 1) - 1) * 100);
-const cagr = (s: number[]) =>
-  s.length > 1 && s[0] > 0 ? (Math.pow(s[s.length - 1] / s[0], 1 / (s.length - 1)) - 1) * 100 : 0;
+const sgn = (v: number) => (v < 0 ? "−" : "");
+const f1 = (v: number) => `${sgn(v)}${Math.abs(v).toFixed(1)}`;
+const money = (v: number) => `${sgn(v)}$${Math.abs(v).toFixed(2)}`;
+
+// Change from the year before, in percent. null when the year before was zero or negative.
+const yoy = (s: number[]): (number | null)[] => s.slice(1).map((v, i) => (s[i] > 0 ? (v / s[i] - 1) * 100 : null));
+
+// Average growth per year. null when the first or last value is zero or negative.
+const cagr = (s: number[]): number | null =>
+  s.length > 1 && s[0] > 0 && s[s.length - 1] > 0
+    ? (Math.pow(s[s.length - 1] / s[0], 1 / (s.length - 1)) - 1) * 100
+    : null;
+
 const ratio = (n: number[], d: number[]) => n.map((v, i) => (v / (d[i] || 1)) * 100);
 
 /* Five-year line for one margin: dots on every year, a ring on the latest. */
@@ -79,45 +90,47 @@ export default function ProfitHistory({ data }: { data: ProfitHistoryData }) {
   const last = years.length - 1;
   if (last < 1) return null;
 
-  const growthYears = years.slice(1); // FY22..FY25
+  const growthYears = years.slice(1); // every year except the first one
 
   const growthRows = [
     { label: "Revenue", s: data.revenue, tone: "bg-ink" },
     { label: "Net income", s: data.netIncome, tone: "bg-primary" },
     { label: "Free cash flow", s: data.fcf, tone: "bg-share-2" },
   ];
-  const maxCagr = Math.max(0.1, ...growthRows.map((r) => cagr(r.s)));
+  const growthSeries = growthRows.map((r) => ({ ...r, g: cagr(r.s), ch: yoy(r.s) }));
+  const maxCagr = Math.max(0.1, ...growthSeries.map((r) => r.g ?? 0));
   // A column is a "dip" when revenue fell that year.
-  const dipCols = yoy(data.revenue).map((v) => v < 0);
+  const dipCols = yoy(data.revenue).map((v) => v !== null && v < 0);
 
   /* Growth chart: scale comes from the real data, rounded up to steps of 5% */
-  const growthSeries = growthRows.map((r) => ({ ...r, g: cagr(r.s), ch: yoy(r.s) }));
-  const allChanges = growthSeries.flatMap((r) => r.ch);
-  const up = Math.max(5, Math.ceil(Math.max(...allChanges) / 5) * 5);
-  const down = Math.max(5, Math.ceil(Math.abs(Math.min(...allChanges)) / 5) * 5);
+  const allChanges = growthSeries.flatMap((r) => r.ch).filter((v): v is number => v !== null);
+  const top = allChanges.length ? Math.max(...allChanges) : 0;
+  const bottom = allChanges.length ? Math.min(...allChanges) : 0;
+  const up = Math.max(5, Math.ceil(top / 5) * 5);
+  const down = Math.max(5, Math.ceil(Math.abs(bottom) / 5) * 5);
   const chartSpan = up + down;
   const pct = (v: number) => `${((v / chartSpan) * 100).toFixed(2)}%`;
   const gridLevels = [up, up / 2, 0, -down];
   const PLOT = 240; // px height of the bars area
 
   const marginRows = [
-    { label: "Gross margin", s: ratio(data.grossProfit, data.revenue), stroke: "stroke-share-1", after: "after the direct cost of making products" },
-    { label: "Operating margin", s: ratio(data.operatingIncome, data.revenue), stroke: "stroke-share-2", after: "after also paying for R&D, stores and marketing" },
+    { label: "Gross margin", s: ratio(data.grossProfit, data.revenue), stroke: "stroke-share-1", after: "after the direct cost of delivering what it sells" },
+    { label: "Operating margin", s: ratio(data.operatingIncome, data.revenue), stroke: "stroke-share-2", after: "after also paying for R&D, sales and running the business" },
     { label: "Net margin", s: ratio(data.netIncome, data.revenue), stroke: "stroke-share-4", after: "after tax and everything else" },
   ];
 
-  /* What happens to $100 of sales in the latest year */
+  /* What happens to $100 of sales in the latest year. Values never go below zero, so bad input cannot draw a negative bar. */
   const gm = marginRows[0].s[last];
   const om = marginRows[1].s[last];
   const nm = marginRows[2].s[last];
   const waterfall = [
     { label: "Sales", value: 100, from: 0, total: true, bar: "bg-ink" },
-    { label: "Cost of making products", value: 100 - gm, from: gm, total: false, bar: "bg-ink/10" },
-    { label: "Gross profit", value: gm, from: 0, total: true, bar: "bg-share-1" },
-    { label: "R&D, stores and marketing", value: gm - om, from: om, total: false, bar: "bg-ink/10" },
-    { label: "Operating profit", value: om, from: 0, total: true, bar: "bg-share-2" },
-    { label: "Tax and other", value: om - nm, from: nm, total: false, bar: "bg-ink/10" },
-    { label: "Net profit", value: nm, from: 0, total: true, bar: "bg-share-4" },
+    { label: "Direct costs", value: Math.max(0, 100 - gm), from: Math.max(0, gm), total: false, bar: "bg-ink/10" },
+    { label: "Gross profit", value: Math.max(0, gm), from: 0, total: true, bar: "bg-share-1" },
+    { label: "R&D, sales and other costs", value: Math.max(0, gm - om), from: Math.max(0, om), total: false, bar: "bg-ink/10" },
+    { label: "Operating profit", value: Math.max(0, om), from: 0, total: true, bar: "bg-share-2" },
+    { label: "Tax and other", value: Math.max(0, om - nm), from: Math.max(0, nm), total: false, bar: "bg-ink/10" },
+    { label: "Net profit", value: Math.max(0, nm), from: 0, total: true, bar: "bg-share-4" },
   ];
 
   const tableRows = [
@@ -127,18 +140,18 @@ export default function ProfitHistory({ data }: { data: ProfitHistoryData }) {
     { label: "Net income", s: data.netIncome, key: true, pct: false, sep: false },
     { label: "Free cash flow", s: data.fcf, key: true, pct: false, sep: false },
     ...marginRows.map((m, i) => ({ label: m.label, s: m.s, key: false, pct: true, sep: i === 0 })),
-  ];
+  ].map((r) => ({ ...r, avg: r.pct ? null : cagr(r.s) }));
 
   const times = returns.wacc ? Math.round(returns.roic / returns.wacc) : 0;
   const maxReturn = Math.max(returns.roic, returns.wacc, 1) * 1.2;
-  const pos = (v: number) => `${Math.min(100, (v / maxReturn) * 100).toFixed(1)}%`;
+  const pos = (v: number) => `${Math.min(100, Math.max(0, (v / maxReturn) * 100)).toFixed(1)}%`;
 
   return (
     <section id="history" className="scroll-mt-24 bg-white py-10 sm:py-12">
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
         {/* Header */}
         <header>
-         <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
+          <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
             {data.title}
           </h2>
           <p className="mt-3 max-w-[680px] text-[15px] leading-relaxed text-ink-muted sm:text-base">{data.lead}</p>
@@ -157,7 +170,7 @@ export default function ProfitHistory({ data }: { data: ProfitHistoryData }) {
               <div
                 className="min-w-[560px] pt-9"
                 role="img"
-                aria-label={`Of every $100 of sales in ${years[last]}, Apple keeps ${money(gm)} as gross profit, ${money(om)} as operating profit and ${money(nm)} as net profit`}
+                aria-label={`Of every $100 of sales in ${years[last]}, the company keeps ${money(gm)} as gross profit, ${money(om)} as operating profit and ${money(nm)} as net profit`}
               >
                 <div className="grid h-[260px] grid-cols-7 border-b-2 border-ink">
                   {waterfall.map((w) => (
@@ -222,7 +235,7 @@ export default function ProfitHistory({ data }: { data: ProfitHistoryData }) {
                     </div>
                   </div>
                   <p className="mt-3 text-[14px] leading-relaxed text-ink-muted">
-                    Keeps ${m.s[last].toFixed(2)} of every $100 sold, {m.after}.
+                    Keeps {money(m.s[last])} of every $100 sold, {m.after}.
                   </p>
                 </li>
               );
@@ -244,18 +257,29 @@ export default function ProfitHistory({ data }: { data: ProfitHistoryData }) {
                   <span className={`size-3 shrink-0 rounded-full ${r.tone}`} aria-hidden="true" />
                   <span className="text-[17px] font-semibold text-ink">{r.label}</span>
                 </div>
-                <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span className="font-serif text-[clamp(44px,5vw,60px)] font-medium leading-none tracking-tight tabular-nums text-ink">
-                    {f1(r.g)}%
-                  </span>
-                  <span className="text-[15px] text-ink-muted">
-                    a year, {years[0]} to {years[last]}
-                  </span>
-                </div>
+                {r.g === null ? (
+                  <div className="mt-3">
+                    <span className="font-serif text-[clamp(44px,5vw,60px)] font-medium leading-none tracking-tight text-ink-muted">
+                      n/a
+                    </span>
+                    <p className="mt-2 text-[15px] leading-snug text-ink-muted">
+                      Not meaningful: the value in {years[0]} or {years[last]} was zero or negative.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="font-serif text-[clamp(44px,5vw,60px)] font-medium leading-none tracking-tight tabular-nums text-ink">
+                      {f1(r.g)}%
+                    </span>
+                    <span className="text-[15px] text-ink-muted">
+                      a year, {years[0]} to {years[last]}
+                    </span>
+                  </div>
+                )}
                 <div className="mt-4 h-2.5 rounded-full bg-ink/10">
                   <div
                     className={`h-full rounded-full ${r.tone}`}
-                    style={{ width: `${Math.min(100, Math.max(0, (r.g / maxCagr) * 100))}%` }}
+                    style={{ width: `${r.g === null ? 0 : Math.min(100, Math.max(0, (r.g / maxCagr) * 100))}%` }}
                   />
                 </div>
               </li>
@@ -283,13 +307,16 @@ export default function ProfitHistory({ data }: { data: ProfitHistoryData }) {
                   .map(
                     (y, i) =>
                       `${y}: ${growthSeries
-                        .map((r) => `${r.label} ${r.ch[i] >= 0 ? "+" : "−"}${Math.abs(r.ch[i]).toFixed(1)}%`)
+                        .map((r) => {
+                          const v = r.ch[i];
+                          return `${r.label} ${v === null ? "not meaningful" : `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}%`}`;
+                        })
                         .join(", ")}`,
                   )
                   .join(". ")}`}
               >
                 {/* one column per year, with the dip band behind the bars and the year label underneath */}
-                <div className="grid grid-cols-4">
+                <div className="grid" style={{ gridTemplateColumns: `repeat(${growthYears.length}, minmax(0, 1fr))` }}>
                   {growthYears.map((y, i) => (
                     <div key={y} className="relative px-2">
                       {dipCols[i] && (
@@ -303,6 +330,8 @@ export default function ProfitHistory({ data }: { data: ProfitHistoryData }) {
                       <div className="relative flex justify-center gap-1.5 sm:gap-2" style={{ height: PLOT }}>
                         {growthSeries.map((r) => {
                           const v = r.ch[i];
+                          // No bar when the growth rate is not meaningful (the year before was zero or negative).
+                          if (v === null) return <div key={r.label} className="relative h-full w-6 sm:w-9" />;
                           return (
                             <div key={r.label} className="relative h-full w-6 sm:w-9">
                               <div
@@ -336,6 +365,11 @@ export default function ProfitHistory({ data }: { data: ProfitHistoryData }) {
                 </div>
               </div>
             </div>
+            {growthSeries.some((r) => r.ch.some((v) => v === null)) && (
+              <p className="mt-3 text-[13px] leading-relaxed text-ink-muted">
+                A year with no bar means the year before was zero or negative, so a percentage change has no meaning.
+              </p>
+            )}
           </div>
 
           <p className="mt-4 max-w-[760px] text-[15px] leading-relaxed text-ink">{growth.note}</p>
@@ -355,14 +389,14 @@ export default function ProfitHistory({ data }: { data: ProfitHistoryData }) {
                   {returns.roic}%
                 </span>
                 <span className="text-[15px] tabular-nums text-white/90">
-                  ▲ from {returns.roicFrom}% in {years[0]}
+                  {returns.roic >= returns.roicFrom ? "▲" : "▼"} from {returns.roicFrom}% in {years[0]}
                 </span>
               </div>
               <p className="mt-4 max-w-[520px] text-[15px] leading-relaxed text-white">{returns.text}</p>
             </div>
 
             <div className="min-w-0 rounded-2xl border border-border bg-white p-5 sm:p-6">
-              <div className="text-sm text-ink-muted">What Apple earns vs what its money costs</div>
+              <div className="text-sm text-ink-muted">What it earns vs what its money costs</div>
               <div
                 className="relative mb-14 mt-12 h-4 rounded-full bg-surface"
                 role="img"
@@ -448,12 +482,17 @@ export default function ProfitHistory({ data }: { data: ProfitHistoryData }) {
                         {r.pct ? "%" : ""}
                       </td>
                     ))}
-                    <td className="px-4 py-2.5 text-right text-ink-muted">{r.pct ? "–" : `${f1(cagr(r.s))}%`}</td>
+                    <td className="px-4 py-2.5 text-right text-ink-muted">
+                      {r.pct ? "–" : r.avg === null ? "n/m" : `${f1(r.avg)}%`}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          {tableRows.some((r) => !r.pct && r.avg === null) && (
+            <p className="mt-2 text-[13px] text-ink-muted">n/m: not meaningful, because the first or last value is zero or negative.</p>
+          )}
         </div>
 
         <p className="mt-10 border-t border-border pt-4 text-[13px] leading-relaxed text-ink-muted">{data.source}</p>

@@ -6,7 +6,7 @@ type LogoProps = {
   showWordmark?: boolean;
 };
 
-export default function Logo({ size = 26, showWordmark = true }: LogoProps) {
+export default function Logo({ size = 24, showWordmark = true }: LogoProps) {
   return (
     <span className="inline-flex items-center gap-2.5">
       <LogoMark height={size} />

@@ -1,11 +1,12 @@
 import { applyScore } from "../lib/scope-score/apply";
-import { appleScore, microsoftScore, nvidiaScore, googleScore } from "../lib/scope-score/inputs";
+import { appleScore, microsoftScore, nvidiaScore, googleScore, amazonScore } from "../lib/scope-score/inputs";
 
 const companies = [
   { name: "Apple", expected: 8.39, data: appleScore },
   { name: "Microsoft", expected: 8.64, data: microsoftScore },
   { name: "NVIDIA", expected: 8.37, data: nvidiaScore },
   { name: "Alphabet", expected: 8.09, data: googleScore },
+  { name: "Amazon", expected: 6.79, data: amazonScore },
 ];
 
 let ok = true;

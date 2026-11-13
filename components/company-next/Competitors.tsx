@@ -1,5 +1,7 @@
 // Section 19: Competitors (category: Business).
-// One question: who does Apple compete with, and how does Apple compare on results?
+// One question: who does the company compete with, and how does it compare on results?
+// Company-neutral: the company name comes from `data` (the company marked kind "self").
+// Negative values (for example negative free cash flow) and net debt are shown with a minus sign and red bars.
 // Server Component. No client JS needed.
 
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -57,8 +59,9 @@ type MetricDef = {
   fmt: (v: number) => string;
 };
 
-const money = (v: number) => `$${v}B`;
-const pct = (v: number) => `${v.toFixed(1)}%`;
+const sgn = (v: number) => (v < 0 ? "−" : "");
+const money = (v: number) => `${sgn(v)}$${Math.abs(v)}B`;
+const pct = (v: number) => `${sgn(v)}${Math.abs(v).toFixed(1)}%`;
 
 const METRICS: MetricDef[] = [
   { key: "revenue", label: "Revenue", hint: "Higher means a bigger business.", better: "higher", fmt: money },
@@ -70,14 +73,14 @@ const METRICS: MetricDef[] = [
     fmt: (v) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)}%`,
   },
   { key: "opMargin", label: "Operating margin", hint: "Higher means more profit from the core business.", better: "higher", fmt: pct },
-  { key: "fcf", label: "Free cash flow", hint: "Higher means more cash left after investing.", better: "higher", fmt: money },
+  { key: "fcf", label: "Free cash flow", hint: "Higher means more cash left after investing. A minus sign means more cash went out than came in.", better: "higher", fmt: money },
   { key: "fcfMargin", label: "Free cash flow margin", hint: "Higher means more cash from each $100 of sales.", better: "higher", fmt: pct },
   {
     key: "netDebt",
     label: "Net debt",
-    hint: "Lower is better. A minus sign means net cash.",
+    hint: "Lower is better. A minus sign means net cash, and a plain number means net debt.",
     better: "lower",
-    fmt: (v) => `${v < 0 ? "−" : ""}$${Math.abs(v)}B`,
+    fmt: money,
   },
 ];
 
@@ -209,7 +212,7 @@ function Scatter({ rows }: { rows: { name: string; x: number; y: number; self: b
       {rows.map((r) => {
         const x = f(X(r.x));
         const y = f(Y(r.y));
-        // Apple's label goes left; others go right unless they would run off the edge.
+        // The company's own label goes left; others go right unless they would run off the edge.
         const estWidth = r.name.length * 8.5 + 14;
         const left = r.self || x + 14 + estWidth > W - 4;
         return (
@@ -301,7 +304,7 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
           <p className="mt-2 max-w-[680px] text-sm leading-relaxed text-ink-muted sm:text-[15px]">{data.lead}</p>
         </header>
 
-        {/* The answer first: how many measures Apple leads on */}
+        {/* The answer first: how many measures the company leads on */}
         {hasCompare && measured > 0 && (
           <div className="mt-6 grid gap-5 rounded-3xl border border-primary bg-primary p-6 text-white lg:grid-cols-[auto_1fr] lg:items-center lg:gap-12">
             <div>
@@ -467,6 +470,16 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
                       {ordered.map((o, i) => {
                         const isSelf = o.c.id === self.id;
                         const w = Math.max(4, (Math.abs(o.v) / maxAbs) * 100);
+                        // A "bad" value is a loss on a higher-is-better measure, or net debt on the net debt measure.
+                        // It gets a red bar and a red number, so a negative value is never drawn like a positive one.
+                        const bad = m.better === "higher" ? o.v < 0 : o.v > 0;
+                        const barColor = bad
+                          ? isSelf
+                            ? "bg-danger"
+                            : "bg-danger opacity-60"
+                          : isSelf
+                            ? "bg-primary"
+                            : "bg-ink-muted opacity-60";
                         return (
                           <li
                             key={o.c.id}
@@ -476,14 +489,11 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
                               {i + 1}. {o.c.name}
                             </span>
                             <div className={`overflow-hidden rounded-full bg-surface ${isSelf ? "h-5" : "h-3.5"}`}>
-                              <div
-                                className={`h-full rounded-full ${isSelf ? "bg-primary" : "bg-ink-muted opacity-60"}`}
-                                style={{ width: `${w}%` }}
-                              />
+                              <div className={`h-full rounded-full ${barColor}`} style={{ width: `${w}%` }} />
                             </div>
                             <span
                               className={`text-right font-serif text-lg font-semibold leading-none tabular-nums sm:text-[22px] ${
-                                isSelf ? "text-primary-ink" : "text-ink"
+                                bad ? "text-danger" : isSelf ? "text-primary-ink" : "text-ink"
                               }`}
                             >
                               {m.fmt(o.v)}

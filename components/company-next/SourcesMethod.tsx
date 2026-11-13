@@ -2,6 +2,8 @@ import { type ReactNode } from "react";
 
 // Section 20: Sources and method (page footer, outside the tabs).
 // One question: where does each number come from, how is it calculated, and how far can it be trusted?
+// Company-neutral: no industry wording is guessed in this file. A source topic comes from the data when it is given,
+// and otherwise from a short list of general topics that fit every company.
 // Server Component. No client JS needed.
 
 export type TraceData = {
@@ -108,20 +110,23 @@ const SRC_STYLE = [
 ];
 
 // A document is matched to its source by an explicit `source`, else by its type.
+// Each pair is: a pattern for the document type, and a pattern for the source title.
 const DOC_TO_SOURCE: [RegExp, RegExp][] = [
   [/^(10-K|10-Q|8-K)$/i, /sec/i],
   [/transcript/i, /investor relations/i],
-  [/estimates/i, /market data/i],
-  [/idc/i, /industry/i],
+  [/data feed|estimates/i, /market data/i],
+  [/idc|industry|press/i, /industry|news/i],
 ];
 
-// Used only when a source has no `topic` in the data.
+// Used only when a source has no `topic` in the data. These topics fit every company.
+// A source that matches none of them gets a general topic instead of a guess about the industry.
 const DEFAULT_TOPIC: [RegExp, string][] = [
   [/sec/i, "Reported financials"],
   [/investor relations/i, "Outlook and guidance"],
   [/market data/i, "Share price, market cap, estimates and price targets"],
-  [/industry/i, "Smartphone shipments and market shares"],
+  [/industry|news/i, "Industry and news context"],
 ];
+const FALLBACK_TOPIC = "Additional context";
 
 const NAV = [
   { id: "trace", label: "Trace a number" },
@@ -222,7 +227,7 @@ export default function SourcesMethod({ data }: { data: SourcesMethodData }) {
   const sourceRows = data.sources.map((s, i) => ({
     title: s.title,
     text: s.text,
-    topic: s.topic ?? DEFAULT_TOPIC.find(([re]) => re.test(s.title))?.[1],
+    topic: s.topic ?? DEFAULT_TOPIC.find(([re]) => re.test(s.title))?.[1] ?? FALLBACK_TOPIC,
     style: SRC_STYLE[i % SRC_STYLE.length],
     docs: data.documents.filter((_, k) => docIndex[k] === i),
   }));
@@ -333,7 +338,7 @@ export default function SourcesMethod({ data }: { data: SourcesMethodData }) {
                     {
                       title: "Other documents",
                       text: "",
-                      topic: undefined,
+                      topic: FALLBACK_TOPIC,
                       style: { card: "bg-surface", title: "text-ink", dot: "bg-ink-muted", chip: "bg-surface text-ink-muted" },
                       docs: otherDocs,
                     },

@@ -1,13 +1,28 @@
 /* =====================================================================
-   Valuation Lab. All classes use the "vl-" prefix so nothing existing is
-   affected. Colors and spacing follow the 7 Powers page.
+   Valuation Lab, restyled for Scope Design System v2.0.
+   Visual-only: every class name is unchanged ("vl-" prefix), so no
+   component or calculation needs to change.
+   Colors, fonts and sizes come from design-tokens.css (var(--color-*),
+   var(--font-*), var(--text-*)). No hex values and no gradients here.
    ===================================================================== */
 
 .vl-page {
+  --vl-line: var(--color-border);
+
   width: 100%;
-  max-width: 1080px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 32px 12px 72px;
+  padding: 24px 16px 96px;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-bg);
+}
+
+@media (min-width: 640px) {
+  .vl-page {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -30,108 +45,130 @@
 
 /* ---------- Headings and text ---------- */
 .vl-section {
-  margin-top: 72px;
+  margin-top: 64px;
   scroll-margin-top: 24px;
 }
 
 .vl-anchor {
-  margin-top: 56px;
+  margin-top: 64px;
   scroll-margin-top: 24px;
 }
 
 .vl-section-eyebrow {
-  font-size: 11px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
-  color: #2f4a32;
-  margin: 0 0 10px;
+  color: var(--color-primary);
+  margin: 0 0 12px;
 }
 
 .vl-h2 {
-  font-family: var(--vl-serif, Georgia, "Times New Roman", serif);
-  font-size: 38px;
+  font-family: var(--vl-serif, var(--font-serif));
+  font-size: var(--text-h2);
+  line-height: var(--text-h2--line-height);
   font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: -0.8px;
-  color: #1a1a18;
-  margin: 0 0 12px;
-  max-width: 640px;
+  letter-spacing: var(--tracking-title);
+  color: var(--color-ink);
+  margin: 0 0 16px;
+  max-width: 780px;
 }
 
 .vl-h2-sub {
-  font-size: 30px;
+  font-size: var(--text-h2);
 }
 
 .vl-section-lead {
-  font-size: 15px;
-  line-height: 1.7;
-  color: #6b6b68;
-  margin: 0 0 24px;
-  max-width: 620px;
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+  color: var(--color-ink-muted);
+  margin: 0 0 32px;
+  max-width: 680px;
 }
 
 .vl-h3 {
-  font-family: var(--vl-serif, Georgia, "Times New Roman", serif);
-  font-size: 22px;
+  font-family: var(--vl-serif, var(--font-serif));
+  font-size: var(--text-h3);
+  line-height: var(--text-h3--line-height);
   font-weight: 400;
-  letter-spacing: -0.3px;
-  color: #1a1a18;
+  letter-spacing: var(--tracking-title);
+  color: var(--color-ink);
   margin: 0;
 }
 
 .vl-h4 {
-  font-size: 13px;
+  font-size: var(--text-note);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  color: #1a1a18;
+  color: var(--color-ink);
   margin: 26px 0 10px;
 }
 
 .vl-text {
-  font-size: 14px;
-  line-height: 1.7;
-  color: #3a3a36;
+  font-size: var(--text-note);
+  line-height: var(--text-note--line-height);
+  color: var(--color-ink);
   margin: 14px 0 0;
 }
 
-/* ---------- Hero ---------- */
+/* ---------- Hero: the one solid blue panel ---------- */
 .vl-hero {
-  background: #24391f;
-  border-radius: 24px;
-  padding: 56px 48px;
+  background: var(--color-primary);
+  color: var(--color-bg);
+  border-radius: var(--radius-panel);
+  padding: 32px 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 32px 48px;
+}
+
+.vl-hero-main {
+  flex: 1 1 460px;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .vl-hero {
+    border-radius: var(--radius-panel-lg);
+    padding: 56px;
+  }
 }
 
 .vl-eyebrow {
-  font-size: 11px;
+  display: inline-block;
+  font-size: var(--text-caption);
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
-  color: #b9c6b4;
-  margin: 0 0 18px;
+  color: var(--color-bg);
+  background: var(--color-primary-hover);
+  border-radius: 999px;
+  padding: 6px 14px;
+  margin: 0 0 24px;
 }
 
 .vl-hero h1 {
-  font-family: var(--vl-serif, Georgia, "Times New Roman", serif);
-  font-size: 56px;
+  font-family: var(--vl-serif, var(--font-serif));
+  font-size: var(--text-page);
+  line-height: var(--text-page--line-height);
   font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: -1.4px;
-  color: #f3f5ee;
-  margin: 0 0 20px;
-  max-width: 700px;
+  letter-spacing: var(--tracking-title);
+  color: var(--color-bg);
+  margin: 0 0 24px;
+  max-width: 760px;
 }
 
 .vl-hero h1 em {
-  font-style: italic;
-  color: #cfe0c4;
+  font-style: normal;
+  color: var(--color-bg);
 }
 
 .vl-hero-lead {
-  font-size: 16px;
-  line-height: 1.65;
-  color: #b9c6b4;
-  margin: 0 0 30px;
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+  color: var(--color-bg);
+  margin: 0 0 32px;
   max-width: 560px;
 }
 
@@ -139,15 +176,20 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 26px;
+  margin-bottom: 28px;
 }
 
 .vl-credit {
-  font-size: 12px;
-  line-height: 1.6;
-  color: #8fa58b;
+  font-size: var(--text-small);
+  line-height: var(--text-small--line-height);
+  color: var(--color-bg);
   margin: 0;
   max-width: 520px;
+}
+
+/* On blue the focus ring turns white (tokens rule). */
+.vl-hero :focus-visible {
+  outline-color: var(--color-bg);
 }
 
 /* ---------- Buttons ---------- */
@@ -158,58 +200,50 @@
   gap: 8px;
   min-height: 44px;
   border-radius: 12px;
-  padding: 12px 22px;
-  font-size: 14px;
+  padding: 12px 20px;
+  font-family: var(--font-sans);
+  font-size: var(--text-note);
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   transition: background-color 180ms ease, border-color 180ms ease;
 }
 
-.vl-btn:focus-visible {
-  outline: 2px solid #2f4a32;
-  outline-offset: 3px;
-}
-
 .vl-btn-primary {
-  background: #f3f5ee;
-  color: #24391f;
+  background: var(--color-bg);
+  color: var(--color-primary-ink);
   border: 1px solid transparent;
 }
 
 .vl-btn-primary:hover {
-  background: #ffffff;
+  background: var(--color-primary-soft);
 }
 
 .vl-btn-ghost {
   background: transparent;
-  color: #f3f5ee;
-  border: 1px solid rgba(243, 245, 238, 0.35);
+  color: var(--color-bg);
+  border: 1px solid var(--color-bg);
 }
 
 .vl-btn-ghost:hover {
-  background: rgba(243, 245, 238, 0.1);
-}
-
-.vl-hero .vl-btn:focus-visible {
-  outline-color: #ffffff;
+  background: var(--color-primary-hover);
 }
 
 .vl-btn-outline {
-  background: #ffffff;
-  color: #1a1a18;
-  border: 1px solid #dcdcd6;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  border: 1px solid var(--vl-line);
 }
 
 .vl-btn-outline:hover {
-  border-color: #2f4a32;
-  background: #fafaf7;
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .vl-btn-small {
   min-height: 40px;
   padding: 9px 16px;
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 
 /* ---------- Methods overview ---------- */
@@ -219,80 +253,98 @@
   margin: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 16px;
 }
 
 .vl-method {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   height: 100%;
-  background: #ffffff;
-  border: 0.5px solid #e5e5e2;
-  border-radius: 18px;
-  padding: 20px;
+  background: var(--color-bg);
+  border: 1px solid var(--vl-line);
+  border-radius: 24px;
+  padding: 24px;
   text-decoration: none;
   color: inherit;
-  transition: border-color 180ms ease;
+  transition: border-color 180ms ease, background-color 180ms ease;
 }
 
 .vl-method:hover {
-  border-color: #2f4a32;
-}
-
-.vl-method:focus-visible {
-  outline: 2px solid #2f4a32;
-  outline-offset: 3px;
+  border-color: var(--color-primary);
 }
 
 .vl-method-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: #e6f5f1;
-  color: #0f6e56;
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-ink);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 22px;
   margin-bottom: 8px;
 }
 
 .vl-method-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a18;
+  font-family: var(--vl-serif, var(--font-serif));
+  font-size: var(--text-h4);
+  line-height: var(--text-h4--line-height);
+  color: var(--color-ink);
 }
 
 .vl-method-text {
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: #6b6b68;
+  font-size: var(--text-note);
+  line-height: var(--text-note--line-height);
+  color: var(--color-ink-muted);
 }
 
-/* ---------- Notes ---------- */
+.vl-method-formula {
+  display: block;
+  border: 1px solid var(--vl-line);
+  border-radius: 16px;
+  padding: 10px 14px;
+  font-size: var(--text-small);
+  line-height: 1.6;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.vl-method-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-primary-ink);
+}
+
+/* ---------- Notes (blue note box, not amber) ---------- */
 .vl-note {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   align-items: flex-start;
-  border-left: 3px solid #854f0b;
-  background: #fdf7ea;
-  border-radius: 0 14px 14px 0;
+  border-left: 4px solid var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary-soft) 45%, var(--color-bg));
+  border-radius: 0 16px 16px 0;
   padding: 16px 20px;
   margin: 0 0 20px;
 }
 
 .vl-note i {
-  font-size: 20px;
-  color: #854f0b;
+  font-size: 22px;
+  color: var(--color-primary);
   flex-shrink: 0;
   margin-top: 1px;
 }
 
 .vl-note p {
-  font-size: 14px;
-  line-height: 1.65;
-  color: #3a3a36;
+  font-size: var(--text-note);
+  line-height: var(--text-note--line-height);
+  color: var(--color-ink);
   margin: 0;
 }
 
@@ -303,28 +355,27 @@
 .vl-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 /* ---------- Groups and fields ---------- */
 .vl-group {
   min-width: 0;
   margin: 0 0 16px;
-  padding: 22px;
-  background: #ffffff;
-  border: 0.5px solid #e5e5e2;
-  border-radius: 18px;
+  padding: 24px;
+  background: var(--color-bg);
+  border: 1px solid var(--vl-line);
+  border-radius: 24px;
 }
 
 .vl-group > legend,
 .vl-subgroup > legend {
   padding: 0 8px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #6b6b68;
+  font-family: var(--vl-serif, var(--font-serif));
+  font-size: var(--text-h4);
+  line-height: var(--text-h4--line-height);
+  color: var(--color-ink);
 }
 
 .vl-subgroup {
@@ -332,7 +383,7 @@
   margin: 20px 0 0;
   padding: 16px 0 0;
   border: 0;
-  border-top: 0.5px solid #eeeeea;
+  border-top: 1px solid var(--vl-line);
 }
 
 .vl-subgroup > legend {
@@ -342,7 +393,7 @@
 .vl-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 20px 16px;
   margin-bottom: 14px;
 }
 
@@ -357,9 +408,9 @@
 
 .vl-label {
   display: block;
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 600;
-  color: #1a1a18;
+  color: var(--color-ink);
   margin-bottom: 6px;
 }
 
@@ -367,19 +418,19 @@
   display: flex;
   align-items: center;
   min-height: 44px;
-  background: #ffffff;
-  border: 1px solid #dcdcd6;
+  background: var(--color-bg);
+  border: 1px solid var(--vl-line);
   border-radius: 12px;
-  padding: 0 12px;
+  padding: 0 14px;
 }
 
 .vl-input-wrap:focus-within {
-  border-color: #2f4a32;
-  box-shadow: 0 0 0 3px rgba(47, 74, 50, 0.18);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent);
 }
 
 .vl-input-wrap.is-invalid {
-  border-color: #a32d2d;
+  border-color: var(--color-danger);
 }
 
 .vl-input {
@@ -390,8 +441,8 @@
   outline: 0;
   background: transparent;
   font: inherit;
-  font-size: 15px;
-  color: #1a1a18;
+  font-size: var(--text-body);
+  color: var(--color-ink);
   padding: 10px 0;
   font-variant-numeric: tabular-nums;
 }
@@ -401,22 +452,22 @@
 }
 
 .vl-affix {
-  font-size: 13px;
-  color: #6b6b68;
+  font-size: var(--text-small);
+  color: var(--color-ink-muted);
   padding: 0 0 0 8px;
 }
 
 .vl-hint {
-  font-size: 12px;
-  line-height: 1.55;
-  color: #6b6b68;
+  font-size: var(--text-small);
+  line-height: var(--text-small--line-height);
+  color: var(--color-ink-muted);
   margin: 6px 0 0;
 }
 
 .vl-error {
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: #8a2222;
+  font-size: var(--text-small);
+  line-height: var(--text-small--line-height);
+  color: var(--color-danger);
   margin: 6px 0 0;
 }
 
@@ -438,9 +489,9 @@
 
 .vl-panel {
   min-width: 0;
-  background: #ffffff;
-  border: 0.5px solid #e5e5e2;
-  border-radius: 18px;
+  background: var(--color-bg);
+  border: 1px solid var(--vl-line);
+  border-radius: 24px;
   padding: 24px;
 }
 
@@ -454,11 +505,11 @@
 }
 
 .vl-formula {
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 1.6;
-  color: #3a3a36;
-  background: #fafaf7;
-  border-radius: 10px;
+  color: var(--color-ink);
+  border: 1px solid var(--vl-line);
+  border-radius: 16px;
   padding: 10px 14px;
   margin: 0 0 14px;
   overflow-wrap: anywhere;
@@ -472,19 +523,19 @@
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding: 9px 0;
-  border-top: 0.5px solid #eeeeea;
-  font-size: 13.5px;
+  padding: 10px 0;
+  border-top: 1px solid var(--vl-line);
+  font-size: var(--text-note);
 }
 
 .vl-dl dt {
-  color: #6b6b68;
+  color: var(--color-ink-muted);
   min-width: 0;
 }
 
 .vl-dl dd {
   margin: 0;
-  color: #1a1a18;
+  color: var(--color-ink);
   text-align: right;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
@@ -495,77 +546,81 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  border-top: 0.5px solid #dcdcd6;
-  padding-top: 14px;
+  border-top: 1px solid var(--color-ink);
+  padding-top: 16px;
   margin: 0 0 6px;
 }
 
 .vl-result-label {
-  font-size: 11px;
+  font-size: var(--text-small);
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #6b6b68;
+  color: var(--color-ink-muted);
 }
 
+/* Fraunces digits are proportional (no tabular-nums), so none is set here. */
 .vl-result-value {
-  font-family: var(--vl-serif, Georgia, "Times New Roman", serif);
-  font-size: 34px;
-  color: #1a1a18;
-  font-variant-numeric: tabular-nums;
+  font-family: var(--vl-serif, var(--font-serif));
+  font-size: var(--text-num-l);
+  line-height: var(--text-num-l--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
 }
 
 .vl-headline-label {
-  font-size: 11px;
+  font-size: var(--text-small);
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #6b6b68;
+  color: var(--color-ink-muted);
   margin: 0 0 4px;
 }
 
 .vl-headline {
-  font-family: var(--vl-serif, Georgia, "Times New Roman", serif);
-  font-size: 44px;
-  line-height: 1.1;
-  color: #1a1a18;
-  margin: 0 0 6px;
-  font-variant-numeric: tabular-nums;
+  font-family: var(--vl-serif, var(--font-serif));
+  font-size: var(--text-num-xl);
+  line-height: var(--text-num-xl--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0 0 8px;
   overflow-wrap: anywhere;
 }
 
-/* ---------- Status and issues ---------- */
+/* ---------- Status and issues ----------
+   Data-status chips. Meaning colors only where the meaning is real:
+   danger = invalid input, warning = result is not meaningful. */
 .vl-status {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-caption);
   font-weight: 600;
   border-radius: 999px;
-  padding: 4px 11px;
-  background: #f1efe8;
-  color: #3a3a36;
+  padding: 4px 12px;
+  border: 1px solid var(--vl-line);
+  background: var(--color-bg);
+  color: var(--color-ink-muted);
 }
 
 .vl-status-ok {
-  background: #e6f5f1;
-  color: #04342c;
+  background: var(--color-primary-soft);
+  border-color: transparent;
+  color: var(--color-primary-ink);
 }
 
 .vl-status-missing_input {
-  background: #f1efe8;
-  color: #3a3a36;
+  background: var(--color-bg);
+  color: var(--color-ink-muted);
 }
 
 .vl-status-invalid_input {
-  background: #fbeaea;
-  color: #6b1a1a;
+  background: var(--color-danger-soft);
+  border-color: transparent;
+  color: var(--color-danger);
 }
 
 .vl-status-undefined_result,
 .vl-status-not_meaningful {
-  background: #faeeda;
-  color: #412402;
+  background: var(--color-warning-soft);
+  border-color: transparent;
+  color: var(--color-warning);
 }
 
 .vl-issues {
@@ -577,9 +632,9 @@
 }
 
 .vl-issue {
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 1.6;
-  color: #3a3a36;
+  color: var(--color-ink);
   border-radius: 0 12px 12px 0;
   padding: 10px 14px;
   margin: 0;
@@ -587,41 +642,35 @@
 }
 
 .vl-issue.is-error {
-  border-left: 3px solid #a32d2d;
-  background: #fdf1f1;
+  border-left: 3px solid var(--color-danger);
+  background: var(--color-danger-soft);
 }
 
 .vl-issue.is-warning {
-  border-left: 3px solid #854f0b;
-  background: #fdf7ea;
+  border-left: 3px solid var(--color-warning);
+  background: var(--color-warning-soft);
 }
 
 .vl-issue-tag {
-  font-size: 10.5px;
+  font-size: var(--text-caption);
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 /* ---------- Details ---------- */
 .vl-details {
   margin-top: 16px;
-  border-top: 0.5px solid #eeeeea;
+  border-top: 1px solid var(--vl-line);
   padding-top: 12px;
 }
 
 .vl-details summary {
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 600;
-  color: #2f4a32;
+  color: var(--color-primary-ink);
   padding: 6px 0;
-}
-
-.vl-details summary:focus-visible {
-  outline: 2px solid #2f4a32;
-  outline-offset: 3px;
-  border-radius: 4px;
 }
 
 .vl-details ul {
@@ -630,9 +679,9 @@
 }
 
 .vl-details li {
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 1.65;
-  color: #3a3a36;
+  color: var(--color-ink);
   margin-bottom: 6px;
 }
 
@@ -640,20 +689,20 @@
 .vl-table-wrap {
   max-width: 100%;
   overflow-x: auto;
-  border: 0.5px solid #e5e5e2;
-  border-radius: 14px;
+  border: 1px solid var(--vl-line);
+  border-radius: 16px;
 }
 
 .vl-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--text-note);
 }
 
 .vl-table th,
 .vl-table td {
   padding: 10px 12px;
-  border-top: 0.5px solid #eeeeea;
+  border-top: 1px solid var(--vl-line);
   text-align: right;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -661,12 +710,11 @@
 
 .vl-table thead th {
   border-top: 0;
-  font-size: 11px;
+  font-size: var(--text-caption);
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #6b6b68;
-  background: #fafaf7;
+  color: var(--color-ink-muted);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--vl-line);
 }
 
 .vl-table th:first-child,
@@ -676,12 +724,12 @@
 
 .vl-table tbody th {
   font-weight: 500;
-  color: #3a3a36;
+  color: var(--color-ink);
 }
 
 .vl-table td.vl-formula-cell {
   text-align: left;
-  color: #6b6b68;
+  color: var(--color-ink-muted);
   white-space: normal;
   min-width: 170px;
 }
@@ -693,26 +741,29 @@
 .vl-total-row th,
 .vl-total-row td {
   font-weight: 700;
-  color: #1a1a18;
-  background: #fafaf7;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-ink);
 }
 
-/* ---------- Composition bar ---------- */
+/* ---------- Composition bar ----------
+   Light segment carries the 1.5px chart outline (contrast rule for chart-3..6). */
 .vl-bar {
   display: flex;
-  height: 14px;
+  height: 16px;
   border-radius: 999px;
   overflow: hidden;
-  background: #f1f1ee;
+  background: var(--vl-line);
   margin-top: 12px;
 }
 
 .vl-bar-a {
-  background: #2f4a32;
+  background: var(--color-chart-4);
+  box-shadow: inset 0 0 0 1.5px var(--color-chart-outline);
 }
 
 .vl-bar-b {
-  background: #b9c6b4;
+  background: var(--color-chart-1);
 }
 
 .vl-bar-legend {
@@ -720,25 +771,26 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 8px;
-  font-size: 12px;
-  color: #3a3a36;
+  font-size: var(--text-small);
+  color: var(--color-ink);
   margin: 8px 0 0;
 }
 
 .vl-key {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
   margin-left: 6px;
 }
 
 .vl-key-a {
-  background: #2f4a32;
+  background: var(--color-chart-4);
+  box-shadow: inset 0 0 0 1.5px var(--color-chart-outline);
 }
 
 .vl-key-b {
-  background: #b9c6b4;
+  background: var(--color-chart-1);
 }
 
 /* ---------- Responsive ---------- */
@@ -749,14 +801,6 @@
 }
 
 @media (max-width: 900px) {
-  .vl-hero {
-    padding: 44px 32px;
-  }
-
-  .vl-hero h1 {
-    font-size: 46px;
-  }
-
   .vl-methods,
   .vl-two-col {
     grid-template-columns: 1fr;
@@ -765,37 +809,16 @@
 
 @media (max-width: 560px) {
   .vl-page {
-    padding-top: 20px;
+    padding-top: 16px;
   }
 
-  .vl-section {
+  .vl-section,
+  .vl-anchor {
     margin-top: 56px;
-  }
-
-  .vl-hero {
-    padding: 32px 22px;
-    border-radius: 20px;
-  }
-
-  .vl-hero h1 {
-    font-size: 36px;
-    letter-spacing: -0.9px;
-  }
-
-  .vl-hero-lead {
-    font-size: 15px;
   }
 
   .vl-hero-actions {
     flex-direction: column;
-  }
-
-  .vl-h2 {
-    font-size: 30px;
-  }
-
-  .vl-h2-sub {
-    font-size: 26px;
   }
 
   .vl-group,
@@ -812,14 +835,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .vl-headline {
-    font-size: 36px;
-  }
-
   .vl-toolbar .vl-btn {
     width: 100%;
   }
 }
+
 /* =====================================================================
    Part 3: scenarios, sensitivity, margin of safety
    ===================================================================== */
@@ -841,7 +861,8 @@
 }
 
 .vl-result-value-sm {
-  font-size: 28px;
+  font-size: var(--text-num-m);
+  line-height: var(--text-num-m--line-height);
   overflow-wrap: anywhere;
 }
 
@@ -849,7 +870,6 @@
   margin: 16px 0 0;
 }
 
-/* Comparison and sensitivity tables: every column right-aligned except the first */
 .vl-table-compare thead th,
 .vl-table-compare thead th:nth-child(2):not(:last-child) {
   text-align: right;
@@ -874,38 +894,40 @@
   min-width: 84px;
   padding: 6px 10px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-note);
   font-variant-numeric: tabular-nums;
-  color: #1a1a18;
+  color: var(--color-ink);
   text-align: right;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
 }
 
 .vl-cell-btn:hover {
-  background: #fafaf7;
-  border-color: #dcdcd6;
-}
-
-.vl-cell-btn:focus-visible {
-  outline: 2px solid #2f4a32;
-  outline-offset: 1px;
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
 }
 
 .vl-cell-btn.is-center {
   font-weight: 700;
-  border: 2px solid #1a1a18;
+  border: 2px solid var(--color-ink);
 }
 
 .vl-cell-btn.is-selected {
-  background: #e6f5f1;
-  border-color: #2f4a32;
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary-ink);
+  font-weight: 700;
+}
+
+/* Selected state is not shown by color alone. */
+.vl-cell-btn.is-selected::before {
+  content: "\2713\00a0";
 }
 
 .vl-cell-btn.is-na {
-  color: #6b6b68;
+  color: var(--color-ink-muted);
 }
 
 .vl-selected {
@@ -923,13 +945,11 @@
     grid-template-columns: 1fr;
   }
 }
+
 /* =====================================================================
    Part 4: learning center, explanations, summary, polish
    ===================================================================== */
 
-/* Fix: forecast table header "Growth" was left-aligned over right-aligned
-   numbers. Only the bridge table (which has a formula column) keeps the
-   left-aligned second column. */
 .vl-table:not(:has(.vl-formula-cell)) thead th:nth-child(2) {
   text-align: right;
 }
@@ -946,7 +966,7 @@
 .vl-jump ul {
   list-style: none;
   padding: 0;
-  margin: 0 0 20px;
+  margin: 0 0 24px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -956,24 +976,21 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 8px 16px;
+  font-size: var(--text-small);
   font-weight: 600;
-  color: #1a1a18;
+  color: var(--color-ink);
   text-decoration: none;
-  background: #ffffff;
-  border: 1px solid #dcdcd6;
+  background: var(--color-bg);
+  border: 1px solid var(--vl-line);
   border-radius: 999px;
+  transition: border-color 180ms ease, background-color 180ms ease;
 }
 
 .vl-jump a:hover {
-  border-color: #2f4a32;
-  background: #fafaf7;
-}
-
-.vl-jump a:focus-visible {
-  outline: 2px solid #2f4a32;
-  outline-offset: 2px;
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-ink);
 }
 
 /* ---------- Term explanations ---------- */
@@ -982,16 +999,16 @@
 }
 
 .vl-explain-title {
-  font-size: 11px;
+  font-size: var(--text-caption);
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
-  color: #6b6b68;
+  color: var(--color-ink-muted);
   margin: 12px 0 4px;
 }
 
 .vl-explain {
-  border-top: 0.5px solid #eeeeea;
+  border-top: 1px solid var(--vl-line);
 }
 
 .vl-explain summary {
@@ -999,21 +1016,15 @@
   min-height: 44px;
   display: flex;
   align-items: center;
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 600;
-  color: #2f4a32;
-}
-
-.vl-explain summary:focus-visible {
-  outline: 2px solid #2f4a32;
-  outline-offset: 2px;
-  border-radius: 4px;
+  color: var(--color-primary-ink);
 }
 
 .vl-explain p {
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 1.65;
-  color: #3a3a36;
+  color: var(--color-ink);
   margin: 0 0 8px;
   max-width: 680px;
 }
@@ -1025,21 +1036,21 @@
 /* ---------- Learning center ---------- */
 .vl-lessons {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .vl-lesson {
-  background: #ffffff;
-  border: 0.5px solid #e5e5e2;
-  border-radius: 18px;
-  padding: 0 22px;
+  background: var(--color-bg);
+  border: 1px solid var(--vl-line);
+  border-radius: 24px;
+  padding: 0 24px;
 }
 
 .vl-lesson summary {
   display: flex;
   align-items: center;
-  gap: 14px;
-  min-height: 56px;
+  gap: 16px;
+  min-height: 64px;
   padding: 14px 0;
   cursor: pointer;
   list-style: none;
@@ -1054,55 +1065,69 @@
   margin-left: auto;
   font-size: 22px;
   line-height: 1;
-  color: #6b6b68;
+  color: var(--color-ink-muted);
 }
 
 .vl-lesson[open] summary::after {
   content: "\2212";
 }
 
-.vl-lesson summary:focus-visible {
-  outline: 2px solid #2f4a32;
-  outline-offset: 2px;
-  border-radius: 8px;
-}
-
 .vl-lesson-num {
-  font-family: var(--vl-serif, Georgia, "Times New Roman", serif);
-  font-size: 22px;
-  color: #2f4a32;
+  font-family: var(--vl-serif, var(--font-serif));
+  font-size: var(--text-num-s);
+  line-height: var(--text-num-s--line-height);
+  color: var(--color-primary-ink);
 }
 
 .vl-lesson-title {
-  font-size: 17px;
+  font-size: var(--text-lead);
   font-weight: 600;
-  color: #1a1a18;
+  color: var(--color-ink);
   min-width: 0;
 }
 
 .vl-lesson-body {
-  padding: 0 0 22px;
-  border-top: 0.5px solid #eeeeea;
+  padding: 0 0 24px;
+  border-top: 1px solid var(--vl-line);
 }
 
 .vl-formula-lesson {
-  margin-top: 10px;
+  margin-top: 12px;
   margin-bottom: 0;
 }
 
+/* "Hypothetical example" box and its chip */
 .vl-example {
-  background: #fafaf7;
-  border-radius: 14px;
-  padding: 14px 16px;
-  margin: 14px 0 0;
+  border: 1px solid var(--vl-line);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin: 16px 0 0;
+}
+
+.vl-example-tag,
+.vl-chip {
+  display: inline-block;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border: 1px dashed var(--color-ink-muted);
+  border-radius: 999px;
+  padding: 3px 12px;
+  margin: 0;
 }
 
 .vl-example-tag {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #854f0b;
+  margin: 0 0 8px;
+}
+
+.vl-example-title {
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-ink);
   margin: 0 0 8px;
 }
 
@@ -1114,9 +1139,9 @@
 
 .vl-example li,
 .vl-lesson-list li {
-  font-size: 13.5px;
-  line-height: 1.65;
-  color: #3a3a36;
+  font-size: var(--text-note);
+  line-height: 1.7;
+  color: var(--color-ink);
   margin-bottom: 6px;
   overflow-wrap: anywhere;
 }
@@ -1127,17 +1152,11 @@
   gap: 6px;
   min-height: 44px;
   margin-top: 12px;
-  font-size: 14px;
+  font-size: var(--text-note);
   font-weight: 600;
-  color: #2f4a32;
+  color: var(--color-primary-ink);
   text-decoration: underline;
   text-underline-offset: 3px;
-}
-
-.vl-lesson-link:focus-visible {
-  outline: 2px solid #2f4a32;
-  outline-offset: 2px;
-  border-radius: 4px;
 }
 
 /* ---------- Summary ---------- */
@@ -1167,6 +1186,133 @@
   }
 
   .vl-lesson-title {
-    font-size: 16px;
+    font-size: var(--text-body);
   }
+}
+
+/* =====================================================================
+   Hero example card (static, hypothetical numbers)
+   ===================================================================== */
+
+.vl-hero-card {
+  flex: 0 1 380px;
+  min-width: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  border-radius: 24px;
+  padding: 24px;
+}
+
+.vl-hero-card p {
+  margin: 0;
+}
+
+.vl-hero-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vl-hero-card-name {
+  font-size: var(--text-small);
+  color: var(--color-ink-muted);
+}
+
+.vl-hero-card-label {
+  margin-top: 20px !important;
+  font-size: var(--text-small);
+  color: var(--color-ink-muted);
+}
+
+.vl-hero-card-value {
+  margin-top: 4px !important;
+  font-family: var(--vl-serif, var(--font-serif));
+  font-size: var(--text-num-xl);
+  line-height: var(--text-num-xl--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.vl-hero-card-delta {
+  margin-top: 12px !important;
+  font-size: var(--text-small);
+  line-height: var(--text-small--line-height);
+  color: var(--color-ink-muted);
+}
+
+/* Change pill. Neutral until a metric declares its polarity. */
+.vl-delta {
+  display: inline-flex;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  border: 1px solid var(--vl-line);
+  background: var(--color-bg);
+  color: var(--color-ink-muted);
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.vl-hero-fig {
+  margin: 24px 0 0;
+}
+
+.vl-hero-fig figcaption {
+  margin-top: 14px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-ink-muted);
+}
+
+.vl-range {
+  position: relative;
+  height: 28px;
+}
+
+.vl-range-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+
+.vl-range-bar {
+  position: absolute;
+  top: 7px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--color-chart-1);
+}
+
+.vl-range-price {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 2px dashed var(--color-ink);
+}
+
+.vl-range-base {
+  position: absolute;
+  top: 5px;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--color-bg);
+  border: 3px solid var(--color-ink);
+}
+
+/* Hypothetical-example labels inside the workspace */
+.vl-toolbar .vl-chip {
+  align-self: center;
+}
+
+.vl-section-chip {
+  margin: -16px 0 24px;
 }
