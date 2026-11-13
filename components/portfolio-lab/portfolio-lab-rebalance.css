@@ -1,0 +1,43 @@
+/* =====================================================================
+   Portfolio Lab — Rebalancing Tool (Phase 5B).
+   Every class here starts with "pl-rb-" so nothing existing is affected.
+   Shared pieces (panels, cards, tables, status boxes, buttons) come from
+   the base CSS and portfolio-lab-tools.css.
+   ===================================================================== */
+
+/* ---------- Target fields ---------- */
+.pl-rb-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 12px;
+  margin: 0 0 16px;
+}
+
+/* ---------- Results ---------- */
+.pl-mini-cards.pl-rb-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* ---------- Table ---------- */
+.pl-rb-table {
+  min-width: 760px;
+}
+
+/* A disabled button must still read as a button that is switched off. */
+.pl-tool-actions .pl-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 520px) {
+  .pl-rb-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .pl-mini-cards.pl-rb-two {
+    grid-template-columns: 1fr;
+  }
+}

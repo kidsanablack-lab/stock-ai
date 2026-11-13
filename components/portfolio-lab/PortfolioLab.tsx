@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useReducer, useState } from "react";
 import {
   MAX_INVESTMENT,
+  buildChartSegments,
   calculatePortfolio,
   generateObservations,
   parseDecimalInput,
@@ -74,6 +75,7 @@ export default function PortfolioLab() {
     [investment.value, parsed.holdings],
   );
 
+  const segments = useMemo(() => buildChartSegments(summary), [summary]);
   const analysis = useMemo(() => analyzeRisk(summary), [summary]);
   const riskNotes = useMemo(
     () => [...generateObservations(summary), ...buildRiskNotes(analysis)],
@@ -130,7 +132,7 @@ export default function PortfolioLab() {
 
   return (
     <>
-      <div className="sr-only" role="status" aria-live="polite">
+      <div className="pl-sr-only" role="status" aria-live="polite">
         {announcement}
       </div>
 
@@ -146,6 +148,7 @@ export default function PortfolioLab() {
         investmentError={investment.error}
         holdingErrors={parsed.errors}
         summary={summary}
+        segments={segments}
         loadedTemplate={loadedTemplate}
         templateModified={templateModified}
         focusId={focusId}

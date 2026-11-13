@@ -1,9 +1,6 @@
 "use client";
 
 import { useMemo, useRef, useState, useSyncExternalStore } from "react";
-import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
-import NoteBox from "@/components/ui/NoteBox";
 import { formatMoney } from "@/lib/portfolio-lab/currency";
 import {
   MAX_PLANS,
@@ -33,8 +30,7 @@ import {
 } from "@/lib/portfolio-lab/plansStorage";
 import type { LabState } from "@/lib/portfolio-lab/state";
 import type { ToolInputs } from "@/lib/portfolio-lab/toolInputs";
-import PlSection from "./PlSection";
-import TextField from "./TextField";
+import "./portfolio-lab-plans.css";
 
 type PlansSectionProps = {
   /** Read-only here. Loading a plan goes through onLoadPlan. */
@@ -81,30 +77,35 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** Confirmation for an action that replaces or removes something. */
 function ConfirmBox({
   text,
   action,
   onConfirm,
   onCancel,
+  danger,
 }: {
   text: string;
   action: string;
   onConfirm: () => void;
   onCancel: () => void;
+  danger?: boolean;
 }) {
   return (
-    <NoteBox className="mt-3">
-      <div role="group" aria-label="Please confirm" className="space-y-3">
-        <p>{text}</p>
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={onConfirm}>{action}</Button>
-          <Button variant="secondary" onClick={onCancel}>
-            Cancel
-          </Button>
-        </div>
+    <div className="pl-confirm-box" role="group" aria-label="Please confirm">
+      <p>{text}</p>
+      <div className="pl-confirm-actions">
+        <button
+          type="button"
+          className={`pl-btn ${danger ? "pl-btn-danger" : "pl-btn-primary"}`}
+          onClick={onConfirm}
+        >
+          {action}
+        </button>
+        <button type="button" className="pl-btn pl-btn-ghost" onClick={onCancel}>
+          Cancel
+        </button>
       </div>
-    </NoteBox>
+    </div>
   );
 }
 
@@ -122,7 +123,10 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
   const [renaming, setRenaming] = useState<{ id: string; text: string } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const plans = useMemo(() => (read.status === "ok" ? read.store.plans : []), [read]);
+  const plans = useMemo(
+    () => (read.status === "ok" ? read.store.plans : []),
+    [read],
+  );
   const unreadableCount = read.status === "ok" ? read.store.unreadable.length : 0;
 
   const sortedPlans = useMemo(
@@ -134,7 +138,9 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
 
   const build = useMemo(() => buildPlanData(labState, tools), [labState, tools]);
 
-  const dirty = activePlan ? !(build.ok && plansDataEqual(build.data, activePlan.data)) : false;
+  const dirty = activePlan
+    ? !(build.ok && plansDataEqual(build.data, activePlan.data))
+    : false;
 
   const canSave = read.status === "ok" && build.ok && plans.length < MAX_PLANS;
   const rawText = raw !== null && !raw.startsWith("\u0000") ? raw : null;
@@ -297,140 +303,168 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
     succeed("Cleared the saved plans in this browser.");
   }
 
+  /* ---------- Pieces ---------- */
+
   /* ---------- Body ---------- */
 
   let body;
 
   if (read.status === "loading") {
-    body = <p className="text-note text-ink-muted">Looking for plans saved in this browser…</p>;
+    body = (
+      <div className="pl-panel pl-pn-quiet">
+        <p>Looking for plans saved in this browser…</p>
+      </div>
+    );
   } else if (read.status === "unavailable") {
     body = (
-      <NoteBox tone="problem" role="alert" title="Saving is not available in this browser">
-        <p>
-          This browser is blocking storage for this page, which can happen in private browsing or
-          when site data is turned off. Everything else on this page still works, but plans cannot
-          be saved or loaded here. Nothing is being saved.
-        </p>
-      </NoteBox>
+      <div className="pl-status is-over" role="alert">
+        <i className="ti ti-alert-triangle" aria-hidden="true" />
+        <div>
+          <p className="pl-status-title">Saving is not available in this browser</p>
+          <p className="pl-status-text">
+            This browser is blocking storage for this page, which can happen in
+            private browsing or when site data is turned off. Everything else
+            on this page still works, but plans cannot be saved or loaded here.
+            Nothing is being saved.
+          </p>
+        </div>
+      </div>
     );
   } else if (read.status === "corrupt" || read.status === "newer") {
     body = (
-      <Card>
-        <NoteBox
-          tone="problem"
-          role="alert"
-          title={
-            read.status === "newer"
-              ? "These plans were saved by a newer version of Scope"
-              : "The saved plans cannot be read"
-          }
-        >
-          <p>
-            {read.status === "newer"
-              ? "This page does not know that newer format, so it will not open or change them."
-              : `${read.reason} `}
-            The saved data has not been changed, and your current portfolio is untouched. Saving is
-            turned off until this is resolved.
-          </p>
-        </NoteBox>
+      <div className="pl-panel">
+        <div className="pl-status is-over" role="alert">
+          <i className="ti ti-alert-triangle" aria-hidden="true" />
+          <div>
+            <p className="pl-status-title">
+              {read.status === "newer"
+                ? "These plans were saved by a newer version of Scope"
+                : "The saved plans cannot be read"}
+            </p>
+            <p className="pl-status-text">
+              {read.status === "newer"
+                ? "This page does not know that newer format, so it will not open or change them."
+                : `${read.reason} `}
+              The saved data has not been changed, and your current portfolio is
+              untouched. Saving is turned off until this is resolved.
+            </p>
+          </div>
+        </div>
 
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="pl-pn-actions">
           {rawText !== null && (
-            <Button
-              variant="secondary"
+            <button
+              type="button"
+              className="pl-btn pl-btn-ghost"
               onClick={() => downloadText(`scope-portfolio-plans-unreadable-${today()}.json`, rawText)}
             >
               <i className="ti ti-download" aria-hidden="true" />
               Download the saved data
-            </Button>
+            </button>
           )}
 
           {read.status === "corrupt" && (
-            <Button variant="quiet" onClick={() => setPending({ kind: "clear" })}>
+            <button
+              type="button"
+              className="pl-btn pl-btn-quiet"
+              onClick={() => setPending({ kind: "clear" })}
+            >
               Clear saved plans…
-            </Button>
+            </button>
           )}
         </div>
 
         {pending?.kind === "clear" && (
           <ConfirmBox
             onCancel={() => setPending(null)}
+            danger
             text="Delete everything saved in this browser for Portfolio Lab? This cannot be undone. Download the data first if you want to keep a copy."
             action="Delete all saved plans"
             onConfirm={handleClearAll}
           />
         )}
-      </Card>
+      </div>
     );
   } else {
     body = (
       <>
-        <Card>
-          <h3 className="font-serif text-h3 font-normal text-ink">Save what is on screen</h3>
+        <div className="pl-panel pl-pn-save">
+          <h3 className="pl-h3">Save what is on screen</h3>
 
-          <p className="mt-3 max-w-prose text-note text-ink-muted">
-            A plan keeps your holdings, investment amount, currency, DCA and calculator inputs, and
-            rebalancing target. It does not keep results, which are always recalculated.
+          <p className="pl-pn-help">
+            A plan keeps your holdings, investment amount, currency, DCA and
+            calculator inputs, and rebalancing target. It does not keep results,
+            which are always recalculated.
           </p>
 
           {!build.ok && (
-            <NoteBox className="mt-5" role="status" title="Fix these before saving">
-              <ul className="list-disc space-y-1 pl-5">
-                {build.problems.map((problem) => (
-                  <li key={problem}>{problem}</li>
-                ))}
-              </ul>
-            </NoteBox>
+            <div className="pl-status is-incomplete" role="status">
+              <i className="ti ti-info-circle" aria-hidden="true" />
+              <div>
+                <p className="pl-status-title">Fix these before saving</p>
+                <ul className="pl-pn-problems">
+                  {build.problems.map((problem) => (
+                    <li key={problem}>{problem}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           )}
 
           <form
-            className="mt-5 grid gap-4"
+            className="pl-pn-form"
             onSubmit={(event) => {
               event.preventDefault();
               if (canSave) handleSaveNew();
             }}
           >
-            <TextField
-              id="pl-plan-name"
-              label="Plan name"
-              value={name}
-              maxLength={MAX_PLAN_NAME_LENGTH}
-              placeholder="For example: Balanced plan, version 1"
-              onChange={setName}
-            />
+            <div className="pl-field">
+              <label htmlFor="pl-plan-name">Plan name</label>
+              <input
+                id="pl-plan-name"
+                type="text"
+                value={name}
+                maxLength={MAX_PLAN_NAME_LENGTH}
+                placeholder="For example: Balanced plan, version 1"
+                autoComplete="off"
+                onChange={(event) => setName(event.target.value)}
+              />
+            </div>
 
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit" disabled={!canSave}>
+            <div className="pl-pn-actions">
+              <button type="submit" className="pl-btn pl-btn-primary" disabled={!canSave}>
                 <i className="ti ti-device-floppy" aria-hidden="true" />
                 Save as new plan
-              </Button>
+              </button>
 
               {activePlan && (
-                <Button
-                  variant="secondary"
+                <button
+                  type="button"
+                  className="pl-btn pl-btn-ghost"
                   disabled={!build.ok || !dirty}
                   onClick={() => setPending({ kind: "update", id: activePlan.id })}
                 >
                   Update “{activePlan.name}”
-                </Button>
+                </button>
               )}
             </div>
           </form>
 
           {plans.length >= MAX_PLANS && (
-            <p className="mt-3 text-small text-ink-muted">
-              You have {MAX_PLANS} plans, the most this page keeps. Delete one to save another.
+            <p className="pl-hint">
+              You have {MAX_PLANS} plans, the most this page keeps. Delete one to
+              save another.
             </p>
           )}
 
           {activePlan && (
-            <p className="mt-4 flex items-start gap-2 text-note text-ink" role="status">
+            <p className="pl-pn-active" role="status">
               <i
-                className={`ti ${dirty ? "ti-pencil" : "ti-circle-check"} mt-0.5 text-primary`}
+                className={`ti ${dirty ? "ti-pencil" : "ti-circle-check"}`}
                 aria-hidden="true"
               />
               <span>
-                <strong className="font-semibold">{activePlan.name}</strong> is loaded.{" "}
+                <strong>{activePlan.name}</strong> is loaded.{" "}
                 {dirty
                   ? "You have changes that are not saved. “Save as new plan” keeps the original as it is. “Update” replaces it."
                   : "There are no unsaved changes."}
@@ -440,221 +474,265 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
 
           {pending?.kind === "update" && activePlan && pending.id === activePlan.id && (
             <ConfirmBox
-              onCancel={() => setPending(null)}
+            onCancel={() => setPending(null)}
               text={`Replace the saved version of “${activePlan.name}” with what is on screen now? The earlier saved version will be overwritten.`}
               action="Update plan"
               onConfirm={() => handleUpdate(activePlan)}
             />
           )}
-        </Card>
+        </div>
 
         {unreadableCount > 0 && (
-          <NoteBox
-            role="status"
-            title={`${unreadableCount} saved ${unreadableCount === 1 ? "entry" : "entries"} could not be read`}
-          >
-            <p>They are left untouched in this browser and are not shown below.</p>
+          <div className="pl-status is-incomplete" role="status">
+            <i className="ti ti-info-circle" aria-hidden="true" />
+            <div>
+              <p className="pl-status-title">
+                {unreadableCount} saved {unreadableCount === 1 ? "entry" : "entries"} could
+                not be read
+              </p>
+              <p className="pl-status-text">
+                They are left untouched in this browser and are not shown below.
+              </p>
 
-            {pending?.kind === "removeUnreadable" ? (
-              <ConfirmBox
-                onCancel={() => setPending(null)}
-                text="Remove the entries that cannot be read? Your readable plans stay. This cannot be undone."
-                action="Remove them"
-                onConfirm={handleRemoveUnreadable}
-              />
-            ) : (
-              <Button variant="quiet" onClick={() => setPending({ kind: "removeUnreadable" })}>
-                Remove unreadable entries…
-              </Button>
-            )}
-          </NoteBox>
-        )}
-
-        <div>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="font-serif text-h3 font-normal text-ink">
-              Saved plans <span className="text-ink-muted">({plans.length})</span>
-            </h3>
-
-            <div className="flex flex-wrap gap-2">
-              <Button variant="secondary" disabled={plans.length === 0} onClick={handleExport}>
-                <i className="ti ti-download" aria-hidden="true" />
-                Export backup
-              </Button>
-
-              <Button variant="secondary" onClick={() => fileInput.current?.click()}>
-                <i className="ti ti-upload" aria-hidden="true" />
-                Import from file
-              </Button>
-
-              <input
-                ref={fileInput}
-                type="file"
-                accept="application/json,.json"
-                className="sr-only"
-                aria-label="Import plans from a backup file"
-                tabIndex={-1}
-                onChange={(event) => {
-                  handleImportFile(event.target.files?.[0]);
-                  event.target.value = "";
-                }}
-              />
+              {pending?.kind === "removeUnreadable" ? (
+                <ConfirmBox
+            onCancel={() => setPending(null)}
+                  danger
+                  text="Remove the entries that cannot be read? Your readable plans stay. This cannot be undone."
+                  action="Remove them"
+                  onConfirm={handleRemoveUnreadable}
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="pl-btn pl-btn-quiet"
+                  onClick={() => setPending({ kind: "removeUnreadable" })}
+                >
+                  Remove unreadable entries…
+                </button>
+              )}
             </div>
           </div>
+        )}
 
-          {plans.length === 0 ? (
-            <div className="mt-5 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border px-4 py-10 text-center">
-              <i className="ti ti-folder-open text-3xl text-ink-muted" aria-hidden="true" />
-              <p className="text-body font-semibold text-ink">No saved plans yet</p>
-              <p className="max-w-sm text-note text-ink-muted">
-                Build a portfolio above, give it a name, and choose “Save as new plan”. It will be
-                listed here.
-              </p>
-            </div>
-          ) : (
-            <ul className="mt-5 grid gap-4 sm:grid-cols-2">
-              {sortedPlans.map((plan) => {
-                const isActive = plan.id === activeId;
-                const isRenaming = renaming?.id === plan.id;
-                const count = plan.data.holdings.length;
-                const pendingHere = pending && "id" in pending && pending.id === plan.id ? pending : null;
+        <div className="pl-pn-list-head">
+          <h3 className="pl-h3">
+            Saved plans <span className="pl-pn-count">({plans.length})</span>
+          </h3>
 
-                return (
-                  <li
-                    key={plan.id}
-                    className={`min-w-0 rounded-3xl border bg-white p-5 hover:border-primary ${
-                      isActive ? "border-primary" : "border-border"
-                    }`}
-                  >
-                    {isRenaming ? (
-                      <form
-                        className="grid gap-4"
-                        onSubmit={(event) => {
-                          event.preventDefault();
-                          handleRename();
-                        }}
-                      >
-                        <TextField
+          <div className="pl-pn-actions">
+            <button
+              type="button"
+              className="pl-btn pl-btn-ghost"
+              disabled={plans.length === 0}
+              onClick={handleExport}
+            >
+              <i className="ti ti-download" aria-hidden="true" />
+              Export backup
+            </button>
+
+            <button
+              type="button"
+              className="pl-btn pl-btn-ghost"
+              onClick={() => fileInput.current?.click()}
+            >
+              <i className="ti ti-upload" aria-hidden="true" />
+              Import from file
+            </button>
+
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/json,.json"
+              className="pl-pn-file"
+              aria-label="Import plans from a backup file"
+              tabIndex={-1}
+              onChange={(event) => {
+                handleImportFile(event.target.files?.[0]);
+                event.target.value = "";
+              }}
+            />
+          </div>
+        </div>
+
+        {plans.length === 0 ? (
+          <div className="pl-panel pl-empty">
+            <i className="ti ti-folder-open" aria-hidden="true" />
+            <p className="pl-empty-title">No saved plans yet</p>
+            <p className="pl-empty-text">
+              Build a portfolio above, give it a name, and choose “Save as new
+              plan”. It will be listed here.
+            </p>
+          </div>
+        ) : (
+          <ul className="pl-pn-list">
+            {sortedPlans.map((plan) => {
+              const isActive = plan.id === activeId;
+              const isRenaming = renaming?.id === plan.id;
+              const count = plan.data.holdings.length;
+
+              return (
+                <li key={plan.id} className={`pl-pn-card${isActive ? " is-active" : ""}`}>
+                  {isRenaming ? (
+                    <form
+                      className="pl-pn-rename"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        handleRename();
+                      }}
+                    >
+                      <div className="pl-field">
+                        <label htmlFor={`pl-rename-${plan.id}`}>New name</label>
+                        <input
                           id={`pl-rename-${plan.id}`}
-                          label="New name"
+                          type="text"
+                          autoFocus
                           value={renaming.text}
                           maxLength={MAX_PLAN_NAME_LENGTH}
-                          onChange={(text) => setRenaming({ id: plan.id, text })}
+                          autoComplete="off"
+                          onChange={(event) =>
+                            setRenaming({ id: plan.id, text: event.target.value })
+                          }
                         />
-                        <div className="flex flex-wrap gap-2">
-                          <Button type="submit">Save name</Button>
-                          <Button variant="secondary" onClick={() => setRenaming(null)}>
-                            Cancel
-                          </Button>
-                        </div>
-                      </form>
-                    ) : (
-                      <>
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <h4 className="break-words text-body font-semibold text-ink">{plan.name}</h4>
+                      </div>
+                      <div className="pl-pn-actions">
+                        <button type="submit" className="pl-btn pl-btn-primary">
+                          Save name
+                        </button>
+                        <button
+                          type="button"
+                          className="pl-btn pl-btn-ghost"
+                          onClick={() => setRenaming(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <>
+                      <div className="pl-pn-card-top">
+                        <h4 className="pl-pn-name">{plan.name}</h4>
 
-                          {isActive && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2.5 py-0.5 text-caption font-semibold text-primary-ink">
-                              <i
-                                className={`ti ${dirty ? "ti-pencil" : "ti-circle-check"}`}
-                                aria-hidden="true"
-                              />
-                              {dirty ? "Loaded, unsaved changes" : "Loaded"}
-                            </span>
-                          )}
-                        </div>
-
-                        <p className="mt-2 text-note text-ink">
-                          {count} {count === 1 ? "holding" : "holdings"} ·{" "}
-                          {formatMoney(plan.data.investment, plan.data.currency)}
-                        </p>
-
-                        <p className="mt-1 text-caption text-ink-muted">
-                          Created {formatDate(plan.createdAt)} · Updated {formatDate(plan.updatedAt)}
-                        </p>
-
-                        {pendingHere?.kind === "load" ? (
-                          <ConfirmBox
-                            onCancel={() => setPending(null)}
-                            text={`Load “${plan.name}”? This replaces what is in the builder and the planning tools now. Changes you have not saved will be lost.`}
-                            action="Load plan"
-                            onConfirm={() => doLoad(plan)}
-                          />
-                        ) : pendingHere?.kind === "delete" ? (
-                          <ConfirmBox
-                            onCancel={() => setPending(null)}
-                            text={`Delete “${plan.name}”? This cannot be undone. The portfolio on screen is not affected.`}
-                            action="Delete plan"
-                            onConfirm={() => handleDelete(plan)}
-                          />
-                        ) : (
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            <Button onClick={() => handleLoad(plan)} aria-label={`Load ${plan.name}`}>
-                              Load
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              onClick={() => setRenaming({ id: plan.id, text: plan.name })}
-                              aria-label={`Rename ${plan.name}`}
-                            >
-                              Rename
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              disabled={plans.length >= MAX_PLANS}
-                              onClick={() => handleDuplicate(plan)}
-                              aria-label={`Duplicate ${plan.name}`}
-                            >
-                              Duplicate
-                            </Button>
-                            <Button
-                              variant="quiet"
-                              onClick={() => setPending({ kind: "delete", id: plan.id })}
-                              aria-label={`Delete ${plan.name}`}
-                            >
-                              Delete
-                            </Button>
-                          </div>
+                        {isActive && (
+                          <span className="pl-pn-badge">
+                            <i
+                              className={`ti ${dirty ? "ti-pencil" : "ti-circle-check"}`}
+                              aria-hidden="true"
+                            />
+                            {dirty ? "Loaded, unsaved changes" : "Loaded"}
+                          </span>
                         )}
-                      </>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+                      </div>
+
+                      <p className="pl-pn-summary">
+                        {count} {count === 1 ? "holding" : "holdings"} ·{" "}
+                        {formatMoney(plan.data.investment, plan.data.currency)}
+                      </p>
+
+                      <p className="pl-pn-dates">
+                        Created {formatDate(plan.createdAt)} · Updated{" "}
+                        {formatDate(plan.updatedAt)}
+                      </p>
+
+                      {pending && "id" in pending && pending.id === plan.id && pending.kind === "load" ? (
+                        <ConfirmBox
+            onCancel={() => setPending(null)}
+                          text={`Load “${plan.name}”? This replaces what is in the builder and the planning tools now. Changes you have not saved will be lost.`}
+                          action="Load plan"
+                          onConfirm={() => doLoad(plan)}
+                        />
+                      ) : pending && "id" in pending && pending.id === plan.id && pending.kind === "delete" ? (
+                        <ConfirmBox
+            onCancel={() => setPending(null)}
+                          danger
+                          text={`Delete “${plan.name}”? This cannot be undone. The portfolio on screen is not affected.`}
+                          action="Delete plan"
+                          onConfirm={() => handleDelete(plan)}
+                        />
+                      ) : (
+                        <div className="pl-pn-actions">
+                          <button
+                            type="button"
+                            className="pl-btn pl-btn-primary"
+                            onClick={() => handleLoad(plan)}
+                            aria-label={`Load ${plan.name}`}
+                          >
+                            Load
+                          </button>
+                          <button
+                            type="button"
+                            className="pl-btn pl-btn-ghost"
+                            onClick={() => setRenaming({ id: plan.id, text: plan.name })}
+                            aria-label={`Rename ${plan.name}`}
+                          >
+                            Rename
+                          </button>
+                          <button
+                            type="button"
+                            className="pl-btn pl-btn-ghost"
+                            disabled={plans.length >= MAX_PLANS}
+                            onClick={() => handleDuplicate(plan)}
+                            aria-label={`Duplicate ${plan.name}`}
+                          >
+                            Duplicate
+                          </button>
+                          <button
+                            type="button"
+                            className="pl-btn pl-btn-quiet"
+                            onClick={() => setPending({ kind: "delete", id: plan.id })}
+                            aria-label={`Delete ${plan.name}`}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </>
     );
   }
 
   return (
-    <PlSection
-      id="portfolio-plans"
-      titleId="pl-plans-title"
-      title="Save and reopen your plans"
-      lead="Keep versions of a hypothetical portfolio, come back to them later, and compare ideas without starting over. Nothing is saved until you choose to save it, and loading a plan never changes a saved one."
-    >
-      <NoteBox icon="ti-lock">
+    <section id="portfolio-plans" className="pl-section" aria-labelledby="pl-plans-title">
+      <p className="pl-eyebrow">My Portfolio Plans</p>
+      <h2 id="pl-plans-title" className="pl-h2">
+        Save and reopen your plans
+      </h2>
+      <p className="pl-lead">
+        Keep versions of a hypothetical portfolio, come back to them later, and
+        compare ideas without starting over. Nothing is saved until you choose
+        to save it, and loading a plan never changes a saved one.
+      </p>
+
+      <div className="pl-pn-privacy">
+        <i className="ti ti-lock" aria-hidden="true" />
         <p>
-          <strong className="font-semibold">Stored only in this browser.</strong> Plans stay on this
-          device. They are not sent to Scope or anyone else, they do not sync to your other devices,
-          and they can be lost if you clear your browser data or use private browsing. Use “Export
-          backup” to keep a copy.
+          <strong>Stored only in this browser.</strong> Plans stay on this
+          device. They are not sent to Scope or anyone else, they do not sync to
+          your other devices, and they can be lost if you clear your browser
+          data or use private browsing. Use “Export backup” to keep a copy.
         </p>
-      </NoteBox>
+      </div>
 
       {message && (
-        <NoteBox
-          tone={message.tone === "error" ? "problem" : "note"}
-          icon={message.tone === "error" ? "ti-alert-circle" : "ti-circle-check"}
+        <p
+          className={`pl-pn-message is-${message.tone}`}
           role={message.tone === "error" ? "alert" : "status"}
         >
-          <p>{message.text}</p>
-        </NoteBox>
+          <i
+            className={`ti ${message.tone === "error" ? "ti-alert-circle" : "ti-circle-check"}`}
+            aria-hidden="true"
+          />
+          <span>{message.text}</span>
+        </p>
       )}
 
       {body}
-    </PlSection>
+    </section>
   );
 }
