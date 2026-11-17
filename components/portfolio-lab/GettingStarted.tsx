@@ -24,27 +24,31 @@ const STEPS = [
 
 export default function GettingStarted() {
   return (
-    <section className="pl-section pl-start" aria-labelledby="pl-start-title">
-      <p className="pl-eyebrow">Getting started</p>
-      <h2 id="pl-start-title" className="pl-h2">
+    <section className="pl-section pl-start2" aria-labelledby="pl-start-title">
+      <h2 id="pl-start-title" className="pl-start2-title">
         Three ways to begin
       </h2>
 
-      <ul className="pl-steps">
+      <ul className="pl-start2-list">
         {STEPS.map((step, index) => (
-          <li key={step.title} className="pl-step">
-            <span className="pl-step-icon" aria-hidden="true">
-              <i className={`ti ${step.icon}`} />
-            </span>
+          <li key={step.title} className="pl-start2-card">
+            <div className="pl-start2-band">
+              <span className="pl-start2-num">0{index + 1}</span>
+              <i
+                className={`ti ${step.icon} pl-start2-icon`}
+                aria-hidden="true"
+              />
+            </div>
 
-            <p className="pl-step-number">0{index + 1}</p>
-            <h3 className="pl-step-title">{step.title}</h3>
-            <p className="pl-step-text">{step.text}</p>
+            <div className="pl-start2-body">
+              <h3 className="pl-start2-card-title">{step.title}</h3>
+              <p className="pl-start2-text">{step.text}</p>
 
-            <a href={step.href} className="pl-step-link">
-              {step.cta}
-              <i className="ti ti-arrow-right" aria-hidden="true" />
-            </a>
+              <a href={step.href} className="pl-start2-link">
+                {step.cta}
+                <i className="ti ti-arrow-right" aria-hidden="true" />
+              </a>
+            </div>
           </li>
         ))}
       </ul>

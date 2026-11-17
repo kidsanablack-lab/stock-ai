@@ -6,11 +6,10 @@ const last = <T,>(a: T[]) => a[a.length - 1];
 const prev = <T,>(a: T[]) => a[a.length - 2];
 const chg = (now: number | null, before: number | null) => (now === null || before === null || before === 0 ? null : (now / before - 1) * 100);
 const tone = (v: number | null, goodWhenUp = true): Tone => ((v ?? 0) >= 0) === goodWhenUp ? "positive" : "negative";
-const nn = (a: (number | null)[]) => a.map((x) => x ?? 0);
 
 // The six big-number cards in "Financial highlights".
 export function financialHighlightsMetrics(f: Facts, notes: Partial<Record<string, string>> = {}) {
-  const y = f.years, ly = last(y), py = prev(y);
+  const y = f.years, py = prev(y);
   const card = (label: string, value: string, change: string, t: Tone, series: (number | null)[], unit: "B" | "$" | "%", note: string) =>
     ({ label, value, change, tone: t, series: clean(series), note: notes[label] ?? note, unit });
   const revG = chg(last(f.revenue), prev(f.revenue)), niG = chg(last(f.netIncome), prev(f.netIncome)), epsG = chg(last(f.eps), prev(f.eps)), fcfG = chg(last(f.fcf), prev(f.fcf));
@@ -33,6 +32,18 @@ export function profitHistoryNumbers(f: Facts) {
     revenue: clean(f.revenue), grossProfit: clean(f.grossProfit), operatingIncome: clean(f.operatingIncome), netIncome: clean(f.netIncome), fcf: clean(f.fcf),
     returns: { roic: Math.round(last(r) ?? 0), roicFrom: Math.round(r[0] ?? 0), roicFromYear: f.years[f.years.length - r.length] },
   };
+}
+
+// The sentence under the ROIC card. It says "up from" or "down from" by the real numbers.
+// `why` is an optional company-specific sentence that is added at the end.
+export function roicText(
+  companyName: string,
+  r: { roic: number; roicFrom: number; roicFromYear?: string },
+  why?: string,
+): string {
+  const direction = r.roic >= r.roicFrom ? "up" : "down";
+  const base = `For every $100 put into the business, ${companyName} earns about $${r.roic} a year after tax, ${direction} from $${r.roicFrom} in ${r.roicFromYear ?? "the first year shown"}.`;
+  return why ? `${base} ${why}` : base;
 }
 
 // The numbers behind "Cash and returns".

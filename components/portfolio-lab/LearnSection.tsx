@@ -45,7 +45,7 @@ export default function LearnSection() {
       const page = SCOPE_PAGES[action.page];
 
       return (
-        <Link href={page.href} className="pl-ln-link">
+        <Link href={page.href} className="pl-ln2-link">
           {page.label}
           <i className="ti ti-arrow-up-right" aria-hidden="true" />
         </Link>
@@ -54,7 +54,7 @@ export default function LearnSection() {
 
     if (action.kind === "anchor") {
       return (
-        <a href={LEARN_ANCHORS[action.anchor].href} className="pl-ln-link">
+        <a href={LEARN_ANCHORS[action.anchor].href} className="pl-ln2-link">
           {action.label}
           <i className="ti ti-arrow-down" aria-hidden="true" />
         </a>
@@ -62,7 +62,7 @@ export default function LearnSection() {
     }
 
     return (
-      <button type="button" className="pl-ln-link" onClick={() => openTopic(action.topicId)}>
+      <button type="button" className="pl-ln2-link" onClick={() => openTopic(action.topicId)}>
         {action.label}
         <i className="ti ti-arrow-down" aria-hidden="true" />
       </button>
@@ -75,30 +75,30 @@ export default function LearnSection() {
     const panelId = `learn-${topic.id}-panel`;
 
     return (
-      <li key={topic.id} id={`learn-${topic.id}`} className={`pl-ln-topic${isOpen ? " is-open" : ""}`}>
-        <h5 className="pl-ln-topic-heading">
+      <li key={topic.id} id={`learn-${topic.id}`} className={`pl-ln2-topic${isOpen ? " is-open" : ""}`}>
+        <h5 className="pl-ln2-topic-heading">
           <button
             id={buttonId}
             type="button"
-            className="pl-ln-topic-button"
+            className="pl-ln2-topic-button"
             aria-expanded={isOpen}
             aria-controls={panelId}
             onClick={() => toggle(topic.id)}
           >
-            <span className="pl-ln-topic-text">
-              <span className="pl-ln-topic-name">{topic.title}</span>
-              <span className="pl-ln-topic-summary">{topic.summary}</span>
+            <span className="pl-ln2-topic-text">
+              <span className="pl-ln2-topic-name">{topic.title}</span>
+              <span className="pl-ln2-topic-summary">{topic.summary}</span>
             </span>
-            <i className="ti ti-chevron-down pl-ln-chevron" aria-hidden="true" />
+            <i className="ti ti-chevron-down pl-ln2-chevron" aria-hidden="true" />
           </button>
         </h5>
 
-        <div id={panelId} className="pl-ln-topic-body" hidden={!isOpen}>
+        <div id={panelId} className="pl-ln2-topic-body" hidden={!isOpen}>
           {topic.paragraphs.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
 
-          <p className="pl-ln-keep">
+          <p className="pl-ln2-keep">
             <i className="ti ti-info-circle" aria-hidden="true" />
             <span>
               <strong>Keep in mind:</strong> {topic.keepInMind}
@@ -106,7 +106,7 @@ export default function LearnSection() {
           </p>
 
           {topic.tryIt && (
-            <a href={LEARN_ANCHORS[topic.tryIt.anchor].href} className="pl-ln-link">
+            <a href={LEARN_ANCHORS[topic.tryIt.anchor].href} className="pl-ln2-link">
               {topic.tryIt.text}
               <i className="ti ti-arrow-down" aria-hidden="true" />
             </a>
@@ -117,18 +117,17 @@ export default function LearnSection() {
   }
 
   return (
-    <section id="learn-and-explore" className="pl-section" aria-labelledby="pl-learn-title">
-      <p className="pl-eyebrow">Learn and Explore</p>
-      <h2 id="pl-learn-title" className="pl-h2">
+    <section id="learn-and-explore" className="pl-section pl-ln2" aria-labelledby="pl-learn-title">
+      <h2 id="pl-learn-title" className="pl-ln2-title">
         The ideas behind a portfolio, in plain language
       </h2>
-      <p className="pl-lead">
+      <p className="pl-ln2-lead">
         Short guides to the words you meet while building a portfolio. Open any
         topic, or follow an example path that connects the rest of Scope to the
         tools on this page.
       </p>
 
-      <p className="pl-ln-note">
+      <p className="pl-ln2-note">
         <i className="ti ti-info-circle" aria-hidden="true" />
         <span>
           These guides are general and educational. They describe what things
@@ -137,20 +136,22 @@ export default function LearnSection() {
         </span>
       </p>
 
-      <div className="pl-ln-block">
-        <h3 className="pl-h3">Example paths through Scope</h3>
+      <div className="pl-ln2-paths">
+        <div className="pl-ln2-band">
+          <h3 className="pl-ln2-band-title">Example paths through Scope</h3>
+        </div>
 
-        <div className="pl-ln-journeys">
+        <div className="pl-ln2-journeys">
           {JOURNEYS.map((journey) => (
-            <article key={journey.id} className="pl-ln-journey" aria-labelledby={`journey-${journey.id}`}>
-              <h4 id={`journey-${journey.id}`} className="pl-ln-journey-title">
+            <article key={journey.id} className="pl-ln2-journey" aria-labelledby={`journey-${journey.id}`}>
+              <h4 id={`journey-${journey.id}`} className="pl-ln2-journey-title">
                 {journey.title}
               </h4>
-              <p className="pl-ln-journey-intro">{journey.intro}</p>
+              <p className="pl-ln2-journey-intro">{journey.intro}</p>
 
-              <ol className="pl-ln-steps">
+              <ol className="pl-ln2-steps">
                 {journey.steps.map((step) => (
-                  <li key={step.text} className="pl-ln-step">
+                  <li key={step.text} className="pl-ln2-step">
                     <p>{step.text}</p>
                     {renderAction(step.action)}
                   </li>
@@ -161,12 +162,12 @@ export default function LearnSection() {
         </div>
       </div>
 
-      <div className="pl-ln-block">
-        <div className="pl-ln-topics-head">
-          <h3 className="pl-h3">Guides</h3>
+      <div className="pl-ln2-block">
+        <div className="pl-ln2-topics-head">
+          <h3 className="pl-ln2-h3">Guides</h3>
           <button
             type="button"
-            className="pl-btn pl-btn-ghost"
+            className="pl-ln2-btn"
             onClick={() => setOpen(allOpen ? [] : LEARN_TOPICS.map((topic) => topic.id))}
           >
             {allOpen ? "Collapse all" : "Expand all"}
@@ -174,12 +175,14 @@ export default function LearnSection() {
         </div>
 
         {LEARN_GROUPS.map((group) => (
-          <div key={group.id} className="pl-ln-group">
-            <h4 className="pl-ln-group-title">{group.title}</h4>
-            <p className="pl-ln-group-text">{group.text}</p>
+          <section key={group.id} className="pl-ln2-group">
+            <div className="pl-ln2-band">
+              <h4 className="pl-ln2-group-title">{group.title}</h4>
+              <p className="pl-ln2-group-text">{group.text}</p>
+            </div>
 
-            <ul className="pl-ln-topics">{topicsInGroup(group.id).map(renderTopic)}</ul>
-          </div>
+            <ul className="pl-ln2-topics">{topicsInGroup(group.id).map(renderTopic)}</ul>
+          </section>
         ))}
       </div>
     </section>

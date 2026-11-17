@@ -110,8 +110,8 @@ function HoldingRow({
   const errorId = `percent-error-${holding.id}`;
 
   return (
-    <li className="pl-holding">
-      <div className="pl-field pl-field-name">
+    <li className="pl-bs2-holding">
+      <div className="pl-bs2-field pl-bs2-field-main pl-bs2-f-name">
         <label htmlFor={nameId}>Name</label>
         <input
           ref={nameRef}
@@ -129,11 +129,11 @@ function HoldingRow({
           }
         />
         {holding.name.trim() === "" && (
-          <p className="pl-hint">Add a name so this holding is easy to spot.</p>
+          <p className="pl-bs2-hint">Add a name so this holding is easy to spot.</p>
         )}
       </div>
 
-      <div className="pl-field pl-field-category">
+      <div className="pl-bs2-field pl-bs2-f-category">
         <label htmlFor={categoryId}>Category</label>
         <select
           id={categoryId}
@@ -154,9 +154,9 @@ function HoldingRow({
         </select>
       </div>
 
-      <div className="pl-field pl-field-percent">
+      <div className="pl-bs2-field pl-bs2-f-percent">
         <label htmlFor={percentId}>Allocation</label>
-        <div className="pl-input-suffix">
+        <div className="pl-bs2-suffix">
           <input
             id={percentId}
             type="text"
@@ -176,21 +176,21 @@ function HoldingRow({
           <span aria-hidden="true">%</span>
         </div>
         {error && (
-          <p id={errorId} className="pl-error">
+          <p id={errorId} className="pl-bs2-error">
             {error}
           </p>
         )}
       </div>
 
-      <div className="pl-field pl-field-amount">
-        <span className="pl-field-label">Amount</span>
-        <p className="pl-amount">{formatMoney(amount, currency)}</p>
+      <div className="pl-bs2-field pl-bs2-f-amount">
+        <span className="pl-bs2-field-label">Amount</span>
+        <p className="pl-bs2-amount">{formatMoney(amount, currency)}</p>
       </div>
 
-      <div className="pl-field pl-field-remove">
+      <div className="pl-bs2-field pl-bs2-f-remove">
         <button
           type="button"
-          className="pl-btn pl-btn-quiet"
+          className="pl-bs2-btn pl-bs2-btn-quiet"
           onClick={() => onRemove(holding)}
           aria-label={`Remove ${label}`}
         >
@@ -245,46 +245,48 @@ export default function BuilderSection({
   return (
     <section
       id="portfolio-builder"
-      className="pl-section"
+      className="pl-section pl-bs2"
       aria-labelledby="pl-builder-title"
     >
-      <p className="pl-eyebrow">Portfolio Builder</p>
-      <h2 id="pl-builder-title" className="pl-h2" tabIndex={-1}>
+      <h2 id="pl-builder-title" className="pl-bs2-title" tabIndex={-1}>
         Build a hypothetical portfolio
       </h2>
-      <p className="pl-lead">
+      <p className="pl-bs2-lead">
         Choose an amount, add holdings, and set how much of the amount goes to
         each one. Everything updates as you type.
       </p>
 
-      <p className="pl-hypo">
+      <p className="pl-bs2-hypo">
         <i className="ti ti-flask" aria-hidden="true" />
         Hypothetical only. This is an educational planning tool, not investment
         advice, and nothing here is a real holding or price.
       </p>
 
-      <div className="pl-builder-grid">
+      <div className="pl-bs2-grid">
         {/* Live snapshot */}
-        <aside className="pl-snapshot" aria-label="Live portfolio snapshot">
-          <p className="pl-snapshot-label">Initial investment</p>
-          <p className="pl-snapshot-value">
-            {formatMoney(summary.investment, state.currency)}
-          </p>
+        <aside className="pl-bs2-snapshot" aria-label="Live portfolio snapshot">
+          <div className="pl-bs2-band">
+            <p className="pl-bs2-band-label">Initial investment</p>
+            <p className="pl-bs2-band-value">
+              {formatMoney(summary.investment, state.currency)}
+            </p>
+          </div>
 
+          <div className="pl-bs2-snapshot-body">
           <div
-            className={`pl-status is-${summary.status}`}
+            className={`pl-bs2-status is-${summary.status}`}
             role="status"
             aria-live="polite"
           >
             <i className={`ti ${status.icon}`} aria-hidden="true" />
             <div>
-              <p className="pl-status-title">{status.title}</p>
-              <p className="pl-status-text">{status.text}</p>
+              <p className="pl-bs2-status-title">{status.title}</p>
+              <p className="pl-bs2-status-text">{status.text}</p>
             </div>
           </div>
 
-          <div className={`pl-meter is-${summary.status}`} aria-hidden="true">
-            <div className="pl-meter-fill" style={{ width: `${meterWidth}%` }} />
+          <div className={`pl-bs2-meter is-${summary.status}`} aria-hidden="true">
+            <div className="pl-bs2-meter-fill" style={{ width: `${meterWidth}%` }} />
           </div>
 
           <DonutChart
@@ -292,12 +294,13 @@ export default function BuilderSection({
             status={summary.status}
             totalPercent={summary.totalPercent}
           />
+          </div>
         </aside>
 
         {/* Editor */}
-        <div className="pl-editor">
+        <div className="pl-bs2-editor">
           {loadedTemplate && (
-            <p className="pl-loaded">
+            <p className="pl-bs2-loaded">
               <i className="ti ti-template" aria-hidden="true" />
               <span>
                 Started from the <strong>{loadedTemplate.name}</strong> example
@@ -307,10 +310,10 @@ export default function BuilderSection({
             </p>
           )}
 
-          <div className="pl-panel">
-            <div className="pl-field">
+          <div className="pl-bs2-panel">
+            <div className="pl-bs2-field">
               <label htmlFor="pl-investment">Initial investment</label>
-              <div className="pl-input-prefix">
+              <div className="pl-bs2-prefix">
                 <span aria-hidden="true">
                   {CURRENCIES.find((c) => c.code === state.currency)?.symbol}
                 </span>
@@ -331,23 +334,23 @@ export default function BuilderSection({
               </div>
 
               {investmentError ? (
-                <p id="pl-investment-error" className="pl-error">
+                <p id="pl-investment-error" className="pl-bs2-error">
                   {investmentError}
                 </p>
               ) : (
-                <p id="pl-investment-help" className="pl-hint">
+                <p id="pl-investment-help" className="pl-bs2-hint">
                   A hypothetical amount to allocate. You do not need a real
                   account.
                 </p>
               )}
             </div>
 
-            <fieldset className="pl-currency">
+            <fieldset className="pl-bs2-currency">
               <legend>Display currency</legend>
 
-              <div className="pl-segmented">
+              <div className="pl-bs2-seg-group">
                 {CURRENCIES.map((currency) => (
-                  <label key={currency.code} className="pl-segment">
+                  <label key={currency.code} className="pl-bs2-seg">
                     <input
                       type="radio"
                       name="pl-currency"
@@ -365,46 +368,46 @@ export default function BuilderSection({
                 ))}
               </div>
 
-              <p className="pl-hint">
+              <p className="pl-bs2-hint">
                 Display setting only. Amounts are not converted between
                 currencies and no exchange rate is used.
               </p>
             </fieldset>
           </div>
 
-          <div className="pl-panel">
-            <div className="pl-panel-head">
-              <h3 className="pl-h3">Holdings</h3>
-              <p className="pl-total">
+          <div className="pl-bs2-panel">
+            <div className="pl-bs2-panel-head">
+              <h3 className="pl-bs2-h3">Holdings</h3>
+              <p className="pl-bs2-total">
                 Total allocation <strong>{formatPercent(summary.totalPercent)}</strong>
               </p>
             </div>
 
             {state.holdings.length === 0 ? (
-              <div className="pl-empty">
+              <div className="pl-bs2-empty">
                 <i className="ti ti-chart-donut-3" aria-hidden="true" />
-                <p className="pl-empty-title">Your portfolio is empty</p>
-                <p className="pl-empty-text">
+                <p className="pl-bs2-empty-title">Your portfolio is empty</p>
+                <p className="pl-bs2-empty-text">
                   Add a holding to start, or load one of the educational
                   templates above and adjust it.
                 </p>
-                <div className="pl-empty-actions">
+                <div className="pl-bs2-empty-actions">
                   <button
                     type="button"
-                    className="pl-btn pl-btn-primary"
+                    className="pl-bs2-btn pl-bs2-btn-primary"
                     onClick={handleAdd}
                   >
                     <i className="ti ti-plus" aria-hidden="true" />
                     Add a holding
                   </button>
-                  <a href="#portfolio-templates" className="pl-btn pl-btn-ghost">
+                  <a href="#portfolio-templates" className="pl-bs2-btn pl-bs2-btn-ghost">
                     Browse templates
                   </a>
                 </div>
               </div>
             ) : (
               <>
-                <ul className="pl-holdings">
+                <ul className="pl-bs2-holdings">
                   {state.holdings.map((holding) => (
                     <HoldingRow
                       key={holding.id}
@@ -420,10 +423,10 @@ export default function BuilderSection({
                   ))}
                 </ul>
 
-                <div className="pl-actions">
+                <div className="pl-bs2-actions">
                   <button
                     type="button"
-                    className="pl-btn pl-btn-primary"
+                    className="pl-bs2-btn pl-bs2-btn-primary"
                     onClick={handleAdd}
                   >
                     <i className="ti ti-plus" aria-hidden="true" />
@@ -431,20 +434,20 @@ export default function BuilderSection({
                   </button>
 
                   {confirmReset ? (
-                    <span className="pl-confirm" role="group" aria-label="Confirm reset">
+                    <span className="pl-bs2-confirm" role="group" aria-label="Confirm reset">
                       <span>
                         Reset everything, including the amount and currency?
                       </span>
                       <button
                         type="button"
-                        className="pl-btn pl-btn-danger"
+                        className="pl-bs2-btn pl-bs2-btn-danger"
                         onClick={handleReset}
                       >
                         Yes, reset
                       </button>
                       <button
                         type="button"
-                        className="pl-btn pl-btn-ghost"
+                        className="pl-bs2-btn pl-bs2-btn-ghost"
                         onClick={() => setConfirmReset(false)}
                       >
                         Cancel
@@ -453,7 +456,7 @@ export default function BuilderSection({
                   ) : (
                     <button
                       type="button"
-                      className="pl-btn pl-btn-quiet"
+                      className="pl-bs2-btn pl-bs2-btn-quiet"
                       onClick={() => setConfirmReset(true)}
                     >
                       <i className="ti ti-restore" aria-hidden="true" />

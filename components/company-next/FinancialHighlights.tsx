@@ -1,5 +1,5 @@
 // ส่วน 8: บริษัททำเงินได้เท่าไรต่อปี และคุณภาพกำไรดีแค่ไหน
-// ภาพหลัก: การ์ดตัวเลขสรุป + กราฟเส้น "Growth since <ปีแรก>" (ปีแรก = 100) เส้นเต็มความกว้าง ตัวอธิบายเส้นอยู่ด้านล่าง
+// ภาพหลัก: ตารางสรุปตัวเลข (หัวสีฟ้า) + กราฟเส้น "Growth since <ปีแรก>" (ปีแรก = 100) เส้นเต็มความกว้าง ตัวอธิบายเส้นอยู่ด้านล่าง
 // ไม่มีชื่อบริษัทหรือปีที่ฝังไว้ในไฟล์นี้ ปีทั้งหมดมาจาก data.years (บังคับส่ง)
 // Server Component.
 
@@ -208,24 +208,33 @@ export default function FinancialHighlights({ data }: { data: FinancialHighlight
           <p className="mt-3 max-w-[620px] text-sm leading-relaxed text-ink-muted sm:text-base">{data.lead}</p>
         </header>
 
-        {/* การ์ดตัวเลขสรุป + คำอธิบายของแต่ละตัว */}
+        {/* ตารางสรุปตัวเลข: หัวสีฟ้า + หนึ่งแถวต่อหนึ่งตัวเลข (ไม่มีแท่งกราฟ) */}
         {data.metrics.length > 0 && (
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {data.metrics.map((m) => (
-              <article
-                key={m.label}
-                className="flex min-w-0 flex-col gap-2.5 rounded-3xl border border-border bg-white px-5 py-5 sm:px-6"
-              >
-                <div className="text-sm font-medium text-ink-muted">{m.label}</div>
-                <div className="font-serif text-[clamp(32px,4vw,44px)] font-semibold leading-none tracking-tight tabular-nums text-ink">
-                  {m.value}
-                </div>
-                <div>
-                  <Change m={m} />
-                </div>
-                <p className="text-sm leading-relaxed text-ink-muted">{m.note}</p>
-              </article>
-            ))}
+          <div className="mt-6 overflow-hidden rounded-3xl border border-border bg-white">
+            <div className="bg-primary px-5 py-4 sm:px-6">
+              <h3 className="font-serif text-xl font-semibold tracking-tight text-white sm:text-2xl">
+                {data.years[data.years.length - 1]} at a glance
+              </h3>
+            </div>
+            <ul className="px-5 sm:px-6">
+              {data.metrics.map((m) => (
+                <li
+                  key={m.label}
+                  className="grid items-center gap-x-6 gap-y-2 border-b border-border py-4 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_200px_190px]"
+                >
+                  <div className="min-w-0">
+                    <div className="text-base font-semibold text-ink">{m.label}</div>
+                    <p className="mt-0.5 text-sm leading-relaxed text-ink-muted">{m.note}</p>
+                  </div>
+                  <div className="font-serif text-[clamp(32px,4vw,40px)] font-semibold leading-none tracking-tight tabular-nums text-ink sm:translate-y-[3px] sm:text-right">
+                    {m.value}
+                  </div>
+                  <div className="justify-self-start sm:justify-self-end">
+                    <Change m={m} />
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

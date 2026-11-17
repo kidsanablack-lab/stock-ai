@@ -335,6 +335,574 @@
   max-width: 680px;
 }
 
+/* =====================================================================
+   Risk & Diversification v2 (variation C: exposure first, violet used for
+   the "needs attention" meaning instead of yellow). New classes only
+   (.pl-rk2-*). The old rules above are left in place; grep before
+   removing them.
+   ===================================================================== */
+.pl-rk2 {
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  color: var(--color-ink);
+}
+
+.pl-rk2-title {
+  font-family: var(--pl-serif, var(--font-serif, Georgia, serif));
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin: 0 0 16px;
+  max-width: 680px;
+}
+
+.pl-rk2-lead {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--color-ink-muted);
+  margin: 0 0 28px;
+  max-width: 680px;
+}
+
+.pl-rk2-h3 {
+  font-family: var(--pl-serif, var(--font-serif, Georgia, serif));
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.pl-rk2-hint {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-ink-muted);
+  margin: 0;
+}
+
+.pl-rk2-hint strong {
+  color: var(--color-ink);
+}
+
+/* ---------- Status ---------- */
+.pl-rk2-status {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--color-primary-soft) 40%, #ffffff);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.pl-rk2-status > i {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--color-ink-muted);
+}
+
+.pl-rk2-status-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
+.pl-rk2-status-text {
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.pl-rk2-status.is-incomplete {
+  background: color-mix(in srgb, var(--cat-2) 8%, #ffffff);
+}
+
+.pl-rk2-status.is-incomplete > i {
+  color: var(--cat-2);
+}
+
+.pl-rk2-status.is-complete {
+  background: var(--color-success-soft);
+}
+
+.pl-rk2-status.is-complete > i {
+  color: var(--color-success);
+}
+
+.pl-rk2-status.is-over {
+  background: var(--color-danger-soft);
+}
+
+.pl-rk2-status.is-over > i {
+  color: var(--color-danger);
+}
+
+/* ---------- Panels ---------- */
+.pl-rk2-panel {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  min-width: 0;
+}
+
+.pl-rk2-panel-band {
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 20px 28px;
+}
+
+.pl-rk2-panel-band .pl-rk2-h3 {
+  color: #ffffff;
+}
+
+.pl-rk2-panel-body {
+  padding: 28px;
+}
+
+.pl-rk2-panel.is-plain {
+  padding: 28px;
+  margin-bottom: 0;
+}
+
+.pl-rk2-panel.is-plain > .pl-rk2-h3 {
+  margin-bottom: 16px;
+}
+
+.pl-rk2-block {
+  margin-top: 40px;
+}
+
+.pl-rk2-block > .pl-rk2-h3 {
+  margin-bottom: 16px;
+}
+
+.pl-rk2-block > .pl-rk2-hint {
+  margin-top: -8px;
+  margin-bottom: 16px;
+  max-width: 640px;
+}
+
+/* ---------- Exposure ---------- */
+.pl-rk2-stack {
+  display: flex;
+  height: 20px;
+  gap: 2px;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.pl-rk2-stack span {
+  display: block;
+  min-width: 3px;
+}
+
+.pl-rk2-exposure {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 48px;
+  align-items: start;
+}
+
+.pl-rk2-cats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.pl-rk2-cat-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 14px;
+}
+
+.pl-rk2-cat-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pl-rk2-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.pl-rk2-cat-name small,
+.pl-rk2-rank-name small {
+  font-size: 12px;
+  color: var(--color-ink-muted);
+}
+
+.pl-rk2-values {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pl-rk2-values strong {
+  color: var(--color-ink);
+}
+
+.pl-rk2-glance {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.pl-rk2-glance div {
+  background: color-mix(in srgb, var(--color-primary-soft) 40%, #ffffff);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.pl-rk2-glance dt {
+  font-size: 12px;
+  color: var(--color-ink-muted);
+  margin: 0 0 2px;
+}
+
+.pl-rk2-glance dd {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.pl-rk2-absent {
+  margin-top: 20px;
+}
+
+/* ---------- Concentration ---------- */
+.pl-rk2-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pl-rk2-stat {
+  background: color-mix(in srgb, var(--color-primary-soft) 40%, #ffffff);
+  border-radius: 16px;
+  padding: 16px 18px;
+  min-width: 0;
+}
+
+.pl-rk2-stat-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  margin: 0;
+}
+
+.pl-rk2-stat-value {
+  font-family: var(--pl-serif, var(--font-serif, Georgia, serif));
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin: 4px 0 2px;
+}
+
+.pl-rk2-stat-note {
+  font-size: 12.5px;
+  color: var(--color-ink-muted);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.pl-rk2-explain {
+  margin: 16px 0 20px;
+}
+
+.pl-rk2-rank {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.pl-rk2-rank-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.pl-rk2-rank-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pl-rk2-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.pl-rk2-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+/* ---------- Observations ---------- */
+.pl-rk2-obs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.pl-rk2-ob {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--color-primary-soft) 40%, #ffffff);
+  border-radius: 16px;
+  padding: 16px 20px;
+}
+
+.pl-rk2-ob-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-ink);
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.pl-rk2-ob-tag {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-primary-ink);
+  margin: 0 0 2px;
+}
+
+.pl-rk2-ob-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.pl-rk2-ob-text {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.pl-rk2-ob.is-notice {
+  background: var(--color-primary-soft);
+}
+
+.pl-rk2-ob.is-warning {
+  background: color-mix(in srgb, var(--cat-2) 8%, #ffffff);
+}
+
+.pl-rk2-ob.is-warning .pl-rk2-ob-icon {
+  background: var(--cat-2);
+}
+
+.pl-rk2-ob.is-warning .pl-rk2-ob-tag {
+  color: var(--cat-2);
+}
+
+/* ---------- Category notes ---------- */
+.pl-rk2-notes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.pl-rk2-note {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.pl-rk2-note-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: color-mix(in srgb, var(--color-primary-soft) 40%, #ffffff);
+  border-bottom: 1px solid var(--color-border);
+  padding: 14px 22px;
+}
+
+.pl-rk2-note-head h4 {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.pl-rk2-note-head > span:last-child {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pl-rk2-note-body {
+  padding: 18px 22px;
+}
+
+.pl-rk2-note-body p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
+
+.pl-rk2-note-body p:last-child {
+  margin-bottom: 0;
+}
+
+.pl-rk2-checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.pl-rk2-checks li {
+  display: flex;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.pl-rk2-checks i {
+  font-size: 8px;
+  color: var(--color-ink-muted);
+  margin-top: 7px;
+}
+
+/* ---------- Can / cannot ---------- */
+.pl-rk2-measure {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 40px;
+  align-items: start;
+}
+
+.pl-rk2-measure-col {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  padding: 28px;
+  min-width: 0;
+}
+
+.pl-rk2-measure-col.is-limits {
+  background: color-mix(in srgb, var(--color-primary-soft) 40%, #ffffff);
+  border-color: var(--color-chart-5);
+}
+
+.pl-rk2-measure-col .pl-rk2-h3 {
+  margin-bottom: 16px;
+}
+
+.pl-rk2-measure-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.pl-rk2-measure-col li {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.pl-rk2-measure-col li i {
+  margin-top: 3px;
+  flex-shrink: 0;
+  color: var(--color-success);
+}
+
+.pl-rk2-measure-col.is-limits li i {
+  color: var(--color-ink-muted);
+}
+
+.pl-rk2-closing {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--color-ink-muted);
+  margin: 24px 0 0;
+  max-width: 680px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .pl-rk2-exposure,
+  .pl-rk2-measure,
+  .pl-rk2-notes {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .pl-rk2-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .pl-rk2-panel-band {
+    padding: 18px 20px;
+  }
+
+  .pl-rk2-panel-body,
+  .pl-rk2-panel.is-plain,
+  .pl-rk2-measure-col {
+    padding: 20px 18px;
+  }
+
+  .pl-rk2-status {
+    padding: 16px;
+  }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .pl-risk-grid,

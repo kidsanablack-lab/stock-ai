@@ -45,63 +45,66 @@ export default function MarginOfSafetySection({
   }
 
   return (
-    <div className="vl-panel" aria-labelledby="vl-mos-title">
-      <header className="vl-panel-head">
-        <h3 id="vl-mos-title" className="vl-h3">
-          Margin of Safety
-        </h3>
-        <StatusBadge status={mos.status} />
-      </header>
+    <article className="vl-ratio vl-mos" aria-labelledby="vl-mos-title">
+      <div className="vl-ratio-band">
+        <header className="vl-panel-head">
+          <h3 id="vl-mos-title" className="vl-h3">
+            Margin of Safety
+          </h3>
+          <StatusBadge status={mos.status} />
+        </header>
 
-      <p className="vl-formula">
-        Margin of Safety (%) = (Estimated value per share − Share price) ÷
-        Estimated value per share × 100
-      </p>
+        <p className="vl-ratio-formula">
+          Margin of Safety (%) = (Estimated value per share − Share price) ÷
+          Estimated value per share × 100
+        </p>
 
-      <div className="vl-fields vl-fields-one">
-        <SelectField
-          label="Valuation to compare"
-          value={choice}
-          options={OPTIONS}
-          onChange={onChoice}
-          hint="The share price comes from Company and market above."
-        />
-      </div>
-
-      <dl className="vl-dl">
-        <div>
-          <dt>Estimated value per share ({label})</dt>
-          <dd>{money(mos.estimatedValuePerShare)}</dd>
-        </div>
-        <div>
-          <dt>Share price you entered</dt>
-          <dd>{money(mos.sharePrice)}</dd>
-        </div>
-        <div>
-          <dt>Difference per share (estimate − price)</dt>
-          <dd>{money(mos.absoluteDifference)}</dd>
-        </div>
-      </dl>
-
-      <p className="vl-result">
-        <span className="vl-result-label">Margin of Safety</span>
-        <span className="vl-result-value">
+        <p className="vl-headline-label">Result</p>
+        <p className="vl-headline">
           {mos.marginOfSafetyPercent === null
             ? "N/A"
             : formatPercentValue(mos.marginOfSafetyPercent)}
-        </span>
-      </p>
-
-      {selected.status !== "ok" && (
-        <p className="vl-text">
-          The selected valuation cannot be calculated yet. Complete or correct
-          its section above first.
         </p>
-      )}
 
-      {comparison && <p className="vl-text">{comparison}</p>}
+        {comparison && <p className="vl-hint">{comparison}</p>}
+      </div>
 
-      <IssueList issues={mos.issues} />
+      <div className="vl-ratio-body">
+        <div className="vl-mos-grid">
+          <div className="vl-fields vl-fields-one">
+            <SelectField
+              label="Valuation to compare"
+              value={choice}
+              options={OPTIONS}
+              onChange={onChoice}
+              hint="The share price comes from Company and market above."
+            />
+          </div>
+
+          <dl className="vl-dl">
+            <div>
+              <dt>Estimated value per share ({label})</dt>
+              <dd>{money(mos.estimatedValuePerShare)}</dd>
+            </div>
+            <div>
+              <dt>Share price you entered</dt>
+              <dd>{money(mos.sharePrice)}</dd>
+            </div>
+            <div>
+              <dt>Difference per share (estimate − price)</dt>
+              <dd>{money(mos.absoluteDifference)}</dd>
+            </div>
+          </dl>
+        </div>
+
+        {selected.status !== "ok" && (
+          <p className="vl-text">
+            The selected valuation cannot be calculated yet. Complete or
+            correct its section above first.
+          </p>
+        )}
+
+        <IssueList issues={mos.issues} />
 
       <details className="vl-details">
         <summary>What Margin of Safety does and does not mean</summary>
@@ -125,6 +128,7 @@ export default function MarginOfSafetySection({
           </li>
         </ul>
       </details>
-    </div>
+      </div>
+    </article>
   );
 }

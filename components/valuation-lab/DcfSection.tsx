@@ -42,21 +42,28 @@ function DcfResults({
 }) {
   if (result.status !== "ok") {
     return (
-      <div className="vl-panel" aria-labelledby="vl-dcf-results-title">
-        <header className="vl-panel-head">
-          <h3 id="vl-dcf-results-title" className="vl-h3">
-            DCF Results
-          </h3>
-          <StatusBadge status={result.status} />
-        </header>
+      <div
+        className="vl-ratio vl-dcf-results"
+        aria-labelledby="vl-dcf-results-title"
+      >
+        <div className="vl-ratio-band">
+          <header className="vl-panel-head">
+            <h3 id="vl-dcf-results-title" className="vl-h3">
+              DCF Results
+            </h3>
+            <StatusBadge status={result.status} />
+          </header>
+        </div>
 
-        <p className="vl-text">
-          The DCF cannot be calculated yet. Complete or correct the items
-          below. Nothing is filled in for you, and no number is shown until
-          every required input is valid.
-        </p>
+        <div className="vl-ratio-body">
+          <p className="vl-text">
+            The DCF cannot be calculated yet. Complete or correct the items
+            below. Nothing is filled in for you, and no number is shown until
+            every required input is valid.
+          </p>
 
-        <IssueList issues={result.issues} />
+          <IssueList issues={result.issues} />
+        </div>
       </div>
     );
   }
@@ -133,143 +140,150 @@ function DcfSuccessView({
   const showBar = ev > 0 && partA >= 0 && partB >= 0;
 
   return (
-    <div className="vl-panel" aria-labelledby="vl-dcf-results-title">
-      <header className="vl-panel-head">
-        <h3 id="vl-dcf-results-title" className="vl-h3">
-          DCF Results
-        </h3>
-        <StatusBadge status="ok" />
-      </header>
+    <div
+      className="vl-ratio vl-dcf-results"
+      aria-labelledby="vl-dcf-results-title"
+    >
+      <div className="vl-ratio-band">
+        <header className="vl-panel-head">
+          <h3 id="vl-dcf-results-title" className="vl-h3">
+            DCF Results
+          </h3>
+          <StatusBadge status="ok" />
+        </header>
 
-      <p className="vl-headline-label">Estimated value per share</p>
-      <p className="vl-headline">{money(result.valuePerShare)}</p>
-      <p className="vl-hint">
-        An estimate based only on the assumptions entered here. It is not a
-        target price, a prediction, or advice.
-      </p>
-
-      <IssueList issues={result.warnings} />
-
-      {/* Forecast table */}
-      <h4 className="vl-h4">Forecast cash flows</h4>
-      <div className="vl-table-wrap">
-        <table className="vl-table">
-          <caption className="vl-sr-only">
-            Projected free cash flow to the firm, by year
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Year</th>
-              <th scope="col">Growth</th>
-              <th scope="col">FCFF</th>
-              <th scope="col">Discount factor</th>
-              <th scope="col">Present value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result.forecast.map((row) => (
-              <tr key={row.year}>
-                <th scope="row">Year {row.year}</th>
-                <td>{formatPercent(row.growthRate)}</td>
-                <td>{money(row.fcff)}</td>
-                <td>{formatNumber(row.discountFactor, 4)}</td>
-                <td>{money(row.presentValue)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <p className="vl-headline-label">Estimated value per share</p>
+        <p className="vl-headline">{money(result.valuePerShare)}</p>
+        <p className="vl-hint">
+          An estimate based only on the assumptions entered here. It is not a
+          target price, a prediction, or advice.
+        </p>
       </div>
 
-      {/* From cash flows to value per share */}
-      <h4 className="vl-h4">From cash flows to value per share</h4>
-      <div className="vl-table-wrap">
-        <table className="vl-table">
-          <caption className="vl-sr-only">
-            Step-by-step bridge from forecast cash flows to estimated value per
-            share
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Item</th>
-              <th scope="col">How it is calculated</th>
-              <th scope="col">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bridge.map((row) => (
-              <tr key={row.label}>
-                <th scope="row">{row.label}</th>
-                <td className="vl-formula-cell">{row.formula}</td>
-                <td>{row.value}</td>
+      <div className="vl-ratio-body">
+        <IssueList issues={result.warnings} />
+
+        {/* Forecast table */}
+        <h4 className="vl-h4">Forecast cash flows</h4>
+        <div className="vl-table-wrap">
+          <table className="vl-table">
+            <caption className="vl-sr-only">
+              Projected free cash flow to the firm, by year
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Year</th>
+                <th scope="col">Growth</th>
+                <th scope="col">FCFF</th>
+                <th scope="col">Discount factor</th>
+                <th scope="col">Present value</th>
               </tr>
-            ))}
-            <tr className="vl-total-row">
-              <th scope="row">Estimated value per share</th>
-              <td className="vl-formula-cell">Equity value ÷ diluted shares</td>
-              <td>{money(result.valuePerShare)}</td>
-            </tr>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {result.forecast.map((row) => (
+                <tr key={row.year}>
+                  <th scope="row">Year {row.year}</th>
+                  <td>{formatPercent(row.growthRate)}</td>
+                  <td>{money(row.fcff)}</td>
+                  <td>{formatNumber(row.discountFactor, 4)}</td>
+                  <td>{money(row.presentValue)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* From cash flows to value per share */}
+        <h4 className="vl-h4">From cash flows to value per share</h4>
+        <div className="vl-table-wrap">
+          <table className="vl-table">
+            <caption className="vl-sr-only">
+              Step-by-step bridge from forecast cash flows to estimated value per
+              share
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Item</th>
+                <th scope="col">How it is calculated</th>
+                <th scope="col">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bridge.map((row) => (
+                <tr key={row.label}>
+                  <th scope="row">{row.label}</th>
+                  <td className="vl-formula-cell">{row.formula}</td>
+                  <td>{row.value}</td>
+                </tr>
+              ))}
+              <tr className="vl-total-row">
+                <th scope="row">Estimated value per share</th>
+                <td className="vl-formula-cell">Equity value ÷ diluted shares</td>
+                <td>{money(result.valuePerShare)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Where the value comes from */}
+        <h4 className="vl-h4">Where the enterprise value comes from</h4>
+        <p className="vl-text">
+          Terminal value is{" "}
+          <strong>{formatPercent(result.terminalValueShareOfEv)}</strong> of
+          enterprise value
+          {result.terminalValueShareOfEv === null
+            ? " (not shown because enterprise value is zero or negative)"
+            : ""}
+          . The further this share is from the forecast years, the more the
+          result depends on the long-term assumptions.
+        </p>
+
+        {showBar && (
+          <>
+            <div
+              className="vl-bar"
+              role="img"
+              aria-label={`Enterprise value: ${formatPercent(
+                partA / ev,
+              )} from forecast cash flows and ${formatPercent(
+                partB / ev,
+              )} from terminal value`}
+            >
+              <span className="vl-bar-a" style={{ width: `${(partA / ev) * 100}%` }} />
+              <span className="vl-bar-b" style={{ width: `${(partB / ev) * 100}%` }} />
+            </div>
+            <p className="vl-bar-legend">
+              <span className="vl-key vl-key-a" aria-hidden="true" /> Forecast
+              years {formatPercent(partA / ev)}
+              <span className="vl-key vl-key-b" aria-hidden="true" /> Terminal
+              value {formatPercent(partB / ev)}
+            </p>
+          </>
+        )}
+
+        <details className="vl-details">
+          <summary>Assumptions and limitations of this model</summary>
+          <ul>
+            <li>
+              This is a two-stage model of free cash flow to the firm (FCFF). The
+              discount rate must therefore be a firm-level rate, such as WACC.
+            </li>
+            <li>
+              The terminal value assumes cash flows grow at a steady rate
+              forever. Small changes in the discount rate or terminal growth can
+              change the result a lot.
+            </li>
+            <li>
+              Cash, debt, and other claims are taken as entered, as of the
+              valuation date. Nothing is adjusted for you.
+            </li>
+            <li>
+              The output is an estimate from your assumptions, not an objective
+              or guaranteed value.
+            </li>
+          </ul>
+        </details>
       </div>
-
-      {/* Where the value comes from */}
-      <h4 className="vl-h4">Where the enterprise value comes from</h4>
-      <p className="vl-text">
-        Terminal value is{" "}
-        <strong>{formatPercent(result.terminalValueShareOfEv)}</strong> of
-        enterprise value
-        {result.terminalValueShareOfEv === null
-          ? " (not shown because enterprise value is zero or negative)"
-          : ""}
-        . The further this share is from the forecast years, the more the
-        result depends on the long-term assumptions.
-      </p>
-
-      {showBar && (
-        <>
-          <div
-            className="vl-bar"
-            role="img"
-            aria-label={`Enterprise value: ${formatPercent(
-              partA / ev,
-            )} from forecast cash flows and ${formatPercent(
-              partB / ev,
-            )} from terminal value`}
-          >
-            <span className="vl-bar-a" style={{ width: `${(partA / ev) * 100}%` }} />
-            <span className="vl-bar-b" style={{ width: `${(partB / ev) * 100}%` }} />
-          </div>
-          <p className="vl-bar-legend">
-            <span className="vl-key vl-key-a" aria-hidden="true" /> Forecast
-            years {formatPercent(partA / ev)}
-            <span className="vl-key vl-key-b" aria-hidden="true" /> Terminal
-            value {formatPercent(partB / ev)}
-          </p>
-        </>
-      )}
-
-      <details className="vl-details">
-        <summary>Assumptions and limitations of this model</summary>
-        <ul>
-          <li>
-            This is a two-stage model of free cash flow to the firm (FCFF). The
-            discount rate must therefore be a firm-level rate, such as WACC.
-          </li>
-          <li>
-            The terminal value assumes cash flows grow at a steady rate
-            forever. Small changes in the discount rate or terminal growth can
-            change the result a lot.
-          </li>
-          <li>
-            Cash, debt, and other claims are taken as entered, as of the
-            valuation date. Nothing is adjusted for you.
-          </li>
-          <li>
-            The output is an estimate from your assumptions, not an objective
-            or guaranteed value.
-          </li>
-        </ul>
-      </details>
     </div>
   );
 }
@@ -286,12 +300,12 @@ export default function DcfSection({
 }: Props) {
   return (
     <div className="vl-dcf-grid">
-      <div className="vl-panel">
+      <div className="vl-dcf-inputs">
         <header className="vl-panel-head">
           <h3 className="vl-h3">DCF Inputs</h3>
         </header>
 
-        <div className="vl-note vl-note-soft" role="note">
+        <div className="vl-note vl-note-flat" role="note">
           <i className="ti ti-info-circle" aria-hidden="true" />
           <p>
             The growth, discount, and terminal rates start as{" "}

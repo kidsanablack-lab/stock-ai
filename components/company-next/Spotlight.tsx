@@ -26,6 +26,9 @@ export type CapexVsCashChart = {
   years: string[]; // e.g. ["FY22", ..., "FY26"]
   ocf: (number | null)[]; // operating cash flow, $B, one per year
   capex: (number | null)[]; // capital spending, $B, one per year
+  // Optional: the cash left over per year, if it should match a reported figure exactly.
+  // If left out, it is operating cash flow minus capital spending.
+  left?: (number | null)[];
   callout: string;
 };
 
@@ -199,7 +202,7 @@ function CapexVsCash({ chart }: { chart: CapexVsCashChart }) {
 
         {years.map((yr, i) => {
           const cx = padL + groupW * i + groupW / 2;
-          const gap = ocfV[i] - capexV[i];
+          const gap = chart.left?.[i] ?? ocfV[i] - capexV[i];
           const isLast = i === years.length - 1;
           const w = isLast ? 600 : 400;
           return (

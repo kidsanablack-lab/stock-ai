@@ -15,12 +15,14 @@ import type { SourcesMethodData } from "@/components/company-next/SourcesMethod"
 import type { BottomLineData } from "@/components/company-next/BottomLine";
 import type { ClosingPanelData } from "@/components/company-next/ClosingPanel";
 import type { SpotlightData } from "@/components/company-next/Spotlight";
-import type { CompanyPageData } from "./apple";
+import type { CompanyPageData } from "./types";
 import { applyScore } from "../scope-score/apply";
 import { nvidiaScore } from "../scope-score/inputs";
 import rawNvda from "../../data/raw/NVDA.json";
 import { buildFacts, type RawFmp } from "../company-data/facts";
-import { cashAndReturnsNumbers, financialHighlightsMetrics, profitHistoryNumbers } from "../company-data/sections";
+import { cashAndReturnsNumbers, financialHighlightsMetrics, profitHistoryNumbers, roicText } from "../company-data/sections";
+import { closingShared, formulas, formulasNote, scoreHowToRead, scoringIntro, valuationNote } from "@/shared/methodology";
+import { peerCaveat, peerCompany } from "@/shared/peers";
 
 // Scope Score: numbers come from lib/scope-score (inputs.ts + config.ts).
 const scored = applyScore(nvidiaScore.raw, nvidiaScore.display);
@@ -83,8 +85,7 @@ const scoreReasons: ScoreReasonsData = {
     { name: "Risk", ...scored.reason["Risk"], value: "92.5%", label: "of Q2 FY27 sales from Data Center, offset by net cash of $54.1B", href: "#strengths-risks" },
     { name: "Valuation", ...scored.reason["Valuation"], value: "23.6×", label: "P/E, against its own 5-year average of 59.7×, which is inflated by years of low profit", href: "#valuation" },
   ],
-  howToRead:
-    "A is the strongest grade and F the weakest. Green means strong, amber mixed, red weak. Each grade comes from a 0 to 10 category score, and the overall score is their weighted average. The inputs, weights and cut-offs are listed under Sources and method.",
+  howToRead: scoreHowToRead(),
 };
 
 const whatChanged: WhatChangedData = {
@@ -183,6 +184,9 @@ const whereMoneyComes: WhereMoneyComesData = {
   title: "Nearly nine tenths of sales come from Data Center, and it earns far more of each dollar than the rest",
   lead: "$215.9B of revenue in FY26 (year ended Jan 25, 2026), split by product line, by profit and by region. In FY27 NVIDIA changed how it reports: Data Center and Edge Computing, shown in the summary at the top.",
   labels: ["From FY26 10-K"],
+  periodLabel: "FY26",
+  comparedWith: "FY25",
+  palette: ["#4D7C0F", "#76B900"],
   products: [
     { name: "Data Center", share: 89.7, value: 193.7, yoy: 68, note: "AI chips, networking and systems sold for data centers" },
     { name: "Gaming", share: 7.4, value: 16.0, yoy: 41, note: "GeForce graphics cards and game consoles" },
@@ -197,6 +201,8 @@ const whereMoneyComes: WhereMoneyComesData = {
       "Segment operating profit is revenue minus the costs of that business. NVIDIA keeps $67.30 of every $100 of Compute & Networking sales (the chips and networking sold to data centers) but only $40.80 of every $100 of Graphics sales (gaming and workstation cards). NVIDIA reports these two segments, not each product line, so the products are shown as two groups. The figures leave out a cost group called All Other.",
     revenueTotal: "$215.9B",
     profitTotal: "$139.3B",
+    groupNames: { a: "Graphics", b: "Compute & Networking" },
+    profitLabel: "segment operating profit",
     productsRevenue: 10.4,
     servicesRevenue: 89.6,
     productsProfit: 6.6,
@@ -273,9 +279,9 @@ const valuation: ValuationData = {
   implied: {
     title: "To justify $187, free cash flow must grow only about 13% a year for five years, far below its pace since FY22",
     needed: 13.2,
-    actual: 85.9,
+    actual: 85.7,
     actualLabel: "FY22 to FY26",
-    text: "That is 13.2% a year for the next 5 years, then 6% a year for 5 more and 3% after that, discounted at 8% a year. Free cash flow grew 85.9% a year from FY22 to FY26, but from a very low base of $8.1B, and it will be hard to repeat at today’s size.",
+    text: "That is 13.2% a year for the next 5 years, then 6% a year for 5 more and 3% after that, discounted at 8% a year. Free cash flow grew 85.7% a year from FY22 to FY26, but from a very low base of $8.1B, and it will be hard to repeat at today’s size.",
     cases: ["Bear", "Base", "Bull"],
     assumptions: [
       { label: "Cash flow growth, years 1–5", values: ["0%", "20%", "35%"] },
@@ -296,6 +302,8 @@ const valuation: ValuationData = {
       { year: "FY26", value: 37.8 },
       { year: "Now", value: 23.6 },
     ],
+    peAverage: 59.7,
+    averagePeriod: "5-year",
     peSubtitle: "Price divided by the last 12 months of earnings, at each fiscal year end, and now",
     peHowToRead:
       "P/E is the price you pay for each $1 of yearly profit. The blue bar is now, and the dashed line is the average of the five fiscal year ends before it. The average is high because profit was very low in FY22 and FY23.",
@@ -337,7 +345,7 @@ const profitHistory: ProfitHistoryData = {
     roic: profitNums.returns.roic,
     roicFrom: profitNums.returns.roicFrom,
     wacc: 8,
-    text: `For every $100 put into the business, NVIDIA earns about $${profitNums.returns.roic} a year after tax, up from $${profitNums.returns.roicFrom} in ${profitNums.returns.roicFromYear}.`,
+    text: roicText("NVIDIA", profitNums.returns),
     note: "ROIC is operating profit after tax divided by average shareholders’ equity plus debt. Cost of capital (8%) is Scope’s own assumption, the same as the base case in the valuation. ROIC was 100.6% in FY25 and 87.3% in FY26 as equity grew faster than profit. ROE is about 102%.",
   },
   tableTitle: "Every number behind the charts",
@@ -346,6 +354,7 @@ const profitHistory: ProfitHistoryData = {
 };
 
 const cashAndReturns: CashAndReturnsData = {
+  companyName: "NVIDIA",
   title: "NVIDIA returns about two fifths of its free cash flow and holds far more cash than debt",
   lead: "How much cash NVIDIA makes, how much it gives back through buybacks and dividends, and whether it still holds more cash than debt.",
   labels: ["From 10-K filings"],
@@ -480,22 +489,11 @@ const competitors: CompetitorsData = {
     ],
     note: "Share of the combined revenue of these three companies only, not a market share. It is not measured in units shipped or in AI chips alone. Intel and AMD sell many products besides data center chips.",
   },
+  // Numbers for NVIDIA, AMD and Intel come from the saved API data through shared/peers.ts.
   companies: [
-    {
-      id: "nvda", name: "NVIDIA", ticker: "NVDA", kind: "self",
-      desc: "AI chips, networking and software",
-      metrics: { revenue: 303.0, growth: 83.4, opMargin: 65.2, fcf: 127.0, fcfMargin: 41.9, netDebt: -54.1 },
-    },
-    {
-      id: "amd", name: "AMD", ticker: "AMD", kind: "direct",
-      desc: "Data center, PC and gaming chips",
-      metrics: { revenue: 45.4, growth: 41.9, opMargin: 17.7, fcf: 7.1, fcfMargin: 15.5, netDebt: -6.7 },
-    },
-    {
-      id: "intc", name: "Intel", ticker: "INTC", kind: "direct",
-      desc: "PC and server processors, and chip manufacturing",
-      metrics: { revenue: 59.9, growth: 12.1, opMargin: 3.2, fcf: 3.8, fcfMargin: 6.3, netDebt: 9.2 },
-    },
+    peerCompany("NVDA", { id: "nvda", kind: "self", desc: "AI chips, networking and software" }),
+    peerCompany("AMD", { id: "amd", kind: "direct", desc: "Data center, PC and gaming chips" }),
+    peerCompany("INTC", { id: "intc", kind: "direct", desc: "PC and server processors, and chip manufacturing" }),
     {
       id: "avgo", name: "Broadcom", ticker: "AVGO", kind: "indirect",
       desc: "Networking chips and custom AI chips for cloud giants",
@@ -512,14 +510,13 @@ const competitors: CompetitorsData = {
   compareIntro: "One card per measure, one bar per company, best first. Blue is NVIDIA, grey bars are AMD and Intel.",
   compareHowToRead:
     "Dots to the right are higher values. The label under each line lists every company in rank order, best first. For net debt, lower is better, so rank 1 is the biggest net cash.",
-  caveat:
-    "All three are US-reported figures for the last 12 months. NVIDIA’s fiscal quarter ended Jul 26, 2026; AMD’s and Intel’s ended Sep 26, 2026, so the periods do not line up exactly. Net debt uses each company’s latest fiscal year-end balance sheet (NVIDIA: Jan 2026; AMD and Intel: Dec 2025) and is short-term plus long-term debt minus cash and short-term investments. Businesses differ, so read gaps as clues, not scores.",
+  caveat: peerCaveat(["NVDA", "AMD", "INTC"]),
   valuationTitle: "Growth against profitability",
   valuationIntro: "The best place to be is fast growth and a high margin at the same time. Check both together.",
   valuationHowToRead:
     "Each dot is a company. Further right means faster growth, and further up means a higher operating margin. A dot in the top right is both fast and profitable.",
   source:
-    "Sources: NVIDIA, AMD and Intel filings via Financial Modeling Prep (Nov 9, 2026). Growth compares with the same 12 months a year earlier. Free cash flow is operating cash flow minus capital spending. Broadcom and Alphabet are described in words because comparable figures were not loaded.",
+    "Sources: NVIDIA, AMD and Intel filings via Financial Modeling Prep, loaded from the saved API data on the same day as the rest of this page. Growth compares with the same 12 months a year earlier. Free cash flow is operating cash flow minus capital spending. Broadcom and Alphabet are described in words because comparable figures were not loaded.",
 };
 
 const sourcesMethod: SourcesMethodData = {
@@ -566,37 +563,28 @@ const sourcesMethod: SourcesMethodData = {
   sourcesTitle: "Data sources",
   sourcesIntro: "Where each kind of data comes from, and the documents Scope reads for NVIDIA.",
   sources: [
-    { title: "SEC filings", text: "Annual (10-K) and quarterly (10-Q) reports and event reports (8-K) for NVIDIA, AMD and Intel. The primary source for financial figures." },
-    { title: "Company investor relations", text: "Earnings releases, slides and call transcripts published by the company. Management’s outlook and guidance come from here." },
-    { title: "Market data providers", text: "Share price, market cap, analyst targets and fiscal-year-end multiples from Financial Modeling Prep. Prices are closing prices, and Scope shows the date." },
-    { title: "News coverage", text: "Press summaries of NVIDIA’s earnings call, used for guidance and supply comments. Where a figure comes only from the press, Scope says so." },
+    { title: "SEC filings", topic: "Reported financials", text: "Annual (10-K) and quarterly (10-Q) reports and event reports (8-K) for NVIDIA, AMD and Intel. The primary source for financial figures." },
+    { title: "Company investor relations", topic: "Outlook and guidance", text: "Earnings releases, slides and call transcripts published by the company. Management’s outlook and guidance come from here." },
+    { title: "Market data providers", topic: "Share price, market cap, estimates and price targets", text: "Share price, market cap, analyst targets and fiscal-year-end multiples from Financial Modeling Prep. Prices are closing prices, and Scope shows the date." },
+    { title: "News coverage", topic: "Industry and news context", text: "Press summaries of NVIDIA’s earnings call, used for guidance and supply comments. Where a figure comes only from the press, Scope says so." },
   ],
   documents: [
-    { name: "FY26 annual report", date: "Feb 2026", type: "10-K", use: "Business, risks, segments, customers and annual financials" },
-    { name: "Q4 FY26 earnings release", date: "Feb 2026", type: "8-K", use: "Product-line revenue for FY26" },
-    { name: "Q2 FY27 earnings release", date: "Aug 26, 2026", type: "8-K", use: "Headline results, Data Center revenue and guidance" },
-    { name: "Q2 FY27 earnings call", date: "Aug 26, 2026", type: "Transcript", use: "Margin, supply and China comments, kept as press summaries" },
-    { name: "AMD and Intel financials", date: "Nov 2026", type: "Data feed", use: "Rival financials on the same basis" },
-    { name: "Analyst consensus and price targets", date: "Nov 2026", type: "Estimates", use: "Price targets and next-year growth expectations" },
+    { name: "FY26 annual report", date: "Feb 2026", type: "10-K", source: "SEC filings", use: "Business, risks, segments, customers and annual financials" },
+    { name: "Q4 FY26 earnings release", date: "Feb 2026", type: "8-K", source: "SEC filings", use: "Product-line revenue for FY26" },
+    { name: "Q2 FY27 earnings release", date: "Aug 26, 2026", type: "8-K", source: "SEC filings", use: "Headline results, Data Center revenue and guidance" },
+    { name: "Q2 FY27 earnings call", date: "Aug 26, 2026", type: "Transcript", source: "Company investor relations", use: "Margin, supply and China comments, kept as press summaries" },
+    { name: "AMD and Intel financials", date: "Nov 2026", type: "Data feed", source: "Market data providers", use: "Rival financials, each on its own latest 12 months" },
+    { name: "Analyst consensus and price targets", date: "Nov 2026", type: "Estimates", source: "Market data providers", use: "Price targets and next-year growth expectations" },
   ],
   formulasTitle: "How each metric is calculated",
   formulasIntro: "The exact formula behind each metric, and the definition choices that go with it.",
-  formulas: [
-    { name: "Revenue growth", formula: "(Revenue now − revenue a year earlier) ÷ revenue a year earlier × 100", note: "Year over year, to avoid seasonal swings. For the last 12 months, the comparison is with the 12 months before that. Quarterly and annual are never mixed." },
-    { name: "Operating margin", formula: "Operating income ÷ revenue × 100", note: "Uses reported operating income, with no add-backs." },
-    { name: "Net margin", formula: "Net income ÷ revenue × 100", note: "GAAP net income. It includes gains on stakes in other companies, which NVIDIA leaves out of its adjusted figure." },
-    { name: "ROE", formula: "Net income ÷ average shareholders’ equity × 100", note: "Average of start and end of period." },
-    { name: "ROIC", formula: "Operating income × (1 − tax rate) ÷ average (equity + debt) × 100", note: "Debt is interest-bearing debt. Cash is not subtracted. Other data providers define it differently, so compare ROIC only within Scope." },
-    { name: "Debt to equity", formula: "Interest-bearing debt ÷ shareholders’ equity", note: "Debt is short-term plus long-term debt, without leases." },
-    { name: "Free cash flow", formula: "Operating cash flow − capital spending", note: "Capital spending is taken from the cash flow statement. Quarterly figures come from subtracting cumulative year-to-date totals." },
-    { name: "Net cash", formula: "Cash and short-term investments − interest-bearing debt", note: "Positive means net cash. Long-term investments (stakes in other companies) are not counted as cash for NVIDIA." },
-    { name: "P/E", formula: "Share price ÷ diluted earnings per share, last 12 months", note: "GAAP earnings. The history uses the price at each fiscal year end and that year’s earnings." },
-    { name: "EV/EBITDA", formula: "(Market cap − net cash) ÷ (operating income + depreciation and amortization)", note: "Last 12 months. The average used in the Valuation section is the 5-year average at fiscal year ends." },
-  ],
-  formulasNote: "Scope uses reported (GAAP) figures and interest-bearing debt. Figures with different definitions are never compared without a note.",
+  formulas: formulas({
+    "Net margin": "GAAP net income. It includes gains on stakes in other companies, which NVIDIA leaves out of its adjusted figure.",
+    "Net cash": "Positive means net cash. Long-term investments (stakes in other companies) are not counted as cash for NVIDIA.",
+  }),
+  formulasNote,
   scoringTitle: "How the Scope Score is built",
-  scoringIntro:
-    "Six categories, each with its own inputs, weights and cut-offs. Every input is scored from 0 to 10, a category is the weighted average of its inputs, and the overall score is the weighted average of the categories. Grades: A+ from 9.0, A from 8.0, B+ from 7.5, B from 7.0, C+ from 6.0, C from 5.0, D from 3.0, F below that. Labels: Excellent from 9.0, Strong from 7.5, Good from 6.0, Fair from 5.0, Weak below that.",
+  scoringIntro,
   categories: scored.categories,
   scoringNote:
     "If an input is missing, its weight is spread over the other inputs in that category, never set to zero. If more than 40% of a category’s weight is missing, the category shows “Not enough data” and the overall score is marked partial. The cut-offs are the same for every company, so a score does not depend on which other companies are on the list. For NVIDIA, the valuation inputs compare today’s multiples with a 5-year average that is lifted by years of low profit, so they look more favorable than the price alone would suggest.",
@@ -607,7 +595,7 @@ const sourcesMethod: SourcesMethodData = {
     { name: "Historical multiples", what: "Compares today’s P/E with NVIDIA’s own range over the last five fiscal year ends.", limit: "The past P/Es are high because profit was small, so they say little about what is fair today." },
     { name: "Analyst price targets", what: "Shows the range and average of published targets from analysts who follow NVIDIA.", limit: "Targets are opinions, usually for 12 months ahead, and they often follow the share price." },
   ],
-  valuationNote: "Fair value is a model output under stated assumptions, not a price the stock will reach.",
+  valuationNote,
   freshnessTitle: "Data quality and freshness",
   freshnessIntro: "When a period ended, when it was published and when Scope loaded it are three different dates.",
   timeline: [
@@ -621,7 +609,7 @@ const sourcesMethod: SourcesMethodData = {
     { dataset: "Cash flow", period: "FY26 plus the latest quarters", sourceDate: "Aug 26, 2026", updated: "Nov 9, 2026", status: "Verified", limit: "Last-12-month free cash flow adds the last four quarters. Quarterly figures come from subtracting year-to-date totals." },
     { dataset: "Share price and market cap", period: "Not applicable", sourceDate: "Nov 6, 2026 close", updated: "Nov 9, 2026", status: "Verified", limit: "Closing price only, and it will move before the next report." },
     { dataset: "Analyst estimates and targets", period: "Next 12 months", sourceDate: "Nov 2026", updated: "Nov 9, 2026", status: "Pending", limit: "Consensus differs between providers and changes before earnings. Shown only as analyst view." },
-    { dataset: "Rival financials", period: "12 months to Sep 2026", sourceDate: "Nov 2026", updated: "Nov 9, 2026", status: "Verified", limit: "AMD and Intel end on a different date from NVIDIA, so the periods do not line up exactly. Broadcom is not in the charts." },
+    { dataset: "Rival financials", period: "Each company’s latest 12 months", sourceDate: "Nov 2026", updated: "Nov 2026", status: "Verified", limit: "Each company is on its own latest 12 months and latest fiscal year-end balance sheet, so the dates differ slightly. The exact dates are in the note under the Competitors charts. Broadcom is not in the charts." },
     { dataset: "Customer counts", period: "Not applicable", sourceDate: "Not applicable", updated: "Not applicable", status: "Unavailable", limit: "NVIDIA does not name its largest customers, so Scope shows their share of revenue (22% and 14% in FY26) instead." },
   ],
   source:
@@ -651,15 +639,9 @@ const closing: ClosingPanelData = {
     { name: "Apple", ticker: "AAPL", reason: "The other giant that designs its own chips, selling them inside devices instead of to data centers.", href: "/company/apple" },
     { name: "Alphabet", ticker: "GOOGL", reason: "A big NVIDIA customer that also builds its own AI chips, called TPUs.", href: "/company/google" },
   ],
-  links: [
-    { icon: "ti-git-compare", title: "Compare", href: "/compare" },
-    { icon: "ti-calculator", title: "Valuation Lab", href: "/valuation-lab" },
-    { icon: "ti-compass", title: "7 Powers", href: "/7-powers" },
-  ],
-  allLabel: "See all companies",
-  allHref: "/trending",
-  note: "The 7 Powers framework was developed by Hamilton Helmer in 7 Powers: The Foundations of Business Strategy (2016). Scope's explanations and examples are its own. Scope is built for understanding businesses, not for investment advice.",
+  ...closingShared,
 };
+
 const spotlight: SpotlightData = {
   title:
     "NVIDIA’s boom rests on a few big buyers: two customers made up 36% of its sales in FY26",
@@ -723,7 +705,7 @@ const spotlight: SpotlightData = {
     "Sources: NVIDIA FY26 Form 10-K (direct customers and sales by platform) and Q2 FY27 earnings release and call (Aug 26, 2026), as reported by Verdict, Futurum and Trending Topics. NVIDIA does not name its direct customers. The FY25 and FY26 totals for the top two customers are calculated by Scope.",
 };
 
-export const nvidiaPage: CompanyPageData & { spotlight: SpotlightData } = {
+export const nvidiaPage: CompanyPageData = {
   hero,
   summary,
   scoreReasons,

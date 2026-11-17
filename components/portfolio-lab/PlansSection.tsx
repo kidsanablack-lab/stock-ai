@@ -91,17 +91,17 @@ function ConfirmBox({
   danger?: boolean;
 }) {
   return (
-    <div className="pl-confirm-box" role="group" aria-label="Please confirm">
+    <div className="pl-pn2-confirm" role="group" aria-label="Please confirm">
       <p>{text}</p>
-      <div className="pl-confirm-actions">
+      <div className="pl-pn2-actions">
         <button
           type="button"
-          className={`pl-btn ${danger ? "pl-btn-danger" : "pl-btn-primary"}`}
+          className={`pl-pn2-btn ${danger ? "pl-pn2-btn-danger" : "pl-pn2-btn-primary"}`}
           onClick={onConfirm}
         >
           {action}
         </button>
-        <button type="button" className="pl-btn pl-btn-ghost" onClick={onCancel}>
+        <button type="button" className="pl-pn2-btn pl-pn2-btn-ghost" onClick={onCancel}>
           Cancel
         </button>
       </div>
@@ -311,17 +311,17 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
 
   if (read.status === "loading") {
     body = (
-      <div className="pl-panel pl-pn-quiet">
+      <div className="pl-pn2-panel pl-pn2-quiet">
         <p>Looking for plans saved in this browser…</p>
       </div>
     );
   } else if (read.status === "unavailable") {
     body = (
-      <div className="pl-status is-over" role="alert">
+      <div className="pl-pn2-status is-over" role="alert">
         <i className="ti ti-alert-triangle" aria-hidden="true" />
         <div>
-          <p className="pl-status-title">Saving is not available in this browser</p>
-          <p className="pl-status-text">
+          <p className="pl-pn2-status-title">Saving is not available in this browser</p>
+          <p className="pl-pn2-status-text">
             This browser is blocking storage for this page, which can happen in
             private browsing or when site data is turned off. Everything else
             on this page still works, but plans cannot be saved or loaded here.
@@ -332,16 +332,16 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
     );
   } else if (read.status === "corrupt" || read.status === "newer") {
     body = (
-      <div className="pl-panel">
-        <div className="pl-status is-over" role="alert">
+      <div className="pl-pn2-panel">
+        <div className="pl-pn2-status is-over" role="alert">
           <i className="ti ti-alert-triangle" aria-hidden="true" />
           <div>
-            <p className="pl-status-title">
+            <p className="pl-pn2-status-title">
               {read.status === "newer"
                 ? "These plans were saved by a newer version of Scope"
                 : "The saved plans cannot be read"}
             </p>
-            <p className="pl-status-text">
+            <p className="pl-pn2-status-text">
               {read.status === "newer"
                 ? "This page does not know that newer format, so it will not open or change them."
                 : `${read.reason} `}
@@ -351,11 +351,11 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
           </div>
         </div>
 
-        <div className="pl-pn-actions">
+        <div className="pl-pn2-actions">
           {rawText !== null && (
             <button
               type="button"
-              className="pl-btn pl-btn-ghost"
+              className="pl-pn2-btn pl-pn2-btn-ghost"
               onClick={() => downloadText(`scope-portfolio-plans-unreadable-${today()}.json`, rawText)}
             >
               <i className="ti ti-download" aria-hidden="true" />
@@ -366,7 +366,7 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
           {read.status === "corrupt" && (
             <button
               type="button"
-              className="pl-btn pl-btn-quiet"
+              className="pl-pn2-btn pl-pn2-btn-quiet"
               onClick={() => setPending({ kind: "clear" })}
             >
               Clear saved plans…
@@ -388,21 +388,21 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
   } else {
     body = (
       <>
-        <div className="pl-panel pl-pn-save">
-          <h3 className="pl-h3">Save what is on screen</h3>
+        <div className="pl-pn2-panel pl-pn2-save">
+          <h3 className="pl-pn2-h3">Save what is on screen</h3>
 
-          <p className="pl-pn-help">
+          <p className="pl-pn2-help">
             A plan keeps your holdings, investment amount, currency, DCA and
             calculator inputs, and rebalancing target. It does not keep results,
             which are always recalculated.
           </p>
 
           {!build.ok && (
-            <div className="pl-status is-incomplete" role="status">
+            <div className="pl-pn2-status is-incomplete" role="status">
               <i className="ti ti-info-circle" aria-hidden="true" />
               <div>
-                <p className="pl-status-title">Fix these before saving</p>
-                <ul className="pl-pn-problems">
+                <p className="pl-pn2-status-title">Fix these before saving</p>
+                <ul className="pl-pn2-problems">
                   {build.problems.map((problem) => (
                     <li key={problem}>{problem}</li>
                   ))}
@@ -412,13 +412,13 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
           )}
 
           <form
-            className="pl-pn-form"
+            className="pl-pn2-form"
             onSubmit={(event) => {
               event.preventDefault();
               if (canSave) handleSaveNew();
             }}
           >
-            <div className="pl-field">
+            <div className="pl-pn2-field">
               <label htmlFor="pl-plan-name">Plan name</label>
               <input
                 id="pl-plan-name"
@@ -431,8 +431,8 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
               />
             </div>
 
-            <div className="pl-pn-actions">
-              <button type="submit" className="pl-btn pl-btn-primary" disabled={!canSave}>
+            <div className="pl-pn2-actions">
+              <button type="submit" className="pl-pn2-btn pl-pn2-btn-primary" disabled={!canSave}>
                 <i className="ti ti-device-floppy" aria-hidden="true" />
                 Save as new plan
               </button>
@@ -440,7 +440,7 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
               {activePlan && (
                 <button
                   type="button"
-                  className="pl-btn pl-btn-ghost"
+                  className="pl-pn2-btn pl-pn2-btn-ghost"
                   disabled={!build.ok || !dirty}
                   onClick={() => setPending({ kind: "update", id: activePlan.id })}
                 >
@@ -451,14 +451,14 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
           </form>
 
           {plans.length >= MAX_PLANS && (
-            <p className="pl-hint">
+            <p className="pl-pn2-hint">
               You have {MAX_PLANS} plans, the most this page keeps. Delete one to
               save another.
             </p>
           )}
 
           {activePlan && (
-            <p className="pl-pn-active" role="status">
+            <p className="pl-pn2-active" role="status">
               <i
                 className={`ti ${dirty ? "ti-pencil" : "ti-circle-check"}`}
                 aria-hidden="true"
@@ -483,14 +483,14 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
         </div>
 
         {unreadableCount > 0 && (
-          <div className="pl-status is-incomplete" role="status">
+          <div className="pl-pn2-status is-incomplete" role="status">
             <i className="ti ti-info-circle" aria-hidden="true" />
             <div>
-              <p className="pl-status-title">
+              <p className="pl-pn2-status-title">
                 {unreadableCount} saved {unreadableCount === 1 ? "entry" : "entries"} could
                 not be read
               </p>
-              <p className="pl-status-text">
+              <p className="pl-pn2-status-text">
                 They are left untouched in this browser and are not shown below.
               </p>
 
@@ -505,7 +505,7 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
               ) : (
                 <button
                   type="button"
-                  className="pl-btn pl-btn-quiet"
+                  className="pl-pn2-btn pl-pn2-btn-quiet"
                   onClick={() => setPending({ kind: "removeUnreadable" })}
                 >
                   Remove unreadable entries…
@@ -515,15 +515,15 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
           </div>
         )}
 
-        <div className="pl-pn-list-head">
-          <h3 className="pl-h3">
-            Saved plans <span className="pl-pn-count">({plans.length})</span>
+        <div className="pl-pn2-list-head">
+          <h3 className="pl-pn2-h3">
+            Saved plans <span className="pl-pn2-count">({plans.length})</span>
           </h3>
 
-          <div className="pl-pn-actions">
+          <div className="pl-pn2-actions">
             <button
               type="button"
-              className="pl-btn pl-btn-ghost"
+              className="pl-pn2-btn pl-pn2-btn-ghost"
               disabled={plans.length === 0}
               onClick={handleExport}
             >
@@ -533,7 +533,7 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
 
             <button
               type="button"
-              className="pl-btn pl-btn-ghost"
+              className="pl-pn2-btn pl-pn2-btn-ghost"
               onClick={() => fileInput.current?.click()}
             >
               <i className="ti ti-upload" aria-hidden="true" />
@@ -544,7 +544,7 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
               ref={fileInput}
               type="file"
               accept="application/json,.json"
-              className="pl-pn-file"
+              className="pl-pn2-file"
               aria-label="Import plans from a backup file"
               tabIndex={-1}
               onChange={(event) => {
@@ -556,32 +556,32 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
         </div>
 
         {plans.length === 0 ? (
-          <div className="pl-panel pl-empty">
+          <div className="pl-pn2-panel pl-pn2-empty">
             <i className="ti ti-folder-open" aria-hidden="true" />
-            <p className="pl-empty-title">No saved plans yet</p>
-            <p className="pl-empty-text">
+            <p className="pl-pn2-empty-title">No saved plans yet</p>
+            <p className="pl-pn2-empty-text">
               Build a portfolio above, give it a name, and choose “Save as new
               plan”. It will be listed here.
             </p>
           </div>
         ) : (
-          <ul className="pl-pn-list">
+          <ul className="pl-pn2-list">
             {sortedPlans.map((plan) => {
               const isActive = plan.id === activeId;
               const isRenaming = renaming?.id === plan.id;
               const count = plan.data.holdings.length;
 
               return (
-                <li key={plan.id} className={`pl-pn-card${isActive ? " is-active" : ""}`}>
+                <li key={plan.id} className={`pl-pn2-card${isActive ? " is-active" : ""}`}>
                   {isRenaming ? (
                     <form
-                      className="pl-pn-rename"
+                      className="pl-pn2-rename"
                       onSubmit={(event) => {
                         event.preventDefault();
                         handleRename();
                       }}
                     >
-                      <div className="pl-field">
+                      <div className="pl-pn2-field">
                         <label htmlFor={`pl-rename-${plan.id}`}>New name</label>
                         <input
                           id={`pl-rename-${plan.id}`}
@@ -595,13 +595,13 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
                           }
                         />
                       </div>
-                      <div className="pl-pn-actions">
-                        <button type="submit" className="pl-btn pl-btn-primary">
+                      <div className="pl-pn2-actions">
+                        <button type="submit" className="pl-pn2-btn pl-pn2-btn-primary">
                           Save name
                         </button>
                         <button
                           type="button"
-                          className="pl-btn pl-btn-ghost"
+                          className="pl-pn2-btn pl-pn2-btn-ghost"
                           onClick={() => setRenaming(null)}
                         >
                           Cancel
@@ -610,11 +610,11 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
                     </form>
                   ) : (
                     <>
-                      <div className="pl-pn-card-top">
-                        <h4 className="pl-pn-name">{plan.name}</h4>
+                      <div className="pl-pn2-card-top">
+                        <h4 className="pl-pn2-name">{plan.name}</h4>
 
                         {isActive && (
-                          <span className="pl-pn-badge">
+                          <span className="pl-pn2-badge">
                             <i
                               className={`ti ${dirty ? "ti-pencil" : "ti-circle-check"}`}
                               aria-hidden="true"
@@ -624,12 +624,13 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
                         )}
                       </div>
 
-                      <p className="pl-pn-summary">
+                      <div className="pl-pn2-card-body">
+                      <p className="pl-pn2-summary">
                         {count} {count === 1 ? "holding" : "holdings"} ·{" "}
                         {formatMoney(plan.data.investment, plan.data.currency)}
                       </p>
 
-                      <p className="pl-pn-dates">
+                      <p className="pl-pn2-dates">
                         Created {formatDate(plan.createdAt)} · Updated{" "}
                         {formatDate(plan.updatedAt)}
                       </p>
@@ -650,10 +651,10 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
                           onConfirm={() => handleDelete(plan)}
                         />
                       ) : (
-                        <div className="pl-pn-actions">
+                        <div className="pl-pn2-actions">
                           <button
                             type="button"
-                            className="pl-btn pl-btn-primary"
+                            className="pl-pn2-btn pl-pn2-btn-primary"
                             onClick={() => handleLoad(plan)}
                             aria-label={`Load ${plan.name}`}
                           >
@@ -661,7 +662,7 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
                           </button>
                           <button
                             type="button"
-                            className="pl-btn pl-btn-ghost"
+                            className="pl-pn2-btn pl-pn2-btn-ghost"
                             onClick={() => setRenaming({ id: plan.id, text: plan.name })}
                             aria-label={`Rename ${plan.name}`}
                           >
@@ -669,7 +670,7 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
                           </button>
                           <button
                             type="button"
-                            className="pl-btn pl-btn-ghost"
+                            className="pl-pn2-btn pl-pn2-btn-ghost"
                             disabled={plans.length >= MAX_PLANS}
                             onClick={() => handleDuplicate(plan)}
                             aria-label={`Duplicate ${plan.name}`}
@@ -678,7 +679,7 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
                           </button>
                           <button
                             type="button"
-                            className="pl-btn pl-btn-quiet"
+                            className="pl-pn2-btn pl-pn2-btn-quiet"
                             onClick={() => setPending({ kind: "delete", id: plan.id })}
                             aria-label={`Delete ${plan.name}`}
                           >
@@ -686,6 +687,7 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
                           </button>
                         </div>
                       )}
+                      </div>
                     </>
                   )}
                 </li>
@@ -698,18 +700,17 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
   }
 
   return (
-    <section id="portfolio-plans" className="pl-section" aria-labelledby="pl-plans-title">
-      <p className="pl-eyebrow">My Portfolio Plans</p>
-      <h2 id="pl-plans-title" className="pl-h2">
+    <section id="portfolio-plans" className="pl-section pl-pn2" aria-labelledby="pl-plans-title">
+      <h2 id="pl-plans-title" className="pl-pn2-title">
         Save and reopen your plans
       </h2>
-      <p className="pl-lead">
+      <p className="pl-pn2-lead">
         Keep versions of a hypothetical portfolio, come back to them later, and
         compare ideas without starting over. Nothing is saved until you choose
         to save it, and loading a plan never changes a saved one.
       </p>
 
-      <div className="pl-pn-privacy">
+      <div className="pl-pn2-privacy">
         <i className="ti ti-lock" aria-hidden="true" />
         <p>
           <strong>Stored only in this browser.</strong> Plans stay on this
@@ -721,7 +722,7 @@ export default function PlansSection({ labState, tools, onLoadPlan }: PlansSecti
 
       {message && (
         <p
-          className={`pl-pn-message is-${message.tone}`}
+          className={`pl-pn2-message is-${message.tone}`}
           role={message.tone === "error" ? "alert" : "status"}
         >
           <i

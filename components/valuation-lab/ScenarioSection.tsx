@@ -60,69 +60,77 @@ function ScenarioCard({
   const money = (value: number | null) => formatCurrency(value, currency);
 
   return (
-    <article className="vl-panel" aria-labelledby={`vl-sc-${name}`}>
-      <header className="vl-panel-head">
-        <h3 id={`vl-sc-${name}`} className="vl-h3">
-          {META[name].title}
-        </h3>
-        <StatusBadge status={result.result.status} />
-      </header>
+    <article
+      className="vl-ratio vl-scn"
+      aria-labelledby={`vl-sc-${name}`}
+    >
+      <div className={`vl-ratio-band vl-scn-band vl-scn-${name}`}>
+        <header className="vl-panel-head">
+          <h3 id={`vl-sc-${name}`} className="vl-h3">
+            {META[name].title}
+          </h3>
+          <StatusBadge status={result.result.status} />
+        </header>
 
-      <p className="vl-hint">{META[name].blurb}</p>
+        <p className="vl-scn-blurb">{META[name].blurb}</p>
 
-      <div className="vl-fields vl-fields-stack">
-        <NumberField
-          label="Annual FCFF growth"
-          suffix="%"
-          value={form.growth}
-          onChange={(v) => onChange(name, "growth", v)}
-          hint="Used for every forecast year."
-        />
-        <NumberField
-          label="Discount rate"
-          suffix="%"
-          value={form.discountRate}
-          onChange={(v) => onChange(name, "discountRate", v)}
-        />
-        <NumberField
-          label="Terminal growth rate"
-          suffix="%"
-          value={form.terminalGrowth}
-          onChange={(v) => onChange(name, "terminalGrowth", v)}
-        />
+        {ok && (
+          <>
+            <p className="vl-scn-label">Value per share</p>
+            <p className="vl-scn-value">{money(ok.valuePerShare)}</p>
+          </>
+        )}
       </div>
 
-      {ok ? (
-        <>
-          <dl className="vl-dl">
-            <div>
-              <dt>Enterprise value</dt>
-              <dd>{money(ok.enterpriseValue)}</dd>
-            </div>
-            <div>
-              <dt>Equity value</dt>
-              <dd>{money(ok.equityValue)}</dd>
-            </div>
-          </dl>
-          <p className="vl-result">
-            <span className="vl-result-label">Value per share</span>
-            <span className="vl-result-value vl-result-value-sm">
-              {money(ok.valuePerShare)}
-            </span>
-          </p>
-          <IssueList issues={ok.warnings} />
-        </>
-      ) : (
-        <>
-          <p className="vl-text">
-            This scenario cannot be calculated yet. No number is shown until
-            its inputs, and the DCF inputs it shares, are valid.
-          </p>
-          {result.result.status !== "ok" && (
-            <IssueList issues={result.result.issues} />
-          )}
-        </>
-      )}
+      <div className="vl-ratio-body">
+        <div className="vl-fields vl-fields-stack">
+          <NumberField
+            label="Annual FCFF growth"
+            suffix="%"
+            value={form.growth}
+            onChange={(v) => onChange(name, "growth", v)}
+            hint="Used for every forecast year."
+          />
+          <NumberField
+            label="Discount rate"
+            suffix="%"
+            value={form.discountRate}
+            onChange={(v) => onChange(name, "discountRate", v)}
+          />
+          <NumberField
+            label="Terminal growth rate"
+            suffix="%"
+            value={form.terminalGrowth}
+            onChange={(v) => onChange(name, "terminalGrowth", v)}
+          />
+        </div>
+
+        {ok ? (
+          <>
+            <dl className="vl-dl">
+              <div>
+                <dt>Enterprise value</dt>
+                <dd>{money(ok.enterpriseValue)}</dd>
+              </div>
+              <div>
+                <dt>Equity value</dt>
+                <dd>{money(ok.equityValue)}</dd>
+              </div>
+            </dl>
+            <IssueList issues={ok.warnings} />
+          </>
+        ) : (
+          <>
+            <p className="vl-text">
+              This scenario cannot be calculated yet. No number is shown until
+              its inputs, and the DCF inputs it shares, are valid.
+            </p>
+            {result.result.status !== "ok" && (
+              <IssueList issues={result.result.issues} />
+            )}
+          </>
+        )}
+      </div>
     </article>
   );
 }
@@ -182,7 +190,7 @@ export default function ScenarioSection({
 
   return (
     <>
-      <div className="vl-note vl-note-soft" role="note">
+      <div className="vl-note vl-note-flat" role="note">
         <i className="ti ti-info-circle" aria-hidden="true" />
         <p>
           Scenarios show how value changes when assumptions change. They are{" "}

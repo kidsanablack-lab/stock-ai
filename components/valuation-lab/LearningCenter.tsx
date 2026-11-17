@@ -7,8 +7,6 @@ export default function LearningCenter() {
       className="vl-section"
       aria-labelledby="vl-learning-title"
     >
-      <p className="vl-section-eyebrow">Learn</p>
-
       <h2 id="vl-learning-title" className="vl-h2">
         Eight short lessons explain the ideas behind each tool
       </h2>

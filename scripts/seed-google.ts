@@ -19,7 +19,7 @@ async function main() {
     console.error("Failed:", error.message);
     process.exit(1);
   }
-  console.log("Saved Alphabet (Google) page data.");
+  console.log("Saved Google page data.");
 }
 
 main();

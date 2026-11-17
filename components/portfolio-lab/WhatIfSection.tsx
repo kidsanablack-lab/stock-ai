@@ -88,245 +88,252 @@ export default function WhatIfSection({ summary, currency }: WhatIfSectionProps)
   return (
     <section
       id="what-if-simulator"
-      className="pl-section"
+      className="pl-section pl-dca2"
       aria-labelledby="pl-whatif-title"
     >
-      <p className="pl-eyebrow">What-if Simulator</p>
-      <h2 id="pl-whatif-title" className="pl-h2">
+      <h2 id="pl-whatif-title" className="pl-dca2-title">
         Explore an assumed price change
       </h2>
-      <p className="pl-lead">
+      <p className="pl-dca2-lead">
         Type a price change you want to imagine for each kind of asset and see
         what it would do to your hypothetical portfolio. These are made-up
         scenarios to help you understand risk. They are not predictions, and
         your portfolio above is never changed.
       </p>
 
-      <div className="pl-tool-grid">
-        <div className="pl-panel pl-tool-inputs">
-          <div role="group" aria-labelledby="pl-wi-presets-title">
-            <p id="pl-wi-presets-title" className="pl-field-label">
-              Illustrative starting examples
+      {/* Results */}
+      <div className="pl-dca2-results" aria-live="polite">
+        {noHoldings ? (
+          <div className="pl-dca2-empty">
+            <i className="ti ti-chart-pie" aria-hidden="true" />
+            <p className="pl-dca2-empty-title">Add holdings to run a scenario</p>
+            <p className="pl-dca2-empty-text">
+              The simulator uses the money allocated in your portfolio. Add
+              holdings in the builder, or load an example portfolio first.
             </p>
-
-            <div className="pl-wi-presets">
-              {SCENARIO_PRESETS.map((preset) => {
-                const active = preset.id === presetId;
-
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    className={`pl-wi-preset${active ? " is-active" : ""}`}
-                    aria-pressed={active}
-                    onClick={() => loadPreset(preset)}
-                  >
-                    <span className="pl-wi-preset-name">
-                      {active && <i className="ti ti-check" aria-hidden="true" />}
-                      {preset.name}
-                    </span>
-                    <small>{preset.description}</small>
-                  </button>
-                );
-              })}
-            </div>
-
-            <p className="pl-hint">
-              Examples only, not predictions. Loading one replaces the numbers
-              below, and you can edit any of them afterwards.
+            <a className="pl-wi2-btn-primary" href="#portfolio-builder">
+              Go to the builder
+            </a>
+          </div>
+        ) : !result ? (
+          <div className="pl-dca2-empty">
+            <i className="ti ti-alert-circle" aria-hidden="true" />
+            <p className="pl-dca2-empty-title">Check the highlighted fields</p>
+            <p className="pl-dca2-empty-text">
+              Results appear as soon as every category has a valid number.
             </p>
           </div>
-
-          <fieldset className="pl-rates pl-wi-fieldset">
-            <legend>Assumed change for each asset category</legend>
-
-            <div className="pl-wi-grid">
-              {CATEGORIES.map((category) => (
-                <NumberField
-                  key={category.id}
-                  id={`whatif-${category.id}`}
-                  label={category.label}
-                  value={inputs[category.id]}
-                  onChange={(value) => setChange(category.id, value)}
-                  error={parsed.errors[category.id]}
-                  hint={
-                    inPortfolio.has(category.id)
-                      ? "In your portfolio"
-                      : "Not in your portfolio"
-                  }
-                  suffix="%"
-                />
-              ))}
-            </div>
-
-            <p className="pl-hint">
-              Use negative numbers for a fall, for example -20. An asset cannot
-              lose more than 100% of its value, so the lowest allowed number is{" "}
-              {MIN_CHANGE_PERCENT}. The highest is {MAX_CHANGE_PERCENT}.
+        ) : result.baseValue <= 0 ? (
+          <div className="pl-dca2-empty">
+            <i className="ti ti-info-circle" aria-hidden="true" />
+            <p className="pl-dca2-empty-title">Percentage change is not available</p>
+            <p className="pl-dca2-empty-text">
+              The amount allocated to your holdings is{" "}
+              {formatMoney(0, currency)}, so there is nothing to simulate.
+              Enter an investment amount in the builder.
             </p>
-          </fieldset>
-
-          <div className="pl-tool-actions">
-            <button type="button" className="pl-btn pl-btn-quiet" onClick={reset}>
-              <i className="ti ti-restore" aria-hidden="true" />
-              Reset to no change
-            </button>
           </div>
-        </div>
-
-        <div className="pl-tool-results" aria-live="polite">
-          {noHoldings ? (
-            <div className="pl-panel pl-empty">
-              <i className="ti ti-chart-pie" aria-hidden="true" />
-              <p className="pl-empty-title">Add holdings to run a scenario</p>
-              <p className="pl-empty-text">
-                The simulator uses the money allocated in your portfolio. Add
-                holdings in the builder, or load an example portfolio first.
-              </p>
-              <div className="pl-empty-actions">
-                <a className="pl-btn pl-btn-primary" href="#portfolio-builder">
-                  Go to the builder
-                </a>
-              </div>
-            </div>
-          ) : !result ? (
-            <div className="pl-panel pl-empty">
-              <i className="ti ti-alert-circle" aria-hidden="true" />
-              <p className="pl-empty-title">Check the highlighted fields</p>
-              <p className="pl-empty-text">
-                Results appear as soon as every category has a valid number.
-              </p>
-            </div>
-          ) : result.baseValue <= 0 ? (
-            <div className="pl-panel pl-empty">
-              <i className="ti ti-info-circle" aria-hidden="true" />
-              <p className="pl-empty-title">Percentage change is not available</p>
-              <p className="pl-empty-text">
-                The amount allocated to your holdings is{" "}
-                {formatMoney(0, currency)}, so there is nothing to simulate.
-                Enter an investment amount in the builder.
-              </p>
-            </div>
-          ) : (
-            <>
-              {summary.status === "incomplete" && (
-                <div className="pl-status is-incomplete">
-                  <i className="ti ti-info-circle" aria-hidden="true" />
-                  <div>
-                    <p className="pl-status-title">
-                      Only the allocated part is simulated
-                    </p>
-                    <p className="pl-status-text">
-                      {formatPercent(summary.totalPercent)} of your initial
-                      investment ({formatMoney(summary.allocatedAmount, currency)})
-                      is allocated to holdings. The{" "}
-                      {formatMoney(summary.unallocatedAmount, currency)} that is
-                      not allocated is left out, and it is not treated as an
-                      investment.
-                    </p>
-                  </div>
+        ) : (
+          <>
+            {summary.status === "incomplete" && (
+              <div className="pl-wi2-status is-incomplete">
+                <i className="ti ti-info-circle" aria-hidden="true" />
+                <div>
+                  <p className="pl-wi2-status-title">
+                    Only the allocated part is simulated
+                  </p>
+                  <p className="pl-wi2-status-text">
+                    {formatPercent(summary.totalPercent)} of your initial
+                    investment ({formatMoney(summary.allocatedAmount, currency)})
+                    is allocated to holdings. The{" "}
+                    {formatMoney(summary.unallocatedAmount, currency)} that is
+                    not allocated is left out, and it is not treated as an
+                    investment.
+                  </p>
                 </div>
-              )}
-
-              {summary.status === "over" && (
-                <div className="pl-status is-over">
-                  <i className="ti ti-alert-triangle" aria-hidden="true" />
-                  <div>
-                    <p className="pl-status-title">The allocation is above 100%</p>
-                    <p className="pl-status-text">
-                      The holdings add up to {formatPercent(summary.totalPercent)},
-                      so the amounts below are more than your initial investment.
-                      The simulation uses the amounts exactly as entered.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className={`pl-result-hero${result.direction === "down" ? " is-loss" : ""}`}>
-                <p className="pl-card-label">Hypothetical value after these changes</p>
-                <p className="pl-result-value">
-                  {formatMoney(result.scenarioValue, currency)}
-                </p>
-                <p className="pl-result-growth">
-                  <strong>{DIRECTION_WORD[result.direction]}:</strong>{" "}
-                  {formatSignedMoney(result.absoluteChange, currency)}
-                  {result.percentageChange !== null &&
-                    ` (${formatSignedPercent(result.percentageChange)})`}
-                </p>
-                <p className="pl-result-sub">
-                  Compared with {formatMoney(result.baseValue, currency)}{" "}
-                  currently allocated. This is an assumption you chose, not a
-                  forecast.
-                  {activePreset && ` Example loaded: ${activePreset.name}.`}
-                </p>
               </div>
+            )}
 
-              <div className="pl-mini-cards">
-                <div className="pl-card">
-                  <p className="pl-card-label">Original allocated value</p>
-                  <p className="pl-card-value pl-card-value-sm">
+            {summary.status === "over" && (
+              <div className="pl-wi2-status is-over">
+                <i className="ti ti-alert-triangle" aria-hidden="true" />
+                <div>
+                  <p className="pl-wi2-status-title">The allocation is above 100%</p>
+                  <p className="pl-wi2-status-text">
+                    The holdings add up to {formatPercent(summary.totalPercent)},
+                    so the amounts below are more than your initial investment.
+                    The simulation uses the amounts exactly as entered.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div
+              className={`pl-dca2-hero pl-wi2-hero${result.direction === "down" ? " is-loss" : ""}`}
+            >
+              <p className="pl-dca2-hero-label">
+                Hypothetical value after these changes
+              </p>
+              <p className="pl-dca2-hero-value">
+                {formatMoney(result.scenarioValue, currency)}
+              </p>
+              <p className="pl-dca2-hero-growth">
+                <strong>{DIRECTION_WORD[result.direction]}:</strong>{" "}
+                {formatSignedMoney(result.absoluteChange, currency)}
+                {result.percentageChange !== null &&
+                  ` (${formatSignedPercent(result.percentageChange)})`}
+              </p>
+              <p className="pl-dca2-hero-sub">
+                Compared with {formatMoney(result.baseValue, currency)}{" "}
+                currently allocated. This is an assumption you chose, not a
+                forecast.
+                {activePreset && ` Example loaded: ${activePreset.name}.`}
+              </p>
+
+              <div className="pl-dca2-hero-stats pl-wi2-hero-stats">
+                <div>
+                  <p className="pl-dca2-hero-stat-label">Original allocated value</p>
+                  <p className="pl-dca2-hero-stat-value">
                     {formatMoney(result.baseValue, currency)}
                   </p>
-                  <p className="pl-card-note">The simulation base</p>
+                  <p className="pl-dca2-hero-stat-note">The simulation base</p>
                 </div>
 
-                <div className="pl-card">
-                  <p className="pl-card-label">Hypothetical value</p>
-                  <p className="pl-card-value pl-card-value-sm">
+                <div>
+                  <p className="pl-dca2-hero-stat-label">Hypothetical value</p>
+                  <p className="pl-dca2-hero-stat-value">
                     {formatMoney(result.scenarioValue, currency)}
                   </p>
-                  <p className="pl-card-note">After the assumed changes</p>
+                  <p className="pl-dca2-hero-stat-note">After the assumed changes</p>
                 </div>
 
-                <div className={`pl-card${result.direction === "down" ? " is-warning" : ""}`}>
-                  <p className="pl-card-label">Change</p>
-                  <p className="pl-card-value pl-card-value-sm">
+                <div>
+                  <p className="pl-dca2-hero-stat-label">Change</p>
+                  <p className="pl-dca2-hero-stat-value">
                     {formatSignedMoney(result.absoluteChange, currency)}
                   </p>
-                  <p className="pl-card-note">
+                  <p className="pl-dca2-hero-stat-note">
                     {result.percentageChange !== null
                       ? formatSignedPercent(result.percentageChange)
                       : "Percentage not available"}
                   </p>
                 </div>
               </div>
+            </div>
 
-              {ignored.length > 0 && (
-                <p className="pl-hint">
-                  No effect on this portfolio:{" "}
-                  {ignored.map((category) => category.label).join(", ")}. You
-                  entered a change for{" "}
-                  {ignored.length === 1 ? "a category" : "categories"} you do
-                  not hold.
-                </p>
-              )}
-            </>
-          )}
+            {ignored.length > 0 && (
+              <p className="pl-dca2-hint pl-wi2-ignored">
+                No effect on this portfolio:{" "}
+                {ignored.map((category) => category.label).join(", ")}. You
+                entered a change for{" "}
+                {ignored.length === 1 ? "a category" : "categories"} you do
+                not hold.
+              </p>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Scenario inputs */}
+      <div className="pl-dca2-panel">
+        <h3 className="pl-dca2-h3">Your scenario</h3>
+
+        <div role="group" aria-labelledby="pl-wi-presets-title">
+          <p id="pl-wi-presets-title" className="pl-wi2-label">
+            Illustrative starting examples
+          </p>
+
+          <div className="pl-wi2-presets">
+            {SCENARIO_PRESETS.map((preset) => {
+              const active = preset.id === presetId;
+
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  className={`pl-wi2-preset${active ? " is-active" : ""}`}
+                  aria-pressed={active}
+                  onClick={() => loadPreset(preset)}
+                >
+                  <span className="pl-wi2-preset-name">
+                    {active && <i className="ti ti-check" aria-hidden="true" />}
+                    {preset.name}
+                  </span>
+                  <small>{preset.description}</small>
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="pl-dca2-hint">
+            Examples only, not predictions. Loading one replaces the numbers
+            below, and you can edit any of them afterwards.
+          </p>
+        </div>
+
+        <fieldset className="pl-wi2-fieldset">
+          <legend>Assumed change for each asset category</legend>
+
+          <div className="pl-wi2-grid">
+            {CATEGORIES.map((category) => (
+              <NumberField
+                key={category.id}
+                id={`whatif-${category.id}`}
+                label={category.label}
+                value={inputs[category.id]}
+                onChange={(value) => setChange(category.id, value)}
+                error={parsed.errors[category.id]}
+                hint={
+                  inPortfolio.has(category.id)
+                    ? "In your portfolio"
+                    : "Not in your portfolio"
+                }
+                suffix="%"
+              />
+            ))}
+          </div>
+
+          <p className="pl-dca2-hint">
+            Use negative numbers for a fall, for example -20. An asset cannot
+            lose more than 100% of its value, so the lowest allowed number is{" "}
+            {MIN_CHANGE_PERCENT}. The highest is {MAX_CHANGE_PERCENT}.
+          </p>
+        </fieldset>
+
+        <div className="pl-dca2-actions pl-wi2-actions">
+          <button
+            type="button"
+            className="pl-dca2-btn pl-dca2-btn-quiet"
+            onClick={reset}
+          >
+            <i className="ti ti-restore" aria-hidden="true" />
+            Reset to no change
+          </button>
         </div>
       </div>
 
       {result && !noHoldings && result.baseValue > 0 && (
         <>
-          <div className="pl-panel">
-            <h3 className="pl-h3">Impact on each holding</h3>
+          <div className="pl-dca2-panel">
+            <h3 className="pl-dca2-h3">Impact on each holding</h3>
 
             <div
-              className="pl-scroll"
+              className="pl-dca2-scroll"
               role="region"
               aria-label="What-if impact by holding"
               tabIndex={0}
             >
-              <table className="pl-table pl-proj-table pl-wi-table">
+              <table className="pl-dca2-table pl-wi2-table">
                 <caption className="pl-sr-only">
                   Hypothetical value of each holding after the assumed changes
                 </caption>
                 <thead>
                   <tr>
                     <th scope="col">Holding</th>
-                    <th scope="col" className="pl-num">Current amount</th>
-                    <th scope="col" className="pl-num">Assumed change</th>
-                    <th scope="col" className="pl-num">Hypothetical amount</th>
-                    <th scope="col" className="pl-num">Difference</th>
+                    <th scope="col" className="pl-dca2-num">Current amount</th>
+                    <th scope="col" className="pl-dca2-num">Assumed change</th>
+                    <th scope="col" className="pl-dca2-num">Hypothetical amount</th>
+                    <th scope="col" className="pl-dca2-num">Difference</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -334,14 +341,14 @@ export default function WhatIfSection({ summary, currency }: WhatIfSectionProps)
                     <tr key={row.id}>
                       <th scope="row">
                         {row.displayName}
-                        <small className="pl-wi-cat">
+                        <small className="pl-wi2-cat">
                           {scenarioCategoryLabel(row.category)}
                         </small>
                       </th>
-                      <td className="pl-num">{formatMoney(row.baseAmount, currency)}</td>
-                      <td className="pl-num">{formatSignedPercent(row.changePercent)}</td>
-                      <td className="pl-num">{formatMoney(row.scenarioAmount, currency)}</td>
-                      <td className="pl-num">
+                      <td className="pl-dca2-num">{formatMoney(row.baseAmount, currency)}</td>
+                      <td className="pl-dca2-num">{formatSignedPercent(row.changePercent)}</td>
+                      <td className="pl-dca2-num">{formatMoney(row.scenarioAmount, currency)}</td>
+                      <td className="pl-dca2-num">
                         {formatSignedMoney(row.changeAmount, currency)}
                       </td>
                     </tr>
@@ -350,16 +357,16 @@ export default function WhatIfSection({ summary, currency }: WhatIfSectionProps)
                 <tfoot>
                   <tr>
                     <th scope="row">Total</th>
-                    <td className="pl-num">{formatMoney(result.baseValue, currency)}</td>
-                    <td className="pl-num">
+                    <td className="pl-dca2-num">{formatMoney(result.baseValue, currency)}</td>
+                    <td className="pl-dca2-num">
                       {result.percentageChange !== null
                         ? formatSignedPercent(result.percentageChange)
                         : "—"}
                     </td>
-                    <td className="pl-num">
+                    <td className="pl-dca2-num">
                       {formatMoney(result.scenarioValue, currency)}
                     </td>
-                    <td className="pl-num">
+                    <td className="pl-dca2-num">
                       {formatSignedMoney(result.absoluteChange, currency)}
                     </td>
                   </tr>
@@ -367,7 +374,7 @@ export default function WhatIfSection({ summary, currency }: WhatIfSectionProps)
               </table>
             </div>
 
-            <p className="pl-hint">
+            <p className="pl-dca2-footnote">
               Amounts are rounded for display, so rows may differ slightly from
               the rounded total. The total&apos;s change is a share of the whole
               portfolio, not an average of the rows.

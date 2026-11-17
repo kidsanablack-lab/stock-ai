@@ -161,58 +161,65 @@ function OverallCard({ reasons }: { reasons: ScoreReason[] }) {
   const maxWeight = byWeight[0]?.weight ?? 1;
 
   return (
-    <div className="flex flex-col rounded-[28px] border border-border bg-white p-5 sm:p-6">
-      <p className="text-sm font-semibold text-ink-muted">Overall Scope Score</p>
-      <div className="mt-2 flex items-end gap-3">
-        <span className="font-serif text-[56px] font-semibold leading-none tracking-[-0.02em] tabular-nums text-ink">
-          {overall.toFixed(1)}
-        </span>
-        <span className="pb-1.5 text-sm text-ink-muted">out of 10</span>
-        <span className="mb-1.5 ml-auto rounded-full bg-primary-soft px-3 py-0.5 text-[13px] font-semibold text-primary-ink">
-          {labelOf(overall)}
-        </span>
-      </div>
-      <div
-        className="mt-4 h-1.5 overflow-hidden rounded-full bg-primary-soft"
-        role="meter"
-        aria-label="Overall Scope Score"
-        aria-valuemin={0}
-        aria-valuemax={10}
-        aria-valuenow={Number(overall.toFixed(1))}
-      >
-        <div className="h-full rounded-full bg-primary" style={{ width: `${overall * 10}%` }} />
+    <div className="flex flex-col overflow-hidden rounded-[28px] border border-border bg-white">
+      {/* Blue header: name, big score, label */}
+      <div className="bg-primary px-5 py-5 text-white sm:px-6 sm:py-6">
+        <p className="text-sm font-semibold text-primary-soft">Overall Scope Score</p>
+        <div className="mt-2 flex items-end gap-3">
+          <span className="font-serif text-[64px] font-semibold leading-none tracking-[-0.02em] tabular-nums">
+            {overall.toFixed(1)}
+          </span>
+          <span className="pb-2 text-sm text-primary-soft">out of 10</span>
+          <span className="mb-2 ml-auto rounded-full bg-white px-3 py-0.5 text-[13px] font-semibold text-primary-ink">
+            {labelOf(overall)}
+          </span>
+        </div>
       </div>
 
-      {byWeight.length > 0 && (
-        <div className="mt-6">
-          <p className="text-sm font-semibold text-ink">How much each category counts</p>
-          <ul className="mt-3 grid gap-2.5">
-            {byWeight.map((r) => (
-              <li key={r.name} className="grid grid-cols-[104px_minmax(0,1fr)_36px] items-center gap-3 text-sm">
-                <span className="truncate text-ink-muted">{r.name}</span>
-                <span className="h-2 overflow-hidden rounded-full bg-primary-soft">
-                  <span
-                    className="block h-full rounded-full bg-primary"
-                    style={{ width: `${((r.weight ?? 0) / maxWeight) * 100}%` }}
-                  />
-                </span>
-                <span className="text-right font-semibold tabular-nums text-ink">{r.weight}%</span>
-              </li>
-            ))}
-          </ul>
+      {/* White body */}
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        <div
+          className="h-1.5 overflow-hidden rounded-full bg-primary-soft"
+          role="meter"
+          aria-label="Overall Scope Score"
+          aria-valuemin={0}
+          aria-valuemax={10}
+          aria-valuenow={Number(overall.toFixed(1))}
+        >
+          <div className="h-full rounded-full bg-primary" style={{ width: `${overall * 10}%` }} />
         </div>
-      )}
 
-      <div className="mt-6 grid grid-cols-2 gap-3 lg:mt-auto lg:pt-6">
-        <div className="rounded-2xl bg-success-soft px-4 py-3">
-          <p className="text-[13px] font-medium text-success">Strongest</p>
-          <p className="mt-0.5 text-[15px] font-semibold text-ink">{best.name}</p>
-          <p className="font-serif text-lg font-semibold tabular-nums text-success">{scoreOf(best).toFixed(1)}</p>
-        </div>
-        <div className="rounded-2xl bg-danger-soft px-4 py-3">
-          <p className="text-[13px] font-medium text-danger">Weakest</p>
-          <p className="mt-0.5 text-[15px] font-semibold text-ink">{worst.name}</p>
-          <p className="font-serif text-lg font-semibold tabular-nums text-danger">{scoreOf(worst).toFixed(1)}</p>
+        {byWeight.length > 0 && (
+          <div className="mt-6">
+            <p className="text-sm font-semibold text-ink">How much each category counts</p>
+            <ul className="mt-3 grid gap-2.5">
+              {byWeight.map((r) => (
+                <li key={r.name} className="grid grid-cols-[104px_minmax(0,1fr)_36px] items-center gap-3 text-sm">
+                  <span className="truncate text-ink-muted">{r.name}</span>
+                  <span className="h-2 overflow-hidden rounded-full bg-primary-soft">
+                    <span
+                      className="block h-full rounded-full bg-primary"
+                      style={{ width: `${((r.weight ?? 0) / maxWeight) * 100}%` }}
+                    />
+                  </span>
+                  <span className="text-right font-semibold tabular-nums text-ink">{r.weight}%</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="mt-6 grid grid-cols-2 gap-3 lg:mt-auto lg:pt-6">
+          <div className="rounded-2xl bg-success-soft px-4 py-3">
+            <p className="text-[13px] font-medium text-success">Strongest</p>
+            <p className="mt-0.5 text-[15px] font-semibold text-ink">{best.name}</p>
+            <p className="font-serif text-lg font-semibold tabular-nums text-success">{scoreOf(best).toFixed(1)}</p>
+          </div>
+          <div className="rounded-2xl bg-danger-soft px-4 py-3">
+            <p className="text-[13px] font-medium text-danger">Weakest</p>
+            <p className="mt-0.5 text-[15px] font-semibold text-ink">{worst.name}</p>
+            <p className="font-serif text-lg font-semibold tabular-nums text-danger">{scoreOf(worst).toFixed(1)}</p>
+          </div>
         </div>
       </div>
     </div>

@@ -126,31 +126,35 @@ export default function RebalanceSection({
               text: "The comparison is ready.",
             };
 
+  const compareRows = result
+    ? result.rows.filter((row) => row.currentPercent > 0 || row.targetPercent > 0)
+    : [];
+
   return (
     <section
       id="rebalancing-tool"
-      className="pl-section"
+      className="pl-section pl-dca2"
       aria-labelledby="pl-rb-title"
     >
-      <p className="pl-eyebrow">Rebalancing</p>
-      <h2 id="pl-rb-title" className="pl-h2">
+      <h2 id="pl-rb-title" className="pl-dca2-title">
         Compare your portfolio with a target
       </h2>
-      <p className="pl-lead">
+      <p className="pl-dca2-lead">
         Rebalancing means moving a portfolio back toward the mix you intended.
         Choose a target of your own, and see how far your current portfolio is
         from it. This is a learning tool: it shows differences, it does not
         place trades, and the target is not a recommendation.
       </p>
 
-      <div className="pl-tool-grid">
-        <div className="pl-panel pl-tool-inputs">
-          <h3 className="pl-h3">Your target allocation</h3>
+      <div className="pl-rb2-layout">
+        {/* Target */}
+        <div className="pl-dca2-panel">
+          <h3 className="pl-dca2-h3">Your target allocation</h3>
 
-          <div className="pl-tool-actions">
+          <div className="pl-dca2-actions pl-rb2-actions">
             <button
               type="button"
-              className="pl-btn pl-btn-ghost"
+              className="pl-dca2-btn pl-dca2-btn-ghost"
               disabled={baseValue <= 0}
               onClick={() => onTargetInputsChange(targetInputsFromCurrent(current))}
             >
@@ -160,7 +164,7 @@ export default function RebalanceSection({
 
             <button
               type="button"
-              className="pl-btn pl-btn-quiet"
+              className="pl-dca2-btn pl-dca2-btn-quiet"
               onClick={() => onTargetInputsChange(emptyTargetInputs())}
             >
               <i className="ti ti-restore" aria-hidden="true" />
@@ -168,7 +172,7 @@ export default function RebalanceSection({
             </button>
           </div>
 
-          <div className="pl-rb-grid">
+          <div className="pl-rb2-grid">
             {CATEGORIES.map((category) => (
               <NumberField
                 key={category.id}
@@ -184,28 +188,28 @@ export default function RebalanceSection({
           </div>
 
           <div
-            className={`pl-status ${targetStatus.tone}`}
+            className={`pl-rb2-status ${targetStatus.tone}`}
             role="status"
             aria-live="polite"
           >
             <i className={`ti ${targetStatus.icon}`} aria-hidden="true" />
             <div>
-              <p className="pl-status-title">{targetStatus.title}</p>
-              <p className="pl-status-text">{targetStatus.text}</p>
+              <p className="pl-rb2-status-title">{targetStatus.title}</p>
+              <p className="pl-rb2-status-text">{targetStatus.text}</p>
             </div>
           </div>
 
-          <fieldset className="pl-currency pl-mode">
+          <fieldset className="pl-calc2-mode pl-rb2-method">
             <legend>How do you want to compare?</legend>
 
-            <div className="pl-segmented pl-segmented-2">
+            <div className="pl-calc2-seg-group">
               {(
                 [
                   ["trade", "Adjust existing amounts", "A theoretical comparison"],
                   ["contribute", "New money only", "Add money, reduce nothing"],
                 ] as const
               ).map(([value, title, note]) => (
-                <label key={value} className="pl-segment">
+                <label key={value} className="pl-calc2-seg">
                   <input
                     type="radio"
                     name="pl-rb-method"
@@ -223,93 +227,94 @@ export default function RebalanceSection({
           </fieldset>
 
           {method === "contribute" && (
-            <NumberField
-              id="rebalance-contribution"
-              label="New contribution"
-              value={contributionInput}
-              onChange={setContributionInput}
-              error={contribution.error}
-              hint="Money you would add. Nothing is reduced."
-              prefix={currency}
-            />
+            <div className="pl-rb2-contribution">
+              <NumberField
+                id="rebalance-contribution"
+                label="New contribution"
+                value={contributionInput}
+                onChange={setContributionInput}
+                error={contribution.error}
+                hint="Money you would add. Nothing is reduced."
+                prefix={currency}
+              />
+            </div>
           )}
         </div>
 
-        <div className="pl-tool-results" aria-live="polite">
-          {noHoldings || baseValue <= 0 ? (
-            <div className="pl-panel pl-empty">
-              <i className="ti ti-scale" aria-hidden="true" />
-              <p className="pl-empty-title">
-                {noHoldings ? "Add holdings to compare" : "There is no allocated amount yet"}
-              </p>
-              <p className="pl-empty-text">
-                {noHoldings
-                  ? "Rebalancing compares your current portfolio with a target. Add holdings in the builder, or load an example portfolio first."
-                  : "Your holdings have no money in them. Enter an investment amount in the builder."}
-              </p>
-              <div className="pl-empty-actions">
-                <a className="pl-btn pl-btn-primary" href="#portfolio-builder">
+        {/* Results */}
+        <div className="pl-rb2-side">
+          <div className="pl-dca2-results" aria-live="polite">
+            {noHoldings || baseValue <= 0 ? (
+              <div className="pl-dca2-empty">
+                <i className="ti ti-scale" aria-hidden="true" />
+                <p className="pl-dca2-empty-title">
+                  {noHoldings ? "Add holdings to compare" : "There is no allocated amount yet"}
+                </p>
+                <p className="pl-dca2-empty-text">
+                  {noHoldings
+                    ? "Rebalancing compares your current portfolio with a target. Add holdings in the builder, or load an example portfolio first."
+                    : "Your holdings have no money in them. Enter an investment amount in the builder."}
+                </p>
+                <a className="pl-rb2-btn-primary" href="#portfolio-builder">
                   Go to the builder
                 </a>
               </div>
-            </div>
-          ) : !result ? (
-            <div className="pl-panel pl-empty">
-              <i className="ti ti-target" aria-hidden="true" />
-              <p className="pl-empty-title">Complete your target to compare</p>
-              <p className="pl-empty-text">
-                The comparison needs a target that adds up to exactly 100%. The
-                tool never changes your numbers to make them fit.
-              </p>
-            </div>
-          ) : method === "contribute" && contribution.error ? (
-            <div className="pl-panel pl-empty">
-              <i className="ti ti-alert-circle" aria-hidden="true" />
-              <p className="pl-empty-title">Check the new contribution</p>
-              <p className="pl-empty-text">{contribution.error}</p>
-            </div>
-          ) : (
-            <>
-              {summary.status === "incomplete" && (
-                <div className="pl-status is-incomplete">
-                  <i className="ti ti-info-circle" aria-hidden="true" />
-                  <div>
-                    <p className="pl-status-title">Compared on the allocated part</p>
-                    <p className="pl-status-text">
-                      Only {formatMoney(baseValue, currency)} of your{" "}
-                      {formatMoney(summary.investment, currency)} initial
-                      investment is allocated, so the percentages below are
-                      shares of that {formatMoney(baseValue, currency)}, not of
-                      the initial investment. The unallocated{" "}
-                      {formatMoney(summary.unallocatedAmount, currency)} is left
-                      out.
-                    </p>
+            ) : !result ? (
+              <div className="pl-dca2-empty">
+                <i className="ti ti-target" aria-hidden="true" />
+                <p className="pl-dca2-empty-title">Complete your target to compare</p>
+                <p className="pl-dca2-empty-text">
+                  The comparison needs a target that adds up to exactly 100%. The
+                  tool never changes your numbers to make them fit.
+                </p>
+              </div>
+            ) : method === "contribute" && contribution.error ? (
+              <div className="pl-dca2-empty">
+                <i className="ti ti-alert-circle" aria-hidden="true" />
+                <p className="pl-dca2-empty-title">Check the new contribution</p>
+                <p className="pl-dca2-empty-text">{contribution.error}</p>
+              </div>
+            ) : (
+              <>
+                {summary.status === "incomplete" && (
+                  <div className="pl-rb2-status is-incomplete">
+                    <i className="ti ti-info-circle" aria-hidden="true" />
+                    <div>
+                      <p className="pl-rb2-status-title">Compared on the allocated part</p>
+                      <p className="pl-rb2-status-text">
+                        Only {formatMoney(baseValue, currency)} of your{" "}
+                        {formatMoney(summary.investment, currency)} initial
+                        investment is allocated, so the percentages below are
+                        shares of that {formatMoney(baseValue, currency)}, not of
+                        the initial investment. The unallocated{" "}
+                        {formatMoney(summary.unallocatedAmount, currency)} is left
+                        out.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {summary.status === "over" && (
-                <div className="pl-status is-over">
-                  <i className="ti ti-alert-triangle" aria-hidden="true" />
-                  <div>
-                    <p className="pl-status-title">The portfolio is above 100%</p>
-                    <p className="pl-status-text">
-                      The holdings add up to {formatPercent(summary.totalPercent)}.
-                      The comparison uses the amounts as entered, and the
-                      percentages below are shares of that total.
-                    </p>
+                {summary.status === "over" && (
+                  <div className="pl-rb2-status is-over">
+                    <i className="ti ti-alert-triangle" aria-hidden="true" />
+                    <div>
+                      <p className="pl-rb2-status-title">The portfolio is above 100%</p>
+                      <p className="pl-rb2-status-text">
+                        The holdings add up to {formatPercent(summary.totalPercent)}.
+                        The comparison uses the amounts as entered, and the
+                        percentages below are shares of that total.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {method === "trade" ? (
-                <>
-                  <div className="pl-result-hero">
-                    <p className="pl-card-label">Current allocated value</p>
-                    <p className="pl-result-value">
+                {method === "trade" ? (
+                  <div className="pl-dca2-hero">
+                    <p className="pl-dca2-hero-label">Current allocated value</p>
+                    <p className="pl-dca2-hero-value pl-rb2-hero-value">
                       {formatMoney(result.baseValue, currency)}
                     </p>
-                    <p className="pl-result-sub">
+                    <p className="pl-dca2-hero-sub">
                       This is the base for every percentage. In theory, matching
                       the target would mean{" "}
                       {result.totalToReduce > 0
@@ -317,34 +322,32 @@ export default function RebalanceSection({
                         : "no changes: the portfolio is already on target."}{" "}
                       These are calculated differences, not trade instructions.
                     </p>
-                  </div>
 
-                  <div className="pl-mini-cards pl-rb-two">
-                    <div className="pl-card">
-                      <p className="pl-card-label">Amount to add (theory)</p>
-                      <p className="pl-card-value pl-card-value-sm">
-                        {formatMoney(result.totalToAdd, currency)}
-                      </p>
-                      <p className="pl-card-note">To categories below target</p>
-                    </div>
+                    <div className="pl-dca2-hero-stats pl-rb2-hero-stats">
+                      <div>
+                        <p className="pl-dca2-hero-stat-label">Amount to add (theory)</p>
+                        <p className="pl-dca2-hero-stat-value">
+                          {formatMoney(result.totalToAdd, currency)}
+                        </p>
+                        <p className="pl-dca2-hero-stat-note">To categories below target</p>
+                      </div>
 
-                    <div className="pl-card">
-                      <p className="pl-card-label">Amount to reduce (theory)</p>
-                      <p className="pl-card-value pl-card-value-sm">
-                        {formatMoney(result.totalToReduce, currency)}
-                      </p>
-                      <p className="pl-card-note">From categories above target</p>
+                      <div>
+                        <p className="pl-dca2-hero-stat-label">Amount to reduce (theory)</p>
+                        <p className="pl-dca2-hero-stat-value">
+                          {formatMoney(result.totalToReduce, currency)}
+                        </p>
+                        <p className="pl-dca2-hero-stat-note">From categories above target</p>
+                      </div>
                     </div>
                   </div>
-                </>
-              ) : (
-                <>
-                  <div className="pl-result-hero">
-                    <p className="pl-card-label">Value after the new contribution</p>
-                    <p className="pl-result-value">
+                ) : (
+                  <div className="pl-dca2-hero">
+                    <p className="pl-dca2-hero-label">Value after the new contribution</p>
+                    <p className="pl-dca2-hero-value pl-rb2-hero-value">
                       {formatMoney(result.newTotal, currency)}
                     </p>
-                    <p className="pl-result-sub">
+                    <p className="pl-dca2-hero-sub">
                       {formatMoney(result.baseValue, currency)} allocated now plus{" "}
                       {formatMoney(result.contribution, currency)} of new money.
                       {result.contribution <= 0
@@ -353,53 +356,110 @@ export default function RebalanceSection({
                           ? " This new money is enough to reach the target without reducing anything."
                           : " Nothing is reduced, so some categories stay above target."}
                     </p>
-                  </div>
 
-                  <div className="pl-mini-cards pl-rb-two">
-                    <div className="pl-card">
-                      <p className="pl-card-label">New money placed</p>
-                      <p className="pl-card-value pl-card-value-sm">
-                        {formatMoney(result.contribution, currency)}
-                      </p>
-                      <p className="pl-card-note">Split across categories below target</p>
-                    </div>
+                    <div className="pl-dca2-hero-stats pl-rb2-hero-stats">
+                      <div>
+                        <p className="pl-dca2-hero-stat-label">New money placed</p>
+                        <p className="pl-dca2-hero-stat-value">
+                          {formatMoney(result.contribution, currency)}
+                        </p>
+                        <p className="pl-dca2-hero-stat-note">
+                          Split across categories below target
+                        </p>
+                      </div>
 
-                    <div className={`pl-card${result.remainingOverweight > 0 ? " is-warning" : ""}`}>
-                      <p className="pl-card-label">Still above target</p>
-                      <p className="pl-card-value pl-card-value-sm">
-                        {formatMoney(result.remainingOverweight, currency)}
-                      </p>
-                      <p className="pl-card-note">
-                        {result.remainingOverweight > 0
-                          ? "New money alone cannot lower this"
-                          : "Nothing remains above target"}
-                      </p>
+                      <div
+                        className={`pl-rb2-stat${result.remainingOverweight > 0 ? " is-warning" : ""}`}
+                      >
+                        <p className="pl-dca2-hero-stat-label">Still above target</p>
+                        <p className="pl-dca2-hero-stat-value">
+                          {formatMoney(result.remainingOverweight, currency)}
+                        </p>
+                        <p className="pl-dca2-hero-stat-note">
+                          {result.remainingOverweight > 0
+                            ? "New money alone cannot lower this"
+                            : "Nothing remains above target"}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </>
-              )}
-            </>
-          )}
+                )}
+
+                {compareRows.length > 0 && (
+                  <div className="pl-rb2-compare">
+                    <h3 className="pl-rb2-compare-title">Current compared with target</h3>
+
+                    <ul className="pl-rb2-compare-list">
+                      {compareRows.map((row) => {
+                        const color = CATEGORY_BY_ID[row.category].color;
+
+                        return (
+                          <li key={row.category}>
+                            <div className="pl-rb2-compare-top">
+                              <span>
+                                <span
+                                  className="pl-rb2-swatch"
+                                  style={{ background: color }}
+                                  aria-hidden="true"
+                                />
+                                {CATEGORY_BY_ID[row.category].label}
+                              </span>
+                              <span className="pl-rb2-compare-values">
+                                <strong>{formatPercent(row.currentPercent)}</strong>
+                                {" → "}
+                                {formatPercent(row.targetPercent)}
+                              </span>
+                            </div>
+
+                            <div className="pl-rb2-bar" aria-hidden="true">
+                              <span
+                                style={{
+                                  width: `${Math.min(100, row.currentPercent)}%`,
+                                  background: color,
+                                }}
+                              />
+                            </div>
+                            <div className="pl-rb2-bar is-target" aria-hidden="true">
+                              <span
+                                style={{
+                                  width: `${Math.min(100, row.targetPercent)}%`,
+                                  background: color,
+                                }}
+                              />
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+
+                    <p className="pl-rb2-compare-note">
+                      Solid bar: current. Light bar: target.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       {result && !noHoldings && baseValue > 0 && !(method === "contribute" && contribution.error) && (
         <>
-          <div className="pl-panel">
-            <h3 className="pl-h3">
+          <div className="pl-dca2-panel">
+            <h3 className="pl-dca2-h3">
               {method === "trade"
                 ? "Current mix compared with your target"
                 : "How new money would be split"}
             </h3>
 
             <div
-              className="pl-scroll"
+              className="pl-dca2-scroll"
               role="region"
               aria-label="Rebalancing comparison table"
               tabIndex={0}
             >
               {method === "trade" ? (
-                <table className="pl-table pl-proj-table pl-rb-table">
+                <table className="pl-dca2-table pl-rb2-table">
                   <caption className="pl-sr-only">
                     Current allocation, target allocation, and the theoretical
                     adjustment for each category
@@ -407,12 +467,12 @@ export default function RebalanceSection({
                   <thead>
                     <tr>
                       <th scope="col">Category</th>
-                      <th scope="col" className="pl-num">Current %</th>
-                      <th scope="col" className="pl-num">Target %</th>
-                      <th scope="col" className="pl-num">Difference</th>
-                      <th scope="col" className="pl-num">Current amount</th>
-                      <th scope="col" className="pl-num">Target amount</th>
-                      <th scope="col" className="pl-num">Adjustment (theory)</th>
+                      <th scope="col" className="pl-dca2-num">Current %</th>
+                      <th scope="col" className="pl-dca2-num">Target %</th>
+                      <th scope="col" className="pl-dca2-num">Difference</th>
+                      <th scope="col" className="pl-dca2-num">Current amount</th>
+                      <th scope="col" className="pl-dca2-num">Target amount</th>
+                      <th scope="col" className="pl-dca2-num">Adjustment (theory)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -421,13 +481,20 @@ export default function RebalanceSection({
 
                       return (
                         <tr key={row.category}>
-                          <th scope="row">{CATEGORY_BY_ID[row.category].label}</th>
-                          <td className="pl-num">{formatPercent(row.currentPercent)}</td>
-                          <td className="pl-num">{formatPercent(row.targetPercent)}</td>
-                          <td className="pl-num">{formatPoints(row.differencePoints)}</td>
-                          <td className="pl-num">{formatMoney(row.currentAmount, currency)}</td>
-                          <td className="pl-num">{formatMoney(row.targetAmount, currency)}</td>
-                          <td className="pl-num">
+                          <th scope="row">
+                            <span
+                              className="pl-rb2-swatch"
+                              style={{ background: CATEGORY_BY_ID[row.category].color }}
+                              aria-hidden="true"
+                            />
+                            {CATEGORY_BY_ID[row.category].label}
+                          </th>
+                          <td className="pl-dca2-num">{formatPercent(row.currentPercent)}</td>
+                          <td className="pl-dca2-num">{formatPercent(row.targetPercent)}</td>
+                          <td className="pl-dca2-num">{formatPoints(row.differencePoints)}</td>
+                          <td className="pl-dca2-num">{formatMoney(row.currentAmount, currency)}</td>
+                          <td className="pl-dca2-num">{formatMoney(row.targetAmount, currency)}</td>
+                          <td className="pl-dca2-num">
                             <strong>{ADJUSTMENT_WORD[direction]}</strong>
                             {direction !== "none" && (
                               <> {formatSignedMoney(row.adjustment, currency)}</>
@@ -440,17 +507,17 @@ export default function RebalanceSection({
                   <tfoot>
                     <tr>
                       <th scope="row">Total</th>
-                      <td className="pl-num">100%</td>
-                      <td className="pl-num">100%</td>
-                      <td className="pl-num">—</td>
-                      <td className="pl-num">{formatMoney(result.baseValue, currency)}</td>
-                      <td className="pl-num">{formatMoney(result.baseValue, currency)}</td>
-                      <td className="pl-num">—</td>
+                      <td className="pl-dca2-num">100%</td>
+                      <td className="pl-dca2-num">100%</td>
+                      <td className="pl-dca2-num">—</td>
+                      <td className="pl-dca2-num">{formatMoney(result.baseValue, currency)}</td>
+                      <td className="pl-dca2-num">{formatMoney(result.baseValue, currency)}</td>
+                      <td className="pl-dca2-num">—</td>
                     </tr>
                   </tfoot>
                 </table>
               ) : (
-                <table className="pl-table pl-proj-table pl-rb-table">
+                <table className="pl-dca2-table pl-rb2-table">
                   <caption className="pl-sr-only">
                     How a new contribution would be placed, and what difference
                     from the target remains afterwards
@@ -458,26 +525,33 @@ export default function RebalanceSection({
                   <thead>
                     <tr>
                       <th scope="col">Category</th>
-                      <th scope="col" className="pl-num">Current %</th>
-                      <th scope="col" className="pl-num">Target %</th>
-                      <th scope="col" className="pl-num">Current amount</th>
-                      <th scope="col" className="pl-num">Target after new money</th>
-                      <th scope="col" className="pl-num">New money</th>
-                      <th scope="col" className="pl-num">Amount after</th>
-                      <th scope="col" className="pl-num">Remaining difference</th>
+                      <th scope="col" className="pl-dca2-num">Current %</th>
+                      <th scope="col" className="pl-dca2-num">Target %</th>
+                      <th scope="col" className="pl-dca2-num">Current amount</th>
+                      <th scope="col" className="pl-dca2-num">Target after new money</th>
+                      <th scope="col" className="pl-dca2-num">New money</th>
+                      <th scope="col" className="pl-dca2-num">Amount after</th>
+                      <th scope="col" className="pl-dca2-num">Remaining difference</th>
                     </tr>
                   </thead>
                   <tbody>
                     {result.rows.map((row) => (
                       <tr key={row.category}>
-                        <th scope="row">{CATEGORY_BY_ID[row.category].label}</th>
-                        <td className="pl-num">{formatPercent(row.currentPercent)}</td>
-                        <td className="pl-num">{formatPercent(row.targetPercent)}</td>
-                        <td className="pl-num">{formatMoney(row.currentAmount, currency)}</td>
-                        <td className="pl-num">{formatMoney(row.postTargetAmount, currency)}</td>
-                        <td className="pl-num">{formatMoney(row.contribution, currency)}</td>
-                        <td className="pl-num">{formatMoney(row.amountAfter, currency)}</td>
-                        <td className="pl-num">
+                        <th scope="row">
+                            <span
+                              className="pl-rb2-swatch"
+                              style={{ background: CATEGORY_BY_ID[row.category].color }}
+                              aria-hidden="true"
+                            />
+                            {CATEGORY_BY_ID[row.category].label}
+                          </th>
+                        <td className="pl-dca2-num">{formatPercent(row.currentPercent)}</td>
+                        <td className="pl-dca2-num">{formatPercent(row.targetPercent)}</td>
+                        <td className="pl-dca2-num">{formatMoney(row.currentAmount, currency)}</td>
+                        <td className="pl-dca2-num">{formatMoney(row.postTargetAmount, currency)}</td>
+                        <td className="pl-dca2-num">{formatMoney(row.contribution, currency)}</td>
+                        <td className="pl-dca2-num">{formatMoney(row.amountAfter, currency)}</td>
+                        <td className="pl-dca2-num">
                           {row.remainingAmount === 0 ? (
                             <strong>On target</strong>
                           ) : (
@@ -495,13 +569,13 @@ export default function RebalanceSection({
                   <tfoot>
                     <tr>
                       <th scope="row">Total</th>
-                      <td className="pl-num">100%</td>
-                      <td className="pl-num">100%</td>
-                      <td className="pl-num">{formatMoney(result.baseValue, currency)}</td>
-                      <td className="pl-num">{formatMoney(result.newTotal, currency)}</td>
-                      <td className="pl-num">{formatMoney(result.contribution, currency)}</td>
-                      <td className="pl-num">{formatMoney(result.newTotal, currency)}</td>
-                      <td className="pl-num">
+                      <td className="pl-dca2-num">100%</td>
+                      <td className="pl-dca2-num">100%</td>
+                      <td className="pl-dca2-num">{formatMoney(result.baseValue, currency)}</td>
+                      <td className="pl-dca2-num">{formatMoney(result.newTotal, currency)}</td>
+                      <td className="pl-dca2-num">{formatMoney(result.contribution, currency)}</td>
+                      <td className="pl-dca2-num">{formatMoney(result.newTotal, currency)}</td>
+                      <td className="pl-dca2-num">
                         {result.remainingOverweight > 0
                           ? `${formatMoney(result.remainingOverweight, currency)} above`
                           : "—"}
@@ -512,7 +586,7 @@ export default function RebalanceSection({
               )}
             </div>
 
-            <p className="pl-hint">
+            <p className="pl-dca2-footnote">
               {method === "trade"
                 ? "Difference is in percentage points (pp): current minus target. "
                 : "Percentages are shares of the current allocated value. After new money, targets apply to the larger total. "}

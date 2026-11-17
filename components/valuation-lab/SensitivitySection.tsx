@@ -39,8 +39,8 @@ export default function SensitivitySection({
   const money = (value: number | null) => formatCurrency(value, currency);
 
   return (
-    <div className="vl-panel">
-      <div className="vl-note vl-note-soft" role="note">
+    <div className="vl-panel vl-sens-panel">
+      <div className="vl-note vl-note-flat" role="note">
         <i className="ti ti-info-circle" aria-hidden="true" />
         <p>
           Each cell reruns the main DCF with a different discount rate and
@@ -128,9 +128,11 @@ function SensitivityTable({
         </p>
       )}
 
+      <div className="vl-sens-card">
+      <h3 className="vl-h3">Estimated value per share</h3>
       <p className="vl-hint">
-        Estimated value per share. Rows are discount rates. Columns are
-        terminal growth rates. Select a cell to see what is behind it.
+        Rows are discount rates. Columns are terminal growth rates. Select a
+        cell to see what is behind it.
       </p>
 
       <div className="vl-table-wrap">
@@ -204,8 +206,9 @@ function SensitivityTable({
         The cell with the heavier outline is the main model. N/A means the
         value was not calculated.
       </p>
+      </div>
 
-      <div className="vl-selected" aria-live="polite">
+      <div className="vl-selected vl-sens-card" aria-live="polite">
         {cell ? (
           <>
             <h4 className="vl-h4">Selected cell</h4>
@@ -232,7 +235,7 @@ function SensitivityTable({
                     <dt>Terminal value share of EV</dt>
                     <dd>{formatPercent(detail.terminalValueShareOfEv)}</dd>
                   </div>
-                  <div>
+                  <div className="vl-sens-total">
                     <dt>Estimated value per share</dt>
                     <dd>{money(detail.valuePerShare)}</dd>
                   </div>

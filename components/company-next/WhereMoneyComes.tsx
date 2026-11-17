@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 
-// Where Apple makes its money: by product line, by profit, and by region.
+// Where the company makes its money: by product line, by profit, and by region.
+// Company-neutral: group names, the kind of profit and the period labels all come from `data`.
+// If a label is not given, a neutral word is used (never a company's own wording).
 
 type Product = {
   name: string;
@@ -23,6 +25,12 @@ export type WhereMoneyComesData = {
   title: string;
   lead: string;
   labels: string[];
+  /** Name of the period shown, for example "FY26" or "Q3 2026". Used in tooltips. */
+  periodLabel?: string;
+  /** What the growth pills are compared with, for example "FY25" or "Q3 2025". */
+  comparedWith?: string;
+  /** Optional brand colors (hex), used first for the product lines. The rest come from Scope's own palette. */
+  palette?: string[];
   products: Product[];
   donutHowToRead: string;
 
@@ -31,6 +39,12 @@ export type WhereMoneyComesData = {
     explain: string;
     revenueTotal: string;
     profitTotal: string;
+    /** Names of the two groups. `a` is the larger base group, `b` is the highlighted group. */
+    groupNames?: { a: string; b: string };
+    /** Which profit the split uses, for example "gross profit" or "operating profit". */
+    profitLabel?: string;
+    // Share of revenue and profit, in percent, and margin as text. "products*" is group A and "services*" is group B.
+    // (The field names are older than the group names above. They are kept so existing data keeps working.)
     productsRevenue: number;
     servicesRevenue: number;
     productsProfit: number;
@@ -59,25 +73,49 @@ export type WhereMoneyComesData = {
   source: string;
 };
 
-// One fixed color per product line, by position (share-1 … share-5).
-// Used for products only, never for regions.
-const STROKE = [
-  "stroke-share-1",
-  "stroke-share-2",
-  "stroke-share-3",
-  "stroke-share-4",
-  "stroke-share-5",
-];
-const FILL = [
-  "bg-share-1",
-  "bg-share-2",
-  "bg-share-3",
-  "bg-share-4",
-  "bg-share-5",
+// Scope's own palette for product lines, in the order it is used. Chosen by hand: bright and
+// clearly different from each other. The last color is grey.
+const SCOPE_PALETTE = [
+  "#1E3A8A",
+  "#2563EB",
+  "#4338CA",
+  "#7C3AED",
+  "#0E7490",
+  "#BE185D",
+  "#86198F",
+  "#94A3B8",
 ];
 
-// One vivid green for every region that grew. No gradient.
-const GROWTH_GREEN = "bg-[#129a48]";
+// A company with clear brand colors puts them in `palette`. They go to the biggest product lines
+// first, then the Scope palette fills in the rest (without repeating a color).
+const buildColors = (custom: string[] = []) => [
+  ...custom,
+  ...SCOPE_PALETTE.filter((c) => !custom.includes(c)),
+];
+
+// A line whose name starts with "Other" (Other Bets, Other, ...) is always grey, whatever its position.
+const OTHER_GREY = "#94A3B8";
+const colorOf = (colors: string[], p: Product, i: number) =>
+  /^other\b/i.test(p.name) ? OTHER_GREY : colors[i % colors.length];
+
+// Fixed Scope blues for group A / group B and the history bars. Same for every company.
+// Full class names are written out so Tailwind can find them.
+const A_STROKE = "stroke-[#93C5FD]";
+const A_FILL = "bg-[#93C5FD]";
+const B_STROKE = "stroke-[#1D4ED8]";
+const B_FILL = "bg-[#1D4ED8]";
+const PAST_BAR = "bg-[#BFDBFE]";
+
+// Growth greens for the region map. The same thresholds for every company, so a given
+// growth rate always gets the same shade. A region that shrank stays red (bg-danger).
+const UP = [
+  { max: 5, bg: "#CFEBD6", fg: "#0F3D22" },
+  { max: 10, bg: "#9ED5B0", fg: "#0F3D22" },
+  { max: 15, bg: "#5DB97F", fg: "#0B2E1A" },
+  { max: 25, bg: "#247A4B", fg: "#FFFFFF" },
+  { max: Infinity, bg: "#14532D", fg: "#FFFFFF" },
+];
+const upTone = (yoy: number) => UP.find((t) => yoy < t.max)!;
 
 // Rounds to one decimal and drops a trailing .0 (50 -> "50%", 50.4 -> "50.4%").
 const pct = (v: number) => `${Math.round(v * 10) / 10}%`;
@@ -88,6 +126,8 @@ const fmtYoy = (v: number) =>
 const money = (v: number) => `$${v.toFixed(1)}B`;
 
 const clamp = (v: number) => Math.min(100, Math.max(0, v));
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // The arrow means the pill never relies on color alone.
 function Yoy({ v }: { v: number }) {
@@ -106,7 +146,7 @@ function Yoy({ v }: { v: number }) {
 function HistoryBars({
   items,
   title,
-  highlight = "bg-primary",
+  highlight = B_FILL,
   fill = false,
 }: {
   items: { year: string; share: number }[];
@@ -136,7 +176,7 @@ function HistoryBars({
                 <div className="relative min-h-[96px] w-full flex-1 overflow-hidden rounded-t-md bg-surface">
                   <div
                     className={`absolute inset-x-0 bottom-0 rounded-t-md transition-all duration-300 ${
-                      last ? highlight : "bg-border"
+                      last ? highlight : PAST_BAR
                     }`}
                     style={{ height }}
                     title={`${item.year}: ${pct(item.share)}`}
@@ -146,7 +186,7 @@ function HistoryBars({
                 <div className="flex h-16 w-full items-end overflow-hidden rounded-t-md bg-surface">
                   <div
                     className={`w-full rounded-t-md transition-all duration-300 ${
-                      last ? highlight : "bg-border"
+                      last ? highlight : PAST_BAR
                     }`}
                     style={{ height }}
                     title={`${item.year}: ${pct(item.share)}`}
@@ -168,10 +208,12 @@ function HistoryBars({
 
 function RevenueDonut({
   products,
+  colors,
   total,
   howToRead,
 }: {
   products: Product[];
+  colors: string[];
   total: string;
   howToRead: string;
 }) {
@@ -216,9 +258,10 @@ function RevenueDonut({
               strokeDasharray={`${Math.max(len - 2, 0)} ${C - len + 2}`}
               strokeDashoffset={-off}
               tabIndex={0}
+              stroke={colorOf(colors, products[i], i)}
               className={`cursor-pointer outline-none transition-all duration-200 ${
-                STROKE[i % STROKE.length]
-              } ${active !== null && active !== i ? "opacity-25" : ""}`}
+                active !== null && active !== i ? "opacity-25" : ""
+              }`}
               onMouseEnter={() => setActive(i)}
               onFocus={() => setActive(i)}
               onBlur={() => setActive(null)}
@@ -254,22 +297,27 @@ function RevenueDonut({
               onFocus={() => setActive(i)}
               onBlur={() => setActive(null)}
               onClick={() => setActive(active === i ? null : i)}
-              className={`grid cursor-pointer grid-cols-[12px_1fr_auto] items-center gap-x-3 gap-y-0.5 rounded-lg border-b border-border px-2 py-2.5 text-sm outline-none transition-colors hover:bg-surface focus-visible:bg-surface ${
+              className={`grid cursor-pointer grid-cols-[12px_1fr_56px_76px_88px] items-center gap-x-3 gap-y-0.5 rounded-lg border-b border-border px-2 py-2.5 text-sm outline-none transition-colors hover:bg-surface focus-visible:bg-surface ${
                 active === i ? "bg-surface" : ""
               }`}
             >
               <span
-                className={`h-3 w-3 rounded ${FILL[i % FILL.length]}`}
+                className="h-3 w-3 rounded"
+                style={{ background: colorOf(colors, p, i) }}
                 aria-hidden
               />
               <span className="font-semibold text-ink">{p.name}</span>
               <span className="text-right font-semibold tabular-nums text-ink">
                 {pct(p.share)}
               </span>
-              <span className="col-start-2 text-sm text-ink-muted">{p.note}</span>
-              <span className="flex items-center justify-end gap-2 text-sm text-ink-muted">
-                <span className="tabular-nums">{money(p.value)}</span>
+              <span className="text-right tabular-nums text-ink-muted">
+                {money(p.value)}
+              </span>
+              <span className="flex justify-end">
                 <Yoy v={p.yoy} />
+              </span>
+              <span className="col-span-4 col-start-2 text-sm text-ink-muted">
+                {p.note}
               </span>
             </li>
           ))}
@@ -284,20 +332,24 @@ function RevenueDonut({
 
 /* ---------- Profit split: two small donuts ---------- */
 
-// Products fill the ring from the top, clockwise. Services takes the rest.
+// Group A fills the ring from the top, clockwise. Group B (the highlighted group) takes the rest.
 function MiniDonut({
-  servicesShare,
+  bShare,
+  aName,
+  bName,
   label,
   total,
 }: {
-  servicesShare: number;
+  bShare: number;
+  aName: string;
+  bName: string;
   label: string;
   total: string;
 }) {
   const r = 80;
   const C = 2 * Math.PI * r;
-  const svLen = (C * clamp(servicesShare)) / 100;
-  const pLen = C - svLen;
+  const bLen = (C * clamp(bShare)) / 100;
+  const aLen = C - bLen;
 
   return (
     <div className="flex flex-col items-center text-center">
@@ -306,7 +358,7 @@ function MiniDonut({
           viewBox="0 0 200 200"
           className="block h-auto w-full -rotate-90"
           role="img"
-          aria-label={`${label}: Services ${pct(servicesShare)}, Products ${pct(100 - servicesShare)}`}
+          aria-label={`${label}: ${bName} ${pct(bShare)}, ${aName} ${pct(100 - bShare)}`}
         >
           <circle
             cx="100"
@@ -314,9 +366,9 @@ function MiniDonut({
             r={r}
             fill="none"
             strokeWidth={26}
-            strokeDasharray={`${Math.max(pLen - 2, 0)} ${C - pLen + 2}`}
+            strokeDasharray={`${Math.max(aLen - 2, 0)} ${C - aLen + 2}`}
             strokeDashoffset={0}
-            className="stroke-primary"
+            className={A_STROKE}
           />
           <circle
             cx="100"
@@ -324,16 +376,16 @@ function MiniDonut({
             r={r}
             fill="none"
             strokeWidth={26}
-            strokeDasharray={`${Math.max(svLen - 2, 0)} ${C - svLen + 2}`}
-            strokeDashoffset={-pLen}
-            className="stroke-share-2"
+            strokeDasharray={`${Math.max(bLen - 2, 0)} ${C - bLen + 2}`}
+            strokeDashoffset={-aLen}
+            className={B_STROKE}
           />
         </svg>
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-[14%]">
           <span className="font-serif text-[clamp(22px,2.6vw,28px)] font-semibold leading-none tracking-tight tabular-nums text-ink">
-            {pct(servicesShare)}
+            {pct(bShare)}
           </span>
-          <span className="mt-1 text-sm text-ink-muted">Services</span>
+          <span className="mt-1 text-sm leading-tight text-ink-muted">{bName}</span>
         </div>
       </div>
       <p className="mt-3 text-base font-semibold leading-tight text-ink">{label}</p>
@@ -355,7 +407,7 @@ function MarginRow({
   if (Number.isNaN(n)) return null;
   return (
     <div className="mt-3">
-      <div className="mb-1.5 flex justify-between text-sm">
+      <div className="mb-1.5 flex justify-between gap-3 text-sm">
         <span className="text-ink">{label}</span>
         <b className="tabular-nums text-ink">${n.toFixed(2)}</b>
       </div>
@@ -416,7 +468,15 @@ function layoutTreemap(items: Region[], rect: Rect): { region: Region; rect: Rec
   ];
 }
 
-function RegionTreemap({ items, className = "" }: { items: Region[]; className?: string }) {
+function RegionTreemap({
+  items,
+  periodLabel,
+  className = "",
+}: {
+  items: Region[];
+  periodLabel?: string;
+  className?: string;
+}) {
   const sorted = [...items].sort((a, b) => b.share - a.share);
   const tiles = layoutTreemap(sorted, { x: 0, y: 0, w: 100, h: 100 });
 
@@ -429,8 +489,8 @@ function RegionTreemap({ items, className = "" }: { items: Region[]; className?:
     >
       {tiles.map(({ region, rect }) => {
         const shrinking = region.yoy < 0;
-        // Red if the region shrank, the same vivid green if it grew.
-        const bg = shrinking ? "bg-danger" : GROWTH_GREEN;
+        // Red if the region shrank. If it grew, a darker green means faster growth.
+        const tone = shrinking ? null : upTone(region.yoy);
         const big = region.share >= 12;
 
         return (
@@ -445,10 +505,11 @@ function RegionTreemap({ items, className = "" }: { items: Region[]; className?:
             }}
           >
             <div
-              className={`flex h-full w-full flex-col overflow-hidden rounded-2xl text-white ${
-                big ? "p-4 sm:p-5" : "p-3 sm:p-4"
-              } ${bg}`}
-              title={`${region.name}: ${pct(region.share)} of FY25 sales, ${money(region.value)}`}
+              className={`flex h-full w-full flex-col overflow-hidden rounded-2xl ${
+                shrinking ? "bg-danger text-white" : ""
+              } ${big ? "p-4 sm:p-5" : "p-3 sm:p-4"}`}
+              style={tone ? { background: tone.bg, color: tone.fg } : undefined}
+              title={`${region.name}: ${pct(region.share)} of sales${periodLabel ? ` in ${periodLabel}` : ""}, ${money(region.value)}`}
             >
               <span className="text-sm font-semibold leading-tight">{region.name}</span>
               <span
@@ -485,6 +546,14 @@ export default function WhereMoneyComes({
   const maxRegion = Math.max(1, ...regions.items.map((r) => r.share));
   const focusDown = regions.focus.yoy < 0;
 
+  // Group names and the kind of profit come from the data. Without them, neutral words are used.
+  const aName = profit.groupNames?.a ?? "Group A";
+  const bName = profit.groupNames?.b ?? "Group B";
+  const profitLabel = profit.profitLabel ?? "profit";
+  const marginWord = profitLabel.endsWith(" profit") ? profitLabel.replace(/ profit$/, " margin") : "profit margin";
+  const comparedWith = data.comparedWith ?? "the year before";
+  const colors = buildColors(data.palette);
+
   return (
     <section id="revenue" className="scroll-mt-20 bg-white py-8 sm:py-10">
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
@@ -496,18 +565,7 @@ export default function WhereMoneyComes({
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted sm:text-[15px]">
             {data.lead}
           </p>
-          {data.labels.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {data.labels.map((label) => (
-                <span
-                  key={label}
-                  className="rounded-full border border-border px-3 py-1 text-xs text-ink-muted"
-                >
-                  {label}
-                </span>
-              ))}
-            </div>
-          )}
+          {/* data.labels is no longer shown (the source line at the bottom says the same); it stays in the data type */}
         </header>
 
         {/* Revenue donut */}
@@ -518,6 +576,7 @@ export default function WhereMoneyComes({
             </h3>
             <RevenueDonut
               products={products}
+              colors={colors}
               total={profit.revenueTotal}
               howToRead={data.donutHowToRead}
             />
@@ -534,53 +593,61 @@ export default function WhereMoneyComes({
           </p>
 
           <div className="mt-4 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            {/* Revenue vs. gross profit: two donuts */}
+            {/* Revenue vs. profit: two donuts */}
             <div className="rounded-2xl border border-border bg-white p-5 sm:p-6">
               <h4 className="font-serif text-xl leading-tight tracking-tight text-ink">
-                Revenue vs. gross profit
+                Revenue vs. {profitLabel}
               </h4>
               <div className="mt-5 grid grid-cols-2 gap-4">
                 <MiniDonut
-                  servicesShare={profit.servicesRevenue}
+                  bShare={profit.servicesRevenue}
+                  aName={aName}
+                  bName={bName}
                   label="Share of revenue"
                   total={profit.revenueTotal}
                 />
                 <MiniDonut
-                  servicesShare={profit.servicesProfit}
-                  label="Share of gross profit"
+                  bShare={profit.servicesProfit}
+                  aName={aName}
+                  bName={bName}
+                  label={`Share of ${profitLabel}`}
                   total={profit.profitTotal}
                 />
               </div>
               <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-muted">
                 <li className="flex items-center gap-2">
-                  <i className="size-3 rounded-full bg-primary" aria-hidden="true" />
-                  Products
+                  <i className={`size-3 rounded-full ${A_FILL}`} aria-hidden="true" />
+                  {aName}
                 </li>
                 <li className="flex items-center gap-2">
-                  <i className="size-3 rounded-full bg-share-2" aria-hidden="true" />
-                  Services
+                  <i className={`size-3 rounded-full ${B_FILL}`} aria-hidden="true" />
+                  {bName}
                 </li>
               </ul>
               <p className="mt-3 text-xs leading-relaxed text-ink-muted">
-                Services is {pct(profit.servicesRevenue)} of revenue but{" "}
-                {pct(profit.servicesProfit)} of gross profit. That jump is the
-                margin gap.
+                {bName} is {pct(profit.servicesRevenue)} of revenue but{" "}
+                {pct(profit.servicesProfit)} of {profitLabel}.{" "}
+                {profit.servicesProfit > profit.servicesRevenue
+                  ? "That jump is the margin gap."
+                  : profit.servicesProfit < profit.servicesRevenue
+                    ? "Its share of profit is smaller than its share of revenue."
+                    : "Its share of profit matches its share of revenue."}
               </p>
             </div>
 
             <div className="flex flex-col rounded-2xl border border-border bg-white p-5">
               <h4 className="font-serif text-lg leading-tight tracking-tight text-ink">
-                What Apple keeps from $100 of sales
+                What each group keeps from $100 of sales
               </h4>
               <MarginRow
-                label="Services gross margin"
+                label={`${bName} ${marginWord}`}
                 margin={profit.servicesMargin}
-                color="bg-share-2"
+                color={B_FILL}
               />
               <MarginRow
-                label="Products gross margin"
+                label={`${aName} ${marginWord}`}
                 margin={profit.productsMargin}
-                color="bg-primary"
+                color={A_FILL}
               />
 
               {profit.servicesHistory.length > 0 && (
@@ -588,7 +655,7 @@ export default function WhereMoneyComes({
                   <HistoryBars
                     items={profit.servicesHistory}
                     title={profit.servicesHistoryTitle}
-                    highlight="bg-share-2"
+                    highlight={B_FILL}
                     fill
                   />
                 </div>
@@ -613,7 +680,7 @@ export default function WhereMoneyComes({
               </p>
 
               {/* Treemap on tablets and up */}
-              <RegionTreemap items={regions.items} className="hidden sm:block" />
+              <RegionTreemap items={regions.items} periodLabel={data.periodLabel} className="hidden sm:block" />
 
               {/* Simple list on phones, where small boxes would be too tight */}
               <ul className="border-t border-border sm:hidden">
@@ -642,10 +709,11 @@ export default function WhereMoneyComes({
                       >
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
-                            shrinking ? "bg-danger" : GROWTH_GREEN
+                            shrinking ? "bg-danger" : ""
                           }`}
                           style={{
                             width: `${clamp((region.share / maxRegion) * 100)}%`,
+                            background: shrinking ? undefined : upTone(region.yoy).bg,
                           }}
                         />
                       </div>
@@ -678,7 +746,7 @@ export default function WhereMoneyComes({
                   : `${regions.focus.yoy > 0 ? "+" : "−"}${Math.abs(regions.focus.yoy).toFixed(1)}%`}
               </div>
               <p className="mt-1.5 text-xs tabular-nums text-ink-muted">
-                Versus FY24, on {money(regions.focus.value)} of revenue
+                {capitalize(`versus ${comparedWith}`)}, on {money(regions.focus.value)} of revenue
               </p>
 
               {regions.focus.history.length > 0 && (
@@ -686,7 +754,7 @@ export default function WhereMoneyComes({
                   <HistoryBars
                     items={regions.focus.history}
                     title={regions.focus.historyTitle}
-                    highlight={focusDown ? "bg-danger" : "bg-share-2"}
+                    highlight={focusDown ? "bg-danger" : B_FILL}
                     fill
                   />
                 </div>

@@ -15,7 +15,7 @@ type TemplatesSectionProps = {
 function TemplateBar({ template }: { template: PortfolioTemplate }) {
   // Quick visual summary. The list below is the accessible equivalent.
   return (
-    <div className="pl-tbar" aria-hidden="true">
+    <div className="pl-tpl2-bar" aria-hidden="true">
       {template.holdings.map((holding, index) => (
         <span
           key={`${holding.name}-${index}`}
@@ -53,103 +53,118 @@ export default function TemplatesSection({
   return (
     <section
       id="portfolio-templates"
-      className="pl-section"
+      className="pl-section pl-tpl2"
       aria-labelledby="pl-templates-title"
     >
-      <p className="pl-eyebrow">Portfolio examples</p>
-      <h2 id="pl-templates-title" className="pl-h2">
+      <h2 id="pl-templates-title" className="pl-tpl2-title">
         Learn from six example portfolios
       </h2>
-      <p className="pl-lead">
+      <p className="pl-tpl2-lead">
         Each example shows one way of splitting money across asset types, and
         what that split can and cannot tell you. They are teaching examples, not
         recommendations, and none is the best choice for everyone.
       </p>
 
-      <div className="pl-templates">
+      <div className="pl-tpl2-grid">
         {TEMPLATES.map((template) => {
           const isLoaded = loadedTemplateId === template.id;
           const isPending = pendingId === template.id;
 
           return (
-            <article key={template.id} className="pl-template">
-              <header className="pl-template-head">
-                <h3 className="pl-h3">{template.name}</h3>
-                {isLoaded && <span className="pl-badge">In the builder</span>}
+            <article key={template.id} className="pl-tpl2-card">
+              <header className="pl-tpl2-band">
+                <div className="pl-tpl2-band-top">
+                  <h3 className="pl-tpl2-name">{template.name}</h3>
+                  {isLoaded && (
+                    <span className="pl-tpl2-badge">In the builder</span>
+                  )}
+                </div>
+
+                <p className="pl-tpl2-desc">{template.description}</p>
               </header>
 
-              <p className="pl-template-desc">{template.description}</p>
+              <div className="pl-tpl2-body">
+                <TemplateBar template={template} />
 
-              <TemplateBar template={template} />
-
-              <ul className="pl-template-list" aria-label={`${template.name} allocation`}>
-                {template.holdings.map((holding, index) => (
-                  <li key={`${holding.name}-${index}`}>
-                    <span
-                      className="pl-swatch"
-                      style={{ background: CATEGORY_BY_ID[holding.category].color }}
-                      aria-hidden="true"
-                    />
-                    <span className="pl-template-name">{holding.name}</span>
-                    <span className="pl-template-pct">{holding.percent}%</span>
-                  </li>
-                ))}
-              </ul>
-
-              <p className="pl-template-objective">
-                <span>Educational objective</span>
-                {template.objective}
-              </p>
-
-              <details className="pl-details">
-                <summary>The idea and its limits</summary>
-
-                <p>{template.idea}</p>
-
-                <h4>Main risks and limitations</h4>
-                <ul>
-                  {template.risks.map((risk) => (
-                    <li key={risk}>{risk}</li>
+                <ul
+                  className="pl-tpl2-list"
+                  aria-label={`${template.name} allocation`}
+                >
+                  {template.holdings.map((holding, index) => (
+                    <li key={`${holding.name}-${index}`}>
+                      <span
+                        className="pl-tpl2-swatch"
+                        style={{ background: CATEGORY_BY_ID[holding.category].color }}
+                        aria-hidden="true"
+                      />
+                      <span className="pl-tpl2-hname">{holding.name}</span>
+                      <span className="pl-tpl2-pct">{holding.percent}%</span>
+                    </li>
                   ))}
                 </ul>
 
-                <p className="pl-details-context">{template.context}</p>
-              </details>
+                <p className="pl-tpl2-objective">
+                  <span>Educational objective</span>
+                  {template.objective}
+                </p>
 
-              {isPending ? (
-                <div className="pl-confirm-box" role="group" aria-label="Confirm replacing your portfolio">
-                  <p>
-                    Replace your current holdings with this example? Your
-                    investment amount and currency stay the same.
-                  </p>
-                  <div className="pl-confirm-actions">
-                    <button
-                      type="button"
-                      className="pl-btn pl-btn-primary"
-                      onClick={() => handleConfirm(template)}
-                    >
-                      Replace holdings
-                    </button>
-                    <button
-                      type="button"
-                      className="pl-btn pl-btn-ghost"
-                      onClick={() => setPendingId(null)}
-                    >
-                      Cancel
-                    </button>
+                <details className="pl-tpl2-details">
+                  <summary>
+                    The idea and its limits
+                    <i className="ti ti-chevron-down" aria-hidden="true" />
+                  </summary>
+
+                  <p>{template.idea}</p>
+
+                  <h4>Main risks and limitations</h4>
+                  <ul>
+                    {template.risks.map((risk) => (
+                      <li key={risk}>{risk}</li>
+                    ))}
+                  </ul>
+
+                  <p className="pl-tpl2-context">{template.context}</p>
+                </details>
+
+                {isPending ? (
+                  <div
+                    className="pl-tpl2-confirm"
+                    role="group"
+                    aria-label="Confirm replacing your portfolio"
+                  >
+                    <p>
+                      Replace your current holdings with this example? Your
+                      investment amount and currency stay the same.
+                    </p>
+                    <div className="pl-tpl2-confirm-actions">
+                      <button
+                        type="button"
+                        className="pl-tpl2-btn pl-tpl2-btn-solid"
+                        onClick={() => handleConfirm(template)}
+                      >
+                        Replace holdings
+                      </button>
+                      <button
+                        type="button"
+                        className="pl-tpl2-btn"
+                        onClick={() => setPendingId(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="pl-btn pl-btn-primary pl-template-use"
-                  onClick={() => handleUse(template)}
-                  aria-label={`Use this template: ${template.name}`}
-                >
-                  Use This Template
-                  <i className="ti ti-arrow-right" aria-hidden="true" />
-                </button>
-              )}
+                ) : (
+                  <button
+                    type="button"
+                    className="pl-tpl2-btn pl-tpl2-use"
+                    onClick={() => handleUse(template)}
+                    aria-label={`Use this template: ${template.name}`}
+                  >
+                    Use This Template
+                    <i className="ti ti-arrow-right" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
             </article>
           );
         })}

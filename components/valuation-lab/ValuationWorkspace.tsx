@@ -250,8 +250,6 @@ export default function ValuationWorkspace() {
       className="vl-section"
       aria-labelledby="vl-workspace-title"
     >
-      <p className="vl-section-eyebrow">Workspace</p>
-
       <h2 id="vl-workspace-title" className="vl-h2">
         Your inputs decide the result, so every step stays visible
       </h2>
@@ -271,7 +269,7 @@ export default function ValuationWorkspace() {
         </ul>
       </nav>
 
-      <div className="vl-note" role="note">
+      <div className="vl-note vl-note-flat" role="note">
         <i className="ti ti-info-circle" aria-hidden="true" />
         <p>
           All data on this page is entered by you. Scope does not check it,
@@ -302,8 +300,15 @@ export default function ValuationWorkspace() {
       </div>
 
       {/* Company and market */}
-      <fieldset id="inputs" className="vl-group vl-scroll-target">
-        <legend>Company and market</legend>
+      <fieldset id="inputs" className="vl-group vl-group-tint vl-scroll-target">
+        <legend>
+          <span className="vl-group-head">
+            <span className="vl-group-num" aria-hidden="true">
+              1
+            </span>
+            Company and market
+          </span>
+        </legend>
 
         <div className="vl-fields">
           <TextField
@@ -348,8 +353,15 @@ export default function ValuationWorkspace() {
       </fieldset>
 
       {/* Financial inputs for the ratios */}
-      <fieldset className="vl-group">
-        <legend>Financial data for the ratios</legend>
+      <fieldset className="vl-group vl-group-tint">
+        <legend>
+          <span className="vl-group-head">
+            <span className="vl-group-num" aria-hidden="true">
+              2
+            </span>
+            Financial data for the ratios
+          </span>
+        </legend>
 
         <div className="vl-fields">
           <NumberField
@@ -531,11 +543,6 @@ export default function ValuationWorkspace() {
         <h2 className="vl-h2 vl-h2-sub">
           One place shows everything you entered and everything calculated
         </h2>
-        <p className="vl-section-lead">
-          Everything you entered and everything the calculators returned, in
-          one place.
-        </p>
-
         <ValuationSummary
           form={form}
           pe={pe}

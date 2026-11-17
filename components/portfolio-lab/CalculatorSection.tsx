@@ -38,7 +38,7 @@ type CalculatorSectionProps = {
 
 // One color per scenario. The legend also shows the values, so color is
 // never the only way to tell the lines apart.
-const SCENARIO_COLORS = ["#185FA5", "#0F6E56", "#EA8C00"];
+const SCENARIO_COLORS = ["#2563EB", "#7C3AED", "#0E7490"]; // --cat-1, --cat-2, --cat-3
 
 function rowLabel(month: number): string {
   if (month === 0) return "Start";
@@ -126,193 +126,200 @@ export default function CalculatorSection({
 
   const lead = okScenarios?.[0]?.result;
 
+  const yearsWord = (years: number) => (years === 1 ? "year" : "years");
+
   return (
     <section
       id="investment-calculator"
-      className="pl-section"
+      className="pl-section pl-dca2"
       aria-labelledby="pl-calc-title"
     >
-      <p className="pl-eyebrow">Investment Calculator</p>
-      <h2 id="pl-calc-title" className="pl-h2">
+      <h2 id="pl-calc-title" className="pl-dca2-title">
         Compare illustrative return assumptions
       </h2>
-      <p className="pl-lead">
+      <p className="pl-dca2-lead">
         Try a one-time investment or regular monthly contributions, and compare
         three assumed yearly returns side by side. The rates are examples you
         can edit. They are not forecasts, and nobody can promise a return.
       </p>
 
-      <div className="pl-tool-grid">
-        <div className="pl-panel pl-tool-inputs">
-          <fieldset className="pl-currency pl-mode">
-            <legend>Calculator mode</legend>
+      <div className="pl-dca2-panel">
+        <h3 className="pl-dca2-h3">Your plan</h3>
 
-            <div className="pl-segmented pl-segmented-2">
-              {(
-                [
-                  ["lump", "Lump sum", "Invest once and leave it"],
-                  ["monthly", "Monthly contributions", "Add the same amount monthly"],
-                ] as const
-              ).map(([value, title, note]) => (
-                <label key={value} className="pl-segment">
-                  <input
-                    type="radio"
-                    name="pl-calc-mode"
-                    value={value}
-                    checked={mode === value}
-                    onChange={() => setMode(value)}
-                  />
-                  <span>
-                    {title}
-                    <small>{note}</small>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
+        <fieldset className="pl-calc2-mode">
+          <legend>Calculator mode</legend>
 
-          <div className="pl-fields">
+          <div className="pl-calc2-seg-group">
+            {(
+              [
+                ["lump", "Lump sum", "Invest once and leave it"],
+                ["monthly", "Monthly contributions", "Add the same amount monthly"],
+              ] as const
+            ).map(([value, title, note]) => (
+              <label key={value} className="pl-calc2-seg">
+                <input
+                  type="radio"
+                  name="pl-calc-mode"
+                  value={value}
+                  checked={mode === value}
+                  onChange={() => setMode(value)}
+                />
+                <span>
+                  {title}
+                  <small>{note}</small>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div className="pl-dca2-fields">
+          <NumberField
+            id="calc-initial"
+            label="Initial investment"
+            value={fields.initial}
+            onChange={setField("initial")}
+            error={base.errors.initial}
+            prefix={currency}
+          />
+
+          {mode === "monthly" && (
             <NumberField
-              id="calc-initial"
-              label="Initial investment"
-              value={fields.initial}
-              onChange={setField("initial")}
-              error={base.errors.initial}
+              id="calc-monthly"
+              label="Monthly contribution"
+              value={fields.monthly}
+              onChange={setField("monthly")}
+              error={base.errors.monthly}
+              hint="Added at the end of every month."
               prefix={currency}
             />
+          )}
 
-            {mode === "monthly" && (
+          <NumberField
+            id="calc-years"
+            label="Investment duration"
+            value={fields.years}
+            onChange={setField("years")}
+            error={base.errors.years}
+            hint="Up to 60 years."
+            suffix="years"
+          />
+        </div>
+
+        <fieldset className="pl-calc2-rates">
+          <legend>Assumed annual returns to compare</legend>
+
+          <div className="pl-calc2-rate-grid">
+            {rates.map((rate, index) => (
               <NumberField
-                id="calc-monthly"
-                label="Monthly contribution"
-                value={fields.monthly}
-                onChange={setField("monthly")}
-                error={base.errors.monthly}
-                hint="Added at the end of every month."
-                prefix={currency}
+                key={index}
+                id={`calc-rate-${index}`}
+                label={`Scenario ${index + 1}`}
+                value={rate}
+                onChange={setRate(index)}
+                error={parsedRates[index].error}
+                suffix="%"
               />
-            )}
-
-            <NumberField
-              id="calc-years"
-              label="Investment duration"
-              value={fields.years}
-              onChange={setField("years")}
-              error={base.errors.years}
-              hint="Up to 60 years."
-              suffix="years"
-            />
+            ))}
           </div>
 
-          <fieldset className="pl-rates">
-            <legend>Assumed annual returns to compare</legend>
+          <p className="pl-dca2-hint">
+            Illustrative only. You can use negative numbers such as -5, from -50
+            to 50.
+          </p>
+        </fieldset>
 
-            <div className="pl-rate-grid">
-              {rates.map((rate, index) => (
-                <NumberField
+        <div className="pl-dca2-actions pl-calc2-actions">
+          <button
+            type="button"
+            className="pl-dca2-btn pl-dca2-btn-quiet"
+            onClick={() => {
+              // Resets the numbers only. The chosen mode is kept, as before.
+              onInputsChange({ ...defaultCalculatorInputs(), mode });
+            }}
+          >
+            <i className="ti ti-restore" aria-hidden="true" />
+            Reset these fields
+          </button>
+        </div>
+
+        <p className="pl-dca2-hint">
+          Amounts use your display currency ({currency}). Nothing is
+          converted.
+        </p>
+      </div>
+
+      <div className="pl-dca2-results" aria-live="polite">
+        {baseHasErrors || !ratesValid ? (
+          <div className="pl-dca2-empty">
+            <i className="ti ti-alert-circle" aria-hidden="true" />
+            <p className="pl-dca2-empty-title">Check the highlighted fields</p>
+            <p className="pl-dca2-empty-text">
+              Results appear as soon as every field has a valid number.
+            </p>
+          </div>
+        ) : firstFailure ? (
+          <div className="pl-dca2-empty">
+            <i className="ti ti-alert-triangle" aria-hidden="true" />
+            <p className="pl-dca2-empty-title">This can&apos;t be calculated</p>
+            <p className="pl-dca2-empty-text">{firstFailure.outcome.error}</p>
+          </div>
+        ) : okScenarios && lead ? (
+          <div className="pl-dca2-hero">
+            <p className="pl-dca2-hero-label">
+              {mode === "lump" ? "Your investment" : "What you would put in"}
+            </p>
+            <p className="pl-dca2-hero-value">
+              {formatMoney(lead.principal, currency)}
+            </p>
+            <p className="pl-dca2-hero-sub">
+              {mode === "lump"
+                ? `A single amount, left for ${lead.input.years} ${yearsWord(lead.input.years)}.`
+                : `${formatMoney(lead.initial, currency)} at the start plus ${lead.periods} × ${formatMoney(lead.input.monthly, currency)} (${formatMoney(lead.totalContributions, currency)}) over ${lead.input.years} ${yearsWord(lead.input.years)}.`}
+            </p>
+
+            <div className="pl-dca2-hero-stats pl-calc2-stats">
+              {okScenarios.map(({ rate, result }, index) => (
+                <div
                   key={index}
-                  id={`calc-rate-${index}`}
-                  label={`Scenario ${index + 1}`}
-                  value={rate}
-                  onChange={setRate(index)}
-                  error={parsedRates[index].error}
-                  suffix="%"
-                />
+                  className={`pl-calc2-stat${result.isLoss ? " is-loss" : ""}`}
+                >
+                  <p className="pl-dca2-hero-stat-label">
+                    <span
+                      className="pl-calc2-dot"
+                      style={{ background: SCENARIO_COLORS[index] }}
+                      aria-hidden="true"
+                    />
+                    Assumed {formatPercent(rate)} a year
+                  </p>
+                  <p className="pl-dca2-hero-stat-value">
+                    {formatMoney(result.futureValue, currency)}
+                  </p>
+                  <p className="pl-dca2-hero-stat-note">
+                    {growthLabel(result)}: {formatSignedMoney(result.growth, currency)}
+                    {result.growthPercent !== null &&
+                      ` (${formatSignedPercent(result.growthPercent)})`}
+                  </p>
+                </div>
               ))}
             </div>
-
-            <p className="pl-hint">
-              Illustrative only. You can use negative numbers such as -5, from -50
-              to 50.
-            </p>
-          </fieldset>
-
-          <div className="pl-tool-actions">
-            <button
-              type="button"
-              className="pl-btn pl-btn-quiet"
-              onClick={() => {
-                // Resets the numbers only. The chosen mode is kept, as before.
-                onInputsChange({ ...defaultCalculatorInputs(), mode });
-              }}
-            >
-              <i className="ti ti-restore" aria-hidden="true" />
-              Reset these fields
-            </button>
           </div>
-
-          <p className="pl-hint">
-            Amounts use your display currency ({currency}). Nothing is
-            converted.
-          </p>
-        </div>
-
-        <div className="pl-tool-results" aria-live="polite">
-          {baseHasErrors || !ratesValid ? (
-            <div className="pl-panel pl-empty">
-              <i className="ti ti-alert-circle" aria-hidden="true" />
-              <p className="pl-empty-title">Check the highlighted fields</p>
-              <p className="pl-empty-text">
-                Results appear as soon as every field has a valid number.
-              </p>
-            </div>
-          ) : firstFailure ? (
-            <div className="pl-panel pl-empty">
-              <i className="ti ti-alert-triangle" aria-hidden="true" />
-              <p className="pl-empty-title">This can&apos;t be calculated</p>
-              <p className="pl-empty-text">{firstFailure.outcome.error}</p>
-            </div>
-          ) : okScenarios && lead ? (
-            <>
-              <div className="pl-result-hero">
-                <p className="pl-card-label">
-                  {mode === "lump" ? "Your investment" : "What you would put in"}
-                </p>
-                <p className="pl-result-value">
-                  {formatMoney(lead.principal, currency)}
-                </p>
-                <p className="pl-result-sub">
-                  {mode === "lump"
-                    ? `A single amount, left for ${lead.input.years} ${lead.input.years === 1 ? "year" : "years"}.`
-                    : `${formatMoney(lead.initial, currency)} at the start plus ${lead.periods} × ${formatMoney(lead.input.monthly, currency)} (${formatMoney(lead.totalContributions, currency)}) over ${lead.input.years} ${lead.input.years === 1 ? "year" : "years"}.`}
-                </p>
-              </div>
-
-              <div className="pl-mini-cards">
-                {okScenarios.map(({ rate, result }, index) => (
-                  <div key={index} className={`pl-card${result.isLoss ? " is-warning" : ""}`}>
-                    <p className="pl-card-label">
-                      Assumed {formatPercent(rate)} a year
-                    </p>
-                    <p className="pl-card-value pl-card-value-sm">
-                      {formatMoney(result.futureValue, currency)}
-                    </p>
-                    <p className="pl-card-note">
-                      {growthLabel(result)}: {formatSignedMoney(result.growth, currency)}
-                      {result.growthPercent !== null &&
-                        ` (${formatSignedPercent(result.growthPercent)})`}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : null}
-        </div>
+        ) : null}
       </div>
 
       {okScenarios && lead && (
         <>
-          <div className="pl-panel">
-            <h3 className="pl-h3">Projection over time</h3>
+          <div className="pl-dca2-panel">
+            <h3 className="pl-dca2-h3">Projection over time</h3>
 
             <ProjectionChart
               currency={currency}
-              summary={`Projection over ${lead.input.years} ${lead.input.years === 1 ? "year" : "years"} for three assumed returns.`}
+              summary={`Projection over ${lead.input.years} ${yearsWord(lead.input.years)} for three assumed returns.`}
               series={[
                 {
                   id: "principal",
                   label: "Contributed principal",
-                  color: "#8a8a86",
+                  color: "#8691A2", // --color-chart-compare
                   dashed: true,
                   values: lead.points.map((point) => point.principal),
                 },
@@ -325,9 +332,9 @@ export default function CalculatorSection({
               ]}
             />
 
-            <ul className="pl-chart-legend" aria-label="Chart legend">
+            <ul className="pl-dca2-legend" aria-label="Chart legend">
               <li>
-                <span className="pl-line is-dashed" aria-hidden="true" />
+                <span className="pl-dca2-line is-dashed" aria-hidden="true" />
                 Contributed principal
                 <strong>{formatMoney(lead.principal, currency)}</strong>
               </li>
@@ -335,7 +342,7 @@ export default function CalculatorSection({
               {okScenarios.map(({ rate, result }, index) => (
                 <li key={index}>
                   <span
-                    className="pl-line"
+                    className="pl-dca2-line"
                     style={{ background: SCENARIO_COLORS[index] }}
                     aria-hidden="true"
                   />
@@ -346,21 +353,21 @@ export default function CalculatorSection({
             </ul>
 
             <div
-              className="pl-scroll"
+              className="pl-dca2-scroll"
               role="region"
               aria-label="Year-by-year comparison table"
               tabIndex={0}
             >
-              <table className="pl-table pl-proj-table">
+              <table className="pl-dca2-table">
                 <caption className="pl-sr-only">
                   Year-by-year hypothetical value for each assumed return
                 </caption>
                 <thead>
                   <tr>
                     <th scope="col">When</th>
-                    <th scope="col" className="pl-num">Contributed principal</th>
+                    <th scope="col" className="pl-dca2-num">Contributed principal</th>
                     {okScenarios.map(({ rate }, index) => (
-                      <th key={index} scope="col" className="pl-num">
+                      <th key={index} scope="col" className="pl-dca2-num">
                         At {formatPercent(rate)}
                       </th>
                     ))}
@@ -370,9 +377,9 @@ export default function CalculatorSection({
                   {yearlyPoints(lead).map((point) => (
                     <tr key={point.month}>
                       <th scope="row">{rowLabel(point.month)}</th>
-                      <td className="pl-num">{formatMoney(point.principal, currency)}</td>
+                      <td className="pl-dca2-num">{formatMoney(point.principal, currency)}</td>
                       {okScenarios.map(({ result }, index) => (
-                        <td key={index} className="pl-num">
+                        <td key={index} className="pl-dca2-num">
                           {formatMoney(result.points[point.month].balance, currency)}
                         </td>
                       ))}

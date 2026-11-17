@@ -29,6 +29,285 @@
   cursor: not-allowed;
 }
 
+/* =====================================================================
+   Rebalancing v2 (variation C: target panel on the left, blue result card
+   and a current-versus-target bar card on the right). The section also
+   carries .pl-dca2, so it reuses the DCA v2 panel, field, button, table
+   and assumptions rules, and the .pl-calc2-seg mode selector, all from
+   portfolio-lab-tools.css. Only rebalancing-specific rules are here
+   (.pl-rb2-*). The old .pl-rb-* rules above are left in place.
+   ===================================================================== */
+.pl-rb2-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+.pl-rb2-layout > .pl-dca2-panel {
+  margin-bottom: 0;
+}
+
+.pl-rb2-side {
+  position: sticky;
+  top: 16px;
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.pl-rb2-side .pl-dca2-results {
+  margin-bottom: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.pl-rb2-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.pl-rb2-actions {
+  margin-bottom: 20px;
+}
+
+.pl-dca2-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pl-dca2-btn-ghost:disabled:hover {
+  background: #ffffff;
+}
+
+.pl-rb2-method {
+  margin-top: 0;
+}
+
+.pl-rb2-contribution {
+  margin-top: 16px;
+}
+
+/* ---------- Status boxes ---------- */
+.pl-rb2-status {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--color-primary-soft) 40%, #ffffff);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin: 20px 0;
+}
+
+.pl-rb2-side .pl-rb2-status {
+  margin: 0;
+}
+
+.pl-rb2-status > i {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--color-ink-muted);
+}
+
+.pl-rb2-status-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
+.pl-rb2-status-text {
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.pl-rb2-status.is-incomplete {
+  background: color-mix(in srgb, var(--cat-2) 8%, #ffffff);
+}
+
+.pl-rb2-status.is-incomplete > i {
+  color: var(--cat-2);
+}
+
+.pl-rb2-status.is-complete {
+  background: var(--color-success-soft);
+}
+
+.pl-rb2-status.is-complete > i {
+  color: var(--color-success);
+}
+
+.pl-rb2-status.is-over {
+  background: var(--color-danger-soft);
+}
+
+.pl-rb2-status.is-over > i {
+  color: var(--color-danger);
+}
+
+/* ---------- Result card ---------- */
+.pl-rb2-hero-value {
+  font-size: clamp(40px, 5vw, 48px);
+}
+
+.pl-rb2-hero-stats {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+/* "Still above target" becomes a white tile with violet text. */
+.pl-rb2-stat.is-warning {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+.pl-rb2-stat.is-warning .pl-dca2-hero-stat-label {
+  color: var(--color-ink-muted);
+}
+
+.pl-rb2-stat.is-warning .pl-dca2-hero-stat-value,
+.pl-rb2-stat.is-warning .pl-dca2-hero-stat-note {
+  color: var(--cat-2);
+}
+
+.pl-rb2-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 20px;
+  margin-top: 8px;
+  border-radius: 14px;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 180ms ease;
+}
+
+.pl-rb2-btn-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+/* ---------- Current versus target bars ---------- */
+.pl-rb2-compare {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  padding: 24px 28px;
+  min-width: 0;
+}
+
+.pl-rb2-compare-title {
+  font-family: var(--pl-serif, var(--font-serif, Georgia, serif));
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--color-ink);
+  margin: 0 0 16px;
+}
+
+.pl-rb2-compare-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.pl-rb2-compare-top {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 13.5px;
+  margin-bottom: 6px;
+}
+
+.pl-rb2-compare-values {
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pl-rb2-compare-values strong {
+  color: var(--color-ink);
+}
+
+.pl-rb2-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  border-radius: 4px;
+  vertical-align: -1px;
+}
+
+.pl-rb2-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.pl-rb2-bar + .pl-rb2-bar {
+  margin-top: 4px;
+}
+
+.pl-rb2-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.pl-rb2-bar.is-target span {
+  opacity: 0.4;
+}
+
+.pl-rb2-compare-note {
+  font-size: 12.5px;
+  color: var(--color-ink-muted);
+  margin: 14px 0 0;
+}
+
+/* ---------- Table ---------- */
+.pl-rb2-table {
+  min-width: 760px;
+}
+
+.pl-rb2-table tfoot th,
+.pl-rb2-table tfoot td {
+  font-weight: 600;
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .pl-rb2-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pl-rb2-side {
+    position: static;
+  }
+}
+
+@media (max-width: 520px) {
+  .pl-rb2-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .pl-rb2-compare {
+    padding: 20px 18px;
+  }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 520px) {
   .pl-rb-grid {

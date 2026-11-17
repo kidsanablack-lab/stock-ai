@@ -15,12 +15,15 @@ import type { SourcesMethodData } from "@/components/company-next/SourcesMethod"
 import type { BottomLineData } from "@/components/company-next/BottomLine";
 import type { ClosingPanelData } from "@/components/company-next/ClosingPanel";
 import type { SpotlightData } from "@/components/company-next/Spotlight";
-import type { CompanyPageData } from "./apple";
+import type { CompanyPageData } from "./types";
 import { applyScore } from "../scope-score/apply";
 import { microsoftScore } from "../scope-score/inputs";
 import rawMsft from "../../data/raw/MSFT.json";
 import { buildFacts, type RawFmp } from "../company-data/facts";
-import { cashAndReturnsNumbers, financialHighlightsMetrics, profitHistoryNumbers } from "../company-data/sections";
+import { peAtYearEnd } from "../company-data/peHistory";
+import { cashAndReturnsNumbers, financialHighlightsMetrics, profitHistoryNumbers, roicText } from "../company-data/sections";
+import { closingShared, formulas, formulasNote, scoreHowToRead, scoringIntro, valuationNote } from "@/shared/methodology";
+import { peerCaveat, peerCompany } from "@/shared/peers";
 
 // Scope Score: numbers come from lib/scope-score (inputs.ts + config.ts).
 const scored = applyScore(microsoftScore.raw, microsoftScore.display);
@@ -30,6 +33,20 @@ const scored = applyScore(microsoftScore.raw, microsoftScore.display);
 const facts = buildFacts(rawMsft as unknown as RawFmp);
 const cashNums = cashAndReturnsNumbers(facts);
 const profitNums = profitHistoryNumbers(facts);
+
+// P/E at each fiscal year end, read from the saved API data (shared helper), and its average.
+// The average is worked out from the same bars, so the dashed line and the text always agree.
+const peHistory = peAtYearEnd(rawMsft as unknown as RawFmp);
+if (peHistory.length === 0) throw new Error("microsoft.ts: no P/E history in data/raw/MSFT.json");
+const peAverage = Math.round((peHistory.reduce((sum, p) => sum + p.value, 0) / peHistory.length) * 10) / 10;
+const peAvg = peAverage.toFixed(1);
+
+// A series for a chart, rounded to one decimal. A missing year stops the build instead of drawing a false 0.
+const oneDecimal = (series: (number | null)[], what: string): number[] =>
+  series.map((v) => {
+    if (v === null) throw new Error(`microsoft.ts: ${what} is missing in data/raw/MSFT.json`);
+    return Math.round(v * 10) / 10;
+  });
 
 // Microsoft page data. Prices as of Nov 6, 2026 close. Latest quarter: Q1 FY27 (ended Sep 30, 2026).
 // Fiscal year ends Jun 30. FY22 to FY26 are the five full years shown.
@@ -48,7 +65,7 @@ const hero: CompanyHeroData = {
   facts: [
     { label: "Market cap", value: "$3.94T", note: "As of Nov 6, 2026" },
     { label: "Revenue, last 12 months", value: "$346.4B", note: "+17.9% vs a year earlier", noteTone: "positive" },
-    { label: "P/E ratio", value: "27.7×", note: "vs 31.6× 5-year average", noteTone: "positive" },
+    { label: "P/E ratio", value: "27.7×", note: `vs ${peAvg}× 5-year average`, noteTone: "positive" },
     { label: "Free cash flow, last 12 months", value: "$59.9B", note: "17.3% of sales, down from 25.4% in FY25", noteTone: "negative" },
   ],
   source:
@@ -81,10 +98,9 @@ const scoreReasons: ScoreReasonsData = {
     { name: "Profitability", ...scored.reason["Profitability"], value: "47.1%", label: "operating margin in the last 12 months, and 17% of sales kept as free cash flow", href: "#highlights" },
     { name: "Revenue growth", ...scored.reason["Revenue growth"], value: "+17.9%", label: "growth in the last 12 months, and 13.7% a year from FY22 to FY26", href: "#latest" },
     { name: "Risk", ...scored.reason["Risk"], value: "35.9%", label: "of sales from Azure, the largest product line, and net cash of $36.5B", href: "#strengths-risks" },
-    { name: "Valuation", ...scored.reason["Valuation"], value: "27.7×", label: "P/E, against its own 5-year average of 31.6×, but only a 1.5% free cash flow yield", href: "#valuation" },
+    { name: "Valuation", ...scored.reason["Valuation"], value: "27.7×", label: `P/E, against its own 5-year average of ${peAvg}×, but only a 1.5% free cash flow yield`, href: "#valuation" },
   ],
-  howToRead:
-    "A is the strongest grade and F the weakest. Green means strong, amber mixed, red weak. Each grade comes from a 0 to 10 category score, and the overall score is their weighted average. The inputs, weights and cut-offs are listed under Sources and method.",
+  howToRead: scoreHowToRead(),
 };
 
 const whatChanged: WhatChangedData = {
@@ -206,6 +222,9 @@ const whereMoneyComes: WhereMoneyComesData = {
   title: "Cloud makes two thirds of sales, and the part that sells to businesses earns far more of each dollar",
   lead: "$92.3B of revenue in Q1 FY27 (quarter ended Sep 30, 2026), split by product line, by profit and by region. Microsoft changed its segments in FY27, so the product view uses the latest quarter.",
   labels: ["From Q1 FY27 release"],
+  // The region view below is for the full fiscal year FY26, compared with FY25.
+  periodLabel: "FY26",
+  comparedWith: "FY25",
   products: [
     { name: "Azure", share: 36.0, value: 33.2, yoy: 48, note: "Cloud computing, AI services and data platforms, billed by usage" },
     { name: "Microsoft 365 cloud", share: 30.1, value: 27.8, yoy: 17.2, note: "Office, Teams, Outlook and Copilot for businesses, billed per user" },
@@ -224,6 +243,8 @@ const whereMoneyComes: WhereMoneyComesData = {
       "Operating profit is revenue minus the cost of making it and running the business. Microsoft keeps about $52.80 of every $100 of Agents and Infra sales (Azure, Microsoft 365 cloud and business software), but only $34.60 of every $100 of Devices and Consumer sales (Windows, Xbox and search). Microsoft does not report profit for each product line, so the two new segments are shown. This view uses operating profit, because segment gross profit is not published.",
     revenueTotal: "$92.3B",
     profitTotal: "$45.9B",
+    groupNames: { a: "Devices and Consumer", b: "Agents and Infra" },
+    profitLabel: "operating profit",
     productsRevenue: 16.8,
     servicesRevenue: 83.2,
     productsProfit: 11.7,
@@ -294,7 +315,7 @@ const valuation: ValuationData = {
     max: 750,
     rows: [
       { name: "Cash flow (DCF)", low: 173, high: 515, mark: 336, markName: "Base" },
-      { name: "Own P/E history", low: 416, high: 737, mark: 605, markName: "5-yr avg" },
+      { name: "Own P/E history", low: 396, high: 737, mark: 601, markName: "5-yr avg" },
       { name: "Analyst targets", low: 600, high: 700, mark: 633, markName: "Average" },
     ],
     howToRead:
@@ -318,26 +339,21 @@ const valuation: ValuationData = {
   },
   history: {
     title: "Microsoft’s P/E is a little below its 5-year average, but its price is high compared with the cash it produces",
-    years: [
-      { year: "FY22", value: 26.5 },
-      { year: "FY23", value: 35.0 },
-      { year: "FY24", value: 38.5 },
-      { year: "FY25", value: 36.3 },
-      { year: "FY26", value: 21.7 },
-      { year: "Now", value: 27.7 },
-    ],
+    years: [...peHistory, { year: "Now", value: 27.7 }],
+    peAverage,
+    averagePeriod: "5-year",
     peSubtitle: "Price divided by the last 12 months of earnings, at each fiscal year end, and now",
     peHowToRead:
       "P/E is the price you pay for each $1 of yearly profit. The blue bar is now, and the dashed line is the average of the five fiscal year ends before it.",
     multiples: [
-      { name: "P/E", now: 27.7, avg: 31.6 },
+      { name: "P/E", now: 27.7, avg: peAverage },
       { name: "EV/EBITDA", now: 20.1, avg: 20.9 },
     ],
     multiplesHowToRead:
       "Each bar shows how far Microsoft’s multiple is above or below its own 5-year average, taken at fiscal year ends. A full bar means 50% or more away from it.",
   },
   source:
-    "Sources: share price $530.61 (Nov 6, 2026 close) and market data from StockAnalysis; Microsoft Q1 FY27 earnings release and FY26 10-K (net cash, diluted shares, last-twelve-month revenue, EBITDA and EPS); fiscal-year-end multiples from stockrow, StockResearch and StockAnalysis, which differ between providers, so P/E history is approximate; analyst targets from StockAnalysis (57 analysts, average $633) and individual targets published after the Oct 28 report (BofA $600 to UBS $700). The analyst bar is a spread of recent individual targets, not the full published range. Forward P/E is not shown because providers disagree. Fair value is Scope’s own discounted cash flow estimate under the assumptions shown, not a price target or investment advice.",
+    "Sources: share price $530.61 (Nov 6, 2026 close) and market data from StockAnalysis; Microsoft Q1 FY27 earnings release and FY26 10-K (net cash, diluted shares, last-twelve-month revenue, EBITDA and EPS); fiscal-year-end P/E from Financial Modeling Prep, and the EV/EBITDA average from stockrow, StockResearch and StockAnalysis, which differ between providers, so the multiples are approximate; analyst targets from StockAnalysis (57 analysts, average $633) and individual targets published after the Oct 28 report (BofA $600 to UBS $700). The analyst bar is a spread of recent individual targets, not the full published range. Forward P/E is not shown because providers disagree. Fair value is Scope’s own discounted cash flow estimate under the assumptions shown, not a price target or investment advice.",
 };
 
 const profitHistory: ProfitHistoryData = {
@@ -363,10 +379,10 @@ const profitHistory: ProfitHistoryData = {
   },
   returns: {
     title: "Microsoft earns far more on its money than the money costs, although the return has eased as spending grows",
-    roic: 29,
-    roicFrom: 35,
+    roic: profitNums.returns.roic,
+    roicFrom: profitNums.returns.roicFrom,
     wacc: 8,
-    text: "For every $100 put into the business, Microsoft earns about $29 a year after tax, down from $35 in FY22 as new data centers add to the capital base.",
+    text: roicText("Microsoft", profitNums.returns, "New data centers add to the capital base."),
     note: "ROIC is operating profit after tax divided by average shareholders’ equity plus debt. Cost of capital (8%) is Scope’s own assumption, the same as the base case in the valuation. ROE is 34% and ROA is 19%. Finance leases for data centers are not counted as debt here, so ROIC would be lower if they were.",
   },
   tableTitle: "Every number behind the charts",
@@ -375,6 +391,7 @@ const profitHistory: ProfitHistoryData = {
 };
 
 const cashAndReturns: CashAndReturnsData = {
+  companyName: "Microsoft",
   title: "Microsoft pays out about three quarters of its free cash flow, and its cash cushion is shrinking as spending rises",
   lead: "How much cash Microsoft makes, how much it gives back through buybacks and dividends, and whether it still holds more cash than debt.",
   labels: ["From 10-K filings"],
@@ -436,7 +453,7 @@ const strengthsRisks: StrengthsRisksData = {
     { icon: "ti-gavel", name: "Regulatory risk", level: 2, finding: "US regulators are looking at how Microsoft bundles products and how it works with AI partners.", evidence: [{ value: "Jan 2026", label: "FTC orders to Microsoft, OpenAI and other AI partnerships" }, { value: "Open", label: "FTC probe into cloud licensing and bundling practices" }], why: "No fine or order has been set, but a ruling could change how Microsoft sells Azure and Microsoft 365 together." },
     { icon: "ti-chart-pie", name: "OpenAI dependence", level: 2, finding: "A large stake and a lot of AI revenue are linked to one partner.", evidence: [{ value: "~27%", label: "stake in OpenAI after its restructuring, valued at about $135B" }, { value: "$12.0B", label: "equity-method investments on Jun 30, 2026" }], why: "OpenAI’s terms, finances and relationships with other cloud providers can change. They also swing Microsoft’s reported net income, which is why Microsoft publishes figures that exclude them." },
     { icon: "ti-cpu-2", name: "Margin and cost pressure", level: 2, finding: "New data centers add depreciation faster than sales are growing.", evidence: [{ value: "26% to 27%", label: "cost of revenue growth guided for Q2, against 18% to 19% sales growth" }, { value: "67.8%", label: "gross margin in Q1 FY27, down from 69.0% a year earlier" }], why: "Microsoft guides the operating margin down slightly year over year. A small slip matters because the share price already assumes high profit." },
-    { icon: "ti-trending-down", name: "Market risk", level: 2, finding: "The share price is high compared with free cash flow.", evidence: [{ value: "1.5%", label: "free cash flow yield at $530.61" }, { value: "27.7×", label: "P/E, against 31.6× 5-year average" }], why: "The shares rose 6.7% in a day after the Oct 28 report and have since eased to $530.61, about 5% below their 52-week high of $559. A market that expects a lot leaves little room for disappointment." },
+    { icon: "ti-trending-down", name: "Market risk", level: 2, finding: "The share price is high compared with free cash flow.", evidence: [{ value: "1.5%", label: "free cash flow yield at $530.61" }, { value: "27.7×", label: `P/E, against ${peAvg}× 5-year average` }], why: "The shares rose 6.7% in a day after the Oct 28 report and have since eased to $530.61, about 5% below their 52-week high of $559. A market that expects a lot leaves little room for disappointment." },
     { icon: "ti-user-star", name: "Consumer weakness", level: 1, finding: "The Windows and Xbox side of the business is shrinking.", evidence: [{ value: "−22%", label: "Windows OEM and devices revenue in Q1 FY27" }, { value: "17%", label: "of Q1 FY27 sales from Devices and Consumer" }], why: "The effect is small because this segment is a minor part of sales and profit, but it is a drag on total growth." },
   ],
   risksHowToRead:
@@ -495,7 +512,7 @@ const moatEcosystem: MoatEcosystemData = {
 };
 
 const competitors: CompetitorsData = {
-  title: "Microsoft is the most profitable of the three biggest tech platforms, but its free cash flow is now below Apple’s and Alphabet’s",
+  title: "Microsoft is the most profitable of the three biggest tech platforms, but its free cash flow is far below Apple’s",
   lead: "Who Microsoft competes with, how it compares with Apple and Alphabet on the same basis, and where cloud shares stand.",
   labels: [],
   overviewTitle: "Who Microsoft competes with",
@@ -510,22 +527,15 @@ const competitors: CompetitorsData = {
     ],
     note: "Holori’s market overview for 2026, based on 2025 spending. Trackers do not agree. In Q3 2026, Azure revenue was $33.2B (+48%) and Google Cloud $30.7B (+103%), so Google is closing the gap fast. AWS revenue grew 39%.",
   },
+  // Numbers for Microsoft, Alphabet and Apple come from the saved API data through shared/peers.ts.
   companies: [
-    {
-      id: "msft", name: "Microsoft", ticker: "MSFT", kind: "self",
-      desc: "Cloud, business software, AI and Windows",
-      metrics: { revenue: 331.8, growth: 17.8, opMargin: 46.8, fcf: 67.0, fcfMargin: 20.2, netDebt: -36.5 },
-    },
+    peerCompany("MSFT", { id: "msft", kind: "self", desc: "Cloud, business software, AI and Windows" }),
     {
       id: "amzn", name: "Amazon", ticker: "AMZN", kind: "direct",
       desc: "AWS cloud, online retail and advertising",
       chartNote: "Not in the charts: most of its sales and profit come from retail, which is a different business, so group figures say little about cloud competition.",
     },
-    {
-      id: "goog", name: "Alphabet", ticker: "GOOGL", kind: "direct",
-      desc: "Google Cloud, Workspace, search and Android",
-      metrics: { revenue: 445.9, growth: 20.0, opMargin: 33.1, fcf: 53.3, fcfMargin: 12.0, netDebt: -121.7 },
-    },
+    peerCompany("GOOGL", { id: "goog", kind: "direct", desc: "Google Cloud, Workspace, search and Android" }),
     {
       id: "orcl", name: "Oracle", ticker: "ORCL", kind: "direct",
       desc: "Database software and cloud infrastructure",
@@ -536,25 +546,23 @@ const competitors: CompetitorsData = {
       desc: "Customer software that competes with Dynamics 365",
       chartNote: "Not in the charts: its fiscal year ends in January and its figures are not on the same basis.",
     },
-    {
-      id: "aapl", name: "Apple", ticker: "AAPL", kind: "indirect",
-      desc: "Devices, operating systems and services",
-      metrics: { revenue: 466.8, growth: 14.2, opMargin: 33.2, fcf: 136.7, fcfMargin: 29.3, netDebt: -62.2 },
-    },
+    peerCompany("AAPL", { id: "aapl", kind: "indirect", desc: "Devices, operating systems and services" }),
     { id: "oai", name: "OpenAI", ticker: "Private", kind: "future", desc: "Microsoft’s AI partner, and a possible rival in business software" },
   ],
   compareTitle: "How Microsoft compares on results",
   compareIntro: "One card per measure, one bar per company, best first. Blue is Microsoft, grey bars are Apple and Alphabet.",
   compareHowToRead:
     "Dots to the right are higher values. The label under each line lists every company in rank order, best first. For net debt, lower is better, so rank 1 is the biggest net cash.",
-  caveat:
-    "All three are on the same basis: US-reported figures for the 12 months to June 2026 (Microsoft’s fiscal year ended Jun 30). Free cash flow is operating cash flow minus capital spending, and net debt can include lease obligations. Microsoft’s net cash is shown without finance leases. Alphabet spent $132B on equipment in that period, which is why its free cash flow is low. Microsoft’s own newer 12-month figures to September 2026 are shown elsewhere on this page. Businesses differ, so read gaps as clues, not scores.",
+  caveat: peerCaveat(
+    ["MSFT", "AAPL", "GOOGL"],
+    "Microsoft’s net cash is shown without finance leases. Alphabet’s free cash flow is low because it spent far more on equipment than the others.",
+  ),
   valuationTitle: "Growth against profitability",
   valuationIntro: "The best place to be is fast growth and a high margin at the same time. Check both together.",
   valuationHowToRead:
     "Each dot is a company. Further right means faster growth, and further up means a higher operating margin. A dot in the top right is both fast and profitable.",
   source:
-    "Sources: Microsoft, Apple and Alphabet filings and S&P Global data via StockAnalysis (Oct 23 to Nov 5, 2026). Apple and Alphabet are the 12 months to June 2026; Microsoft is fiscal 2026. Growth compares with the same 12 months a year earlier; Alphabet’s is calculated by Scope. Cloud shares are from Holori’s 2026 market overview and revenue figures from company results for Q3 2026 as reported in the press.",
+    "Sources: Microsoft, Apple and Alphabet numbers from their filings, loaded from the saved API data (Financial Modeling Prep) on the same day as the rest of this page. Growth compares with the same 12 months a year earlier. Cloud shares are from Holori’s 2026 market overview and revenue figures from company results for Q3 2026 as reported in the press.",
 };
 
 const sourcesMethod: SourcesMethodData = {
@@ -601,38 +609,36 @@ const sourcesMethod: SourcesMethodData = {
   sourcesTitle: "Data sources",
   sourcesIntro: "Where each kind of data comes from, and the documents Scope reads for Microsoft.",
   sources: [
-    { title: "SEC filings", text: "Annual (10-K) and quarterly (10-Q) reports and event reports (8-K) for Microsoft, Apple and Alphabet. The primary source for financial figures." },
-    { title: "Company investor relations", text: "Earnings releases, slides and call transcripts published by the company. Management’s outlook and guidance come from here." },
-    { title: "Market data providers", text: "Share price, market cap, analyst estimates and price targets, from StockAnalysis and S&P Global Market Intelligence. Prices are closing prices, and Scope shows the date." },
-    { title: "Industry research", text: "Cloud market shares from Holori’s overview and press coverage of Synergy Research, which can differ by several points." },
+    { title: "SEC filings", topic: "Reported financials", text: "Annual (10-K) and quarterly (10-Q) reports and event reports (8-K) for Microsoft, Apple and Alphabet. The primary source for financial figures." },
+    { title: "Company investor relations", topic: "Outlook and guidance", text: "Earnings releases, slides and call transcripts published by the company. Management’s outlook and guidance come from here." },
+    { title: "Market data providers", topic: "Share price, market cap, estimates and price targets", text: "Share price, market cap, analyst estimates and price targets, from StockAnalysis and S&P Global Market Intelligence. Prices are closing prices, and Scope shows the date." },
+    { title: "Industry research", topic: "Industry and news context", text: "Cloud market shares from Holori’s overview and press coverage of Synergy Research, which can differ by several points." },
   ],
   documents: [
-    { name: "FY26 annual report", date: "Jul 2026", type: "10-K", use: "Business, risks and annual financials" },
-    { name: "Q1 FY27 earnings release", date: "Oct 28, 2026", type: "8-K", use: "Headline results, segment and product-line sales" },
-    { name: "Q1 FY27 earnings call", date: "Oct 28, 2026", type: "Transcript", use: "Guidance, capital spending and margin comments, kept as an AI summary" },
-    { name: "Q4 FY26 earnings release", date: "Jul 29, 2026", type: "8-K", use: "FY26 results and Copilot seat count" },
-    { name: "Apple Q4 FY26 and Alphabet Q3 2026 results", date: "Oct to Nov 2026", type: "8-K", use: "Rival financials on the same basis" },
-    { name: "Analyst consensus and price targets", date: "Oct to Nov 2026", type: "Estimates", use: "Beat and miss figures and price targets" },
-    { name: "Cloud market report", date: "Nov 2025 and Q3 2026", type: "Industry", use: "Cloud infrastructure shares" },
+    { name: "FY26 annual report", date: "Jul 2026", type: "10-K", source: "SEC filings", use: "Business, risks and annual financials" },
+    { name: "Q1 FY27 earnings release", date: "Oct 28, 2026", type: "8-K", source: "SEC filings", use: "Headline results, segment and product-line sales" },
+    { name: "Q1 FY27 earnings call", date: "Oct 28, 2026", type: "Transcript", source: "Company investor relations", use: "Guidance, capital spending and margin comments, kept as an AI summary" },
+    { name: "Q4 FY26 earnings release", date: "Jul 29, 2026", type: "8-K", source: "SEC filings", use: "FY26 results and Copilot seat count" },
+    { name: "Apple and Alphabet financials", date: "Nov 2026", type: "Data feed", source: "Market data providers", use: "Rival financials, each on its own latest 12 months" },
+    { name: "Analyst consensus and price targets", date: "Oct to Nov 2026", type: "Estimates", source: "Market data providers", use: "Beat and miss figures and price targets" },
+    { name: "Cloud market report", date: "Nov 2025 and Q3 2026", type: "Industry", source: "Industry research", use: "Cloud infrastructure shares" },
   ],
   formulasTitle: "How each metric is calculated",
   formulasIntro: "The exact formula behind each metric, and the definition choices that go with it.",
-  formulas: [
-    { name: "Revenue growth", formula: "(Revenue now − revenue a year earlier) ÷ revenue a year earlier × 100", note: "Year over year, to avoid seasonal swings. For the last 12 months, the comparison is with the 12 months before that. Quarterly and annual are never mixed." },
-    { name: "Operating margin", formula: "Operating income ÷ revenue × 100", note: "Uses reported operating income, with no add-backs." },
-    { name: "Net margin", formula: "Net income ÷ revenue × 100", note: "GAAP net income. FY26 includes accounting effects from the OpenAI investment, noted beside the number." },
-    { name: "ROE", formula: "Net income ÷ average shareholders’ equity × 100", note: "Average of start and end of period." },
-    { name: "ROIC", formula: "Operating income × (1 − tax rate) ÷ average (equity + debt) × 100", note: "Debt is interest-bearing debt without finance leases. Cash is not subtracted. Other data providers define it differently, so compare ROIC only within Scope." },
-    { name: "Debt to equity", formula: "Interest-bearing debt ÷ shareholders’ equity", note: "Debt is short-term plus long-term debt. It leaves out liabilities that carry no interest and finance leases." },
-    { name: "Free cash flow", formula: "Operating cash flow − capital spending", note: "Capital spending is additions to property and equipment from the cash flow statement. It excludes finance leases, which Microsoft reports separately. Quarterly figures come from subtracting cumulative year-to-date totals." },
-    { name: "Net cash", formula: "Cash and securities − interest-bearing debt", note: "Positive means net cash. If finance leases were counted as debt, Microsoft would show net debt of about $30B." },
-    { name: "P/E", formula: "Share price ÷ diluted earnings per share, last 12 months", note: "GAAP earnings. The history uses the price at each fiscal year end and that year’s earnings, and differs between providers." },
-    { name: "EV/EBITDA", formula: "(Market cap − net cash) ÷ (operating income + depreciation and amortization)", note: "Last 12 months. The average used in the Valuation section is the 5-year average at fiscal year ends." },
-  ],
-  formulasNote: "Scope uses reported (GAAP) figures and interest-bearing debt. Figures with different definitions are never compared without a note.",
+  formulas: formulas({
+    "Net margin": "GAAP net income. FY26 includes accounting effects from the OpenAI investment, noted beside the number.",
+    "ROIC": "Debt is interest-bearing debt without finance leases. Cash is not subtracted. Other data providers define it differently, so compare ROIC only within Scope.",
+    "Debt to equity": "Debt is short-term plus long-term debt. It leaves out liabilities that carry no interest and finance leases.",
+    "Free cash flow": "Capital spending is additions to property and equipment from the cash flow statement. It excludes finance leases, which Microsoft reports separately. Quarterly figures come from subtracting cumulative year-to-date totals.",
+    "Net cash": {
+      formula: "Cash and securities − interest-bearing debt",
+      note: "Positive means net cash. If finance leases were counted as debt, Microsoft would show net debt of about $30B.",
+    },
+    "P/E": "GAAP earnings. The history uses the price at each fiscal year end and that year’s earnings, and differs between providers.",
+  }),
+  formulasNote,
   scoringTitle: "How the Scope Score is built",
-  scoringIntro:
-    "Six categories, each with its own inputs, weights and cut-offs. Every input is scored from 0 to 10, a category is the weighted average of its inputs, and the overall score is the weighted average of the categories. Grades: A+ from 9.0, A from 8.0, B+ from 7.5, B from 7.0, C+ from 6.0, C from 5.0, D from 3.0, F below that. Labels: Excellent from 9.0, Strong from 7.5, Good from 6.0, Fair from 5.0, Weak below that.",
+  scoringIntro,
   categories: scored.categories,
   scoringNote:
     "If an input is missing, its weight is spread over the other inputs in that category, never set to zero. If more than 40% of a category’s weight is missing, the category shows “Not enough data” and the overall score is marked partial. The cut-offs are the same for every company, so a score does not depend on which other companies are on the list.",
@@ -643,7 +649,7 @@ const sourcesMethod: SourcesMethodData = {
     { name: "Historical multiples", what: "Compares today’s P/E with Microsoft’s own range over the last five fiscal year ends.", limit: "The past may not repeat if the business has changed, for example with AI spending." },
     { name: "Analyst price targets", what: "Shows the average and a spread of recent published targets from analysts who follow Microsoft.", limit: "Targets are opinions, usually for 12 months ahead, and they often follow the share price." },
   ],
-  valuationNote: "Fair value is a model output under stated assumptions, not a price the stock will reach.",
+  valuationNote,
   freshnessTitle: "Data quality and freshness",
   freshnessIntro: "When a period ended, when it was published and when Scope loaded it are three different dates.",
   timeline: [
@@ -658,7 +664,7 @@ const sourcesMethod: SourcesMethodData = {
     { dataset: "Share price and market cap", period: "Not applicable", sourceDate: "Nov 6, 2026 close", updated: "Nov 8, 2026", status: "Verified", limit: "Closing price multiplied by shares outstanding. It moved 6.7% in a day after the report." },
     { dataset: "Analyst estimates and targets", period: "Q2 FY27 (estimate)", sourceDate: "Oct to Nov 2026", updated: "Nov 6, 2026", status: "Pending", limit: "Consensus differs between providers. Targets quoted range from about $609 to $633 on average. Shown only as analyst view." },
     { dataset: "Cloud market shares", period: "2025 and Q3 2026", sourceDate: "Nov 2025 and Oct 2026", updated: "Nov 6, 2026", status: "Verified", limit: "Trackers differ by several points. The share figures are for 2025, while revenue figures are for Q3 2026." },
-    { dataset: "Rival financials", period: "12 months to Jun 2026", sourceDate: "Jul to Oct 2026", updated: "Nov 6, 2026", status: "Verified", limit: "Newer rival results are out, but the table keeps one common period. Amazon, Oracle and Salesforce are not on the same basis." },
+    { dataset: "Rival financials", period: "Each company’s latest 12 months", sourceDate: "Oct to Nov 2026", updated: "Nov 2026", status: "Verified", limit: "Each company is on its own latest 12 months and latest fiscal year-end balance sheet, so the dates differ slightly. The exact dates are in the note under the Competitors charts. Amazon, Oracle and Salesforce are not on the same basis." },
     { dataset: "Customer counts", period: "Not applicable", sourceDate: "Not applicable", updated: "Not applicable", status: "Unavailable", limit: "Microsoft does not report total customers. Scope shows Copilot seats and backlog instead." },
   ],
   source:
@@ -674,7 +680,7 @@ const bottomLine: BottomLineData = {
   scoreSummary: "Top grades for scale, profit and growth, held back by weak cash conversion and a price that already assumes success.",
   items: [
     { icon: "ti-briefcase", label: "The business", verdict: "Excellent", tone: "positive", text: "Sales are growing 18% a year at a 47% operating margin, Azure is growing 48%, and the backlog is $677B. Quality is held back by cash conversion of only 72%.", href: "#moat", hrefLabel: "See the moat" },
-    { icon: "ti-tag", label: "The price", verdict: "Full", tone: "caution", text: "A P/E of 27.7× against 31.6× on average looks fair, but the free cash flow yield is just 1.5% and the price is still above our bull-case fair value of $515.", href: "#valuation", hrefLabel: "See the valuation" },
+    { icon: "ti-tag", label: "The price", verdict: "Full", tone: "caution", text: `A P/E of 27.7× against ${peAvg}× on average looks fair, but the free cash flow yield is just 1.5% and the price is still above our bull-case fair value of $515.`, href: "#valuation", hrefLabel: "See the valuation" },
     { icon: "ti-trending-down", label: "What to watch", verdict: "Spending payback", tone: "caution", text: "Capital spending is $45.2B a quarter and heading above $50B, while free cash flow fell 27%. The January report shows whether Azure can reach the guided 49% to 50%.", href: "#strengths-risks", hrefLabel: "See the risks" },
   ],
   note: "This is Scope’s summary of the evidence above, not a call to buy or sell. A great business can still be a poor purchase at the wrong price.",
@@ -688,15 +694,9 @@ const closing: ClosingPanelData = {
     { name: "NVIDIA", ticker: "NVDA", reason: "The chip maker whose AI chips fill the data centers Microsoft is spending billions to build.", href: "/company/nvidia" },
     { name: "Amazon", ticker: "AMZN", reason: "Owner of AWS, the largest cloud and Azure’s biggest competitor.", href: "/company/amazon" },
   ],
-  links: [
-    { icon: "ti-git-compare", title: "Compare", href: "/compare" },
-    { icon: "ti-calculator", title: "Valuation Lab", href: "/valuation-lab" },
-    { icon: "ti-compass", title: "7 Powers", href: "/7-powers" },
-  ],
-  allLabel: "See all companies",
-  allHref: "/trending",
-  note: "The 7 Powers framework was developed by Hamilton Helmer in 7 Powers: The Foundations of Business Strategy (2016). Scope's explanations and examples are its own. Scope is built for understanding businesses, not for investment advice.",
+  ...closingShared,
 };
+
 const spotlight: SpotlightData = {
   title:
     "Microsoft is spending about $170B on AI data centers: demand is huge, but free cash flow has not grown since FY22",
@@ -708,13 +708,10 @@ const spotlight: SpotlightData = {
     title: "Cash coming in vs cash spent on data centers and equipment, FY22 to FY26 ($B)",
     howToRead:
       "Blue is cash from operations, red is spending on equipment and buildings. The line under each year is what is left (free cash flow). Capital spending excludes finance leases.",
-    years: ["FY22", "FY23", "FY24", "FY25", "FY26"],
-    // TODO: fill all ten numbers from the "Every number behind the charts" table
-    // (ProfitHistory) or from data/raw/MSFT.json. Known so far from the page:
-    // FY22 capex 23.9, FY26 capex 115.9, FY26 operating cash flow 182.9.
-    // The chart shows a "data is incomplete" note until every value is a number.
-    ocf: [89.0, 87.6, 118.5, 136.2, 182.9],
-    capex: [23.9, 28.1, 44.5, 64.6, 115.9],
+    // Read from data/raw/MSFT.json, the same source as the "Every number behind the charts" table.
+    years: facts.years,
+    ocf: oneDecimal(facts.ocf, "operating cash flow"),
+    capex: oneDecimal(facts.capex, "capital spending"),
     callout:
       "Capital spending is about five times its FY22 level, while cash from operations grew about 20% a year, so free cash flow grew only 0.7% a year.",
   },
@@ -759,7 +756,7 @@ const spotlight: SpotlightData = {
     "Sources: Microsoft FY26 Form 10-K and Q1 FY27 earnings release and call (Oct 28, 2026). Free cash flow is calculated by Scope as operating cash flow minus additions to property and equipment. Guidance figures are Microsoft’s own, not results.",
 };
 
-export const microsoftPage: CompanyPageData & { spotlight: SpotlightData } = {
+export const microsoftPage: CompanyPageData = {
   hero,
   summary,
   scoreReasons,

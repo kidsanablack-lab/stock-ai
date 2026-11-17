@@ -184,23 +184,87 @@ export default function ValuationSummary({
     { title: "Margin of Safety", issues: notMissing(mos.issues) },
   ].filter((group) => group.issues.length > 0);
 
+  const headlines: { label: string; value: string; note: string }[] = [
+    {
+      label: "Main DCF: estimated value per share",
+      value: dcfOk ? money(dcfOk.valuePerShare) : NOT_AVAILABLE,
+      note: "Main DCF",
+    },
+    {
+      label: `Margin of Safety (${SOURCE_TITLES[mosChoice]})`,
+      value:
+        mos.marginOfSafetyPercent === null
+          ? NOT_AVAILABLE
+          : formatPercentValue(mos.marginOfSafetyPercent),
+      note: "Compared with the share price you entered",
+    },
+    {
+      label: "Sensitivity range: value per share",
+      value: range ? `${money(range.min)} to ${money(range.max)}` : NOT_AVAILABLE,
+      note: range ? `${range.calculated} of ${range.total} cells` : "Unavailable",
+    },
+  ];
+
   const usingExampleDcf = matchesIllustrativeAssumptions(form);
   const usingExampleScenarios =
     JSON.stringify(scenarioForms) === JSON.stringify(ILLUSTRATIVE_SCENARIO_FORMS);
 
   return (
-    <div className="vl-panel" aria-labelledby="vl-summary-title">
-      <header className="vl-panel-head">
-        <h3 id="vl-summary-title" className="vl-h3">
-          Your Valuation Summary
-        </h3>
-      </header>
+    <article className="vl-ratio vl-sum" aria-labelledby="vl-summary-title">
+      <div className="vl-ratio-band">
+        <header className="vl-panel-head">
+          <h3 id="vl-summary-title" className="vl-h3">
+            Your Valuation Summary
+          </h3>
+        </header>
 
-      <p className="vl-hint">
-        This page restates what you entered and what the calculators returned.
-        It is not a recommendation, a target price, or a prediction.
-      </p>
+        <p className="vl-hint">
+          This page restates what you entered and what the calculators
+          returned. It is not a recommendation, a target price, or a
+          prediction.
+        </p>
 
+        <p className="vl-headline-label">Key results</p>
+        <div className="vl-sum-heads">
+          {headlines.map((item) => (
+            <div key={item.label} className="vl-sum-head">
+              <p className="vl-sum-head-label">{item.label}</p>
+              <p className="vl-sum-head-value">{item.value}</p>
+              <p className="vl-sum-head-note">{item.note}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="vl-ratio-body">
+      <h4 className="vl-h4">Calculated results</h4>
+      <div className="vl-table-wrap">
+        <table className="vl-table vl-table-compare">
+          <caption className="vl-sr-only">
+            Results from the calculators, with the status of each
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Output</th>
+              <th scope="col">Result</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {outputs.map((row) => (
+              <tr key={row.label}>
+                <th scope="row">{row.label}</th>
+                <td>{row.value}</td>
+                <td>
+                  {row.status ? <StatusBadge status={row.status} /> : row.note}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h4 className="vl-h4">What you entered</h4>
       <div className="vl-summary-grid">
         <section className="vl-summary-block" aria-labelledby="vl-sum-company">
           <h4 id="vl-sum-company" className="vl-h4">
@@ -296,33 +360,6 @@ export default function ValuationSummary({
         </section>
       </div>
 
-      <h4 className="vl-h4">Calculated results</h4>
-      <div className="vl-table-wrap">
-        <table className="vl-table vl-table-compare">
-          <caption className="vl-sr-only">
-            Results from the calculators, with the status of each
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Output</th>
-              <th scope="col">Result</th>
-              <th scope="col">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {outputs.map((row) => (
-              <tr key={row.label}>
-                <th scope="row">{row.label}</th>
-                <td>{row.value}</td>
-                <td>
-                  {row.status ? <StatusBadge status={row.status} /> : row.note}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
       {issueGroups.length > 0 && (
         <>
           <h4 className="vl-h4">Warnings and issues</h4>
@@ -359,6 +396,7 @@ export default function ValuationSummary({
           No result guarantees future performance.
         </li>
       </ul>
-    </div>
+      </div>
+    </article>
   );
 }

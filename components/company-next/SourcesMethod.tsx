@@ -2,8 +2,8 @@ import { type ReactNode } from "react";
 
 // Section 20: Sources and method (page footer, outside the tabs).
 // One question: where does each number come from, how is it calculated, and how far can it be trusted?
-// Company-neutral: no industry wording is guessed in this file. A source topic comes from the data when it is given,
-// and otherwise from a short list of general topics that fit every company.
+// Company-neutral: no industry wording is guessed in this file. Every source gives its own `topic` in the data,
+// and every document names the `source` (by its title) that it belongs to. Nothing is worked out from patterns.
 // Server Component. No client JS needed.
 
 export type TraceData = {
@@ -27,14 +27,14 @@ export type SourcesMethodData = {
   sources: {
     title: string;
     text: string;
-    topic?: string; // what this source feeds, e.g. "Outlook and guidance"
+    topic: string; // what this source feeds, e.g. "Outlook and guidance"
   }[];
   documents: {
     name: string;
     date: string;
     type: string;
     use: string;
-    source?: string; // title of the source it belongs to; found from the type when left out
+    source: string; // title of the source it belongs to, copied exactly from `sources[].title`
   }[];
   formulasTitle: string;
   formulasIntro: string;
@@ -109,24 +109,9 @@ const SRC_STYLE = [
   { card: "bg-warning-soft", title: "text-warning", dot: "bg-warning", chip: "bg-warning-soft text-warning" },
 ];
 
-// A document is matched to its source by an explicit `source`, else by its type.
-// Each pair is: a pattern for the document type, and a pattern for the source title.
-const DOC_TO_SOURCE: [RegExp, RegExp][] = [
-  [/^(10-K|10-Q|8-K)$/i, /sec/i],
-  [/transcript/i, /investor relations/i],
-  [/data feed|estimates/i, /market data/i],
-  [/idc|industry|press/i, /industry|news/i],
-];
-
-// Used only when a source has no `topic` in the data. These topics fit every company.
-// A source that matches none of them gets a general topic instead of a guess about the industry.
-const DEFAULT_TOPIC: [RegExp, string][] = [
-  [/sec/i, "Reported financials"],
-  [/investor relations/i, "Outlook and guidance"],
-  [/market data/i, "Share price, market cap, estimates and price targets"],
-  [/industry|news/i, "Industry and news context"],
-];
-const FALLBACK_TOPIC = "Additional context";
+// A document whose `source` matches no source title (a typo in the data) is not dropped. It is shown in this last row,
+// so the mistake is visible on the page instead of the document vanishing.
+const UNMATCHED_ROW_TOPIC = "Other documents";
 
 const NAV = [
   { id: "trace", label: "Trace a number" },
@@ -215,23 +200,16 @@ export default function SourcesMethod({ data }: { data: SourcesMethodData }) {
   const split = Math.ceil(tiles.length / 2);
   const tileRows = [tiles.slice(0, split), tiles.slice(split)].filter((r) => r.length > 0);
 
-  // Data sources: each source with the documents that come from it.
-  const sourceIndexOf = (d: SourcesMethodData["documents"][number]) => {
-    if (d.source) return data.sources.findIndex((s) => s.title === d.source);
-    for (const [typeRe, sourceRe] of DOC_TO_SOURCE) {
-      if (typeRe.test(d.type)) return data.sources.findIndex((s) => sourceRe.test(s.title));
-    }
-    return -1;
-  };
-  const docIndex = data.documents.map(sourceIndexOf);
+  // Data sources: each source with the documents that name it.
   const sourceRows = data.sources.map((s, i) => ({
     title: s.title,
     text: s.text,
-    topic: s.topic ?? DEFAULT_TOPIC.find(([re]) => re.test(s.title))?.[1] ?? FALLBACK_TOPIC,
+    topic: s.topic,
     style: SRC_STYLE[i % SRC_STYLE.length],
-    docs: data.documents.filter((_, k) => docIndex[k] === i),
+    docs: data.documents.filter((d) => d.source === s.title),
   }));
-  const otherDocs = data.documents.filter((_, k) => docIndex[k] === -1);
+  const knownSources = new Set(data.sources.map((s) => s.title));
+  const otherDocs = data.documents.filter((d) => !knownSources.has(d.source));
 
   // Timeline drawn to scale. Falls back to even spacing if a date cannot be read.
   const times = data.timeline.map((t) => Date.parse(t.date));
@@ -336,9 +314,9 @@ export default function SourcesMethod({ data }: { data: SourcesMethodData }) {
               ...(otherDocs.length > 0
                 ? [
                     {
-                      title: "Other documents",
+                      title: UNMATCHED_ROW_TOPIC,
                       text: "",
-                      topic: FALLBACK_TOPIC,
+                      topic: UNMATCHED_ROW_TOPIC,
                       style: { card: "bg-surface", title: "text-ink", dot: "bg-ink-muted", chip: "bg-surface text-ink-muted" },
                       docs: otherDocs,
                     },

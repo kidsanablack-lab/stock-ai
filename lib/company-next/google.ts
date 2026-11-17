@@ -14,12 +14,16 @@ import type { CompetitorsData } from "@/components/company-next/Competitors";
 import type { SourcesMethodData } from "@/components/company-next/SourcesMethod";
 import type { BottomLineData } from "@/components/company-next/BottomLine";
 import type { ClosingPanelData } from "@/components/company-next/ClosingPanel";
-import type { CompanyPageData } from "./apple";
+import type { SpotlightData } from "@/components/company-next/Spotlight";
+import type { CompanyPageData } from "./types";
 import { applyScore } from "../scope-score/apply";
 import { googleScore } from "../scope-score/inputs";
 import rawGoogl from "../../data/raw/GOOGL.json";
-import { buildFacts, type RawFmp, type Row } from "../company-data/facts";
-import { cashAndReturnsNumbers, financialHighlightsMetrics, profitHistoryNumbers } from "../company-data/sections";
+import { buildFacts, type RawFmp } from "../company-data/facts";
+import { peAtYearEnd } from "../company-data/peHistory";
+import { cashAndReturnsNumbers, financialHighlightsMetrics, profitHistoryNumbers, roicText } from "../company-data/sections";
+import { closingShared, formulas, formulasNote, scoreHowToRead, scoringIntro } from "@/shared/methodology";
+import { peerCaveat, peerCompany } from "@/shared/peers";
 
 // Scope Score: numbers come from lib/scope-score (inputs.ts + config.ts).
 const scored = applyScore(googleScore.raw, googleScore.display);
@@ -30,15 +34,8 @@ const facts = buildFacts(rawGoogl as unknown as RawFmp);
 const cashNums = cashAndReturnsNumbers(facts);
 const profitNums = profitHistoryNumbers(facts);
 
-// P/E at each fiscal year end, read from the saved API data. Field names differ between API versions,
-// so we try the likely ones. If none is found the chart shows only "Now".
-const peAtYearEnd: { year: string; value: number }[] = [...((rawGoogl as unknown as RawFmp).ratios ?? [])]
-  .sort((a: Row, b: Row) => String(a.date).localeCompare(String(b.date)))
-  .map((r: Row) => {
-    const v = [r.priceToEarningsRatio, r.priceEarningsRatio, r.peRatio].find((x) => typeof x === "number" && Number.isFinite(x) && (x as number) > 0);
-    return { year: `’${String(r.date).slice(2, 4)}`, value: typeof v === "number" ? Number(v.toFixed(1)) : NaN };
-  })
-  .filter((x) => Number.isFinite(x.value));
+// P/E at each fiscal year end, read from the saved API data (shared helper). If none is found the chart shows only "Now".
+const peHistory = peAtYearEnd(rawGoogl as unknown as RawFmp);
 
 // Alphabet page data. Prices as of Nov 6, 2026 close. Latest quarter: Q3 2026 (ended Sep 30, 2026, reported Oct 28).
 // Fiscal year = calendar year. FY21 to FY25 are the five full years shown (FY26 is not finished).
@@ -92,8 +89,9 @@ const scoreReasons: ScoreReasonsData = {
     { name: "Risk", ...scored.reason["Risk"], value: "49.7%", label: "of Q3 2026 sales from Search & other. Net cash is from the FY25 balance sheet, and debt has since risen to $125.1B", href: "#strengths-risks" },
     { name: "Valuation", ...scored.reason["Valuation"], value: "14.9×", label: "P/E, against its own 5-year average of about 24×, but investment gains make it look lower than it is", href: "#valuation" },
   ],
-  howToRead:
-    "A is the strongest grade and F the weakest. Green means strong, amber mixed, red weak. Each grade comes from a 0 to 10 category score, and the overall score is their weighted average. The inputs, weights and cut-offs are listed under Sources and method. Net margin and P/E use reported (GAAP) profit, which includes $129.6B of pre-tax gains on equity stakes in the last 12 months, so the Profitability and Valuation grades are higher than the core business alone would earn.",
+  howToRead: scoreHowToRead(
+    "Net margin and P/E use reported (GAAP) profit, which includes $129.6B of pre-tax gains on equity stakes in the last 12 months, so the Profitability and Valuation grades are higher than the core business alone would earn.",
+  ),
 };
 
 const whatChanged: WhatChangedData = {
@@ -190,6 +188,8 @@ const whereMoneyComes: WhereMoneyComesData = {
   title: "Half of sales still come from Search, but Cloud has grown from 15% to 24% of sales in a year",
   lead: "$127.6B of revenue in Q3 2026 (quarter ended Sep 30, 2026), split by business, by profit and by region. Scope uses the latest quarter here because the annual breakdown for FY25 is not loaded yet.",
   labels: ["From Q3 2026 results"],
+  periodLabel: "Q3 2026",
+  comparedWith: "Q3 2025",
   products: [
     { name: "Google Search & other", share: 49.7, value: 63.35, yoy: 12.0, note: "Ads next to Google Search results, plus other Search income" },
     { name: "Google Cloud", share: 24.1, value: 30.71, yoy: 102.6, note: "Cloud computing, AI services, Workspace and sales of TPU chip systems" },
@@ -206,6 +206,8 @@ const whereMoneyComes: WhereMoneyComesData = {
       "Segment operating profit is revenue minus the costs of that business. Alphabet keeps $40.70 of every $100 of Google Services sales (Search, YouTube, subscriptions, devices) and $36.20 of every $100 of Cloud sales. Cloud’s margin was $23.70 a year ago, so it is catching up fast. The figures leave out Other Bets (a $2.0B loss) and $7.7B of Alphabet-level costs, mostly shared AI research, which is why they add up to more than the company’s $40.6B operating income.",
     revenueTotal: "$127.0B",
     profitTotal: "$50.3B",
+    groupNames: { a: "Google Services", b: "Google Cloud" },
+    profitLabel: "segment operating profit",
     productsRevenue: 75.8,
     servicesRevenue: 24.2,
     productsProfit: 77.9,
@@ -298,10 +300,12 @@ const valuation: ValuationData = {
   },
   history: {
     title: "Alphabet’s P/E of 14.9× looks low, but without investment gains it is about 26×, close to its own 5-year average of about 24×",
-    years: [...peAtYearEnd, { year: "Now", value: 14.9 }],
+    years: [...peHistory, { year: "Now", value: 14.9 }],
+    peAverage: 24.4,
+    averagePeriod: "5-year",
     peSubtitle: "Price divided by the last 12 months of earnings, at each fiscal year end, and now",
     peHowToRead:
-      "P/E is the price you pay for each $1 of yearly profit. The blue bar is now, and the dashed line is the average of the fiscal year ends before it. Now is low because profit includes $129.6B of pre-tax gains on shares in other companies over the last 12 months.",
+      "P/E is the price you pay for each $1 of yearly profit. The blue bar is now, and the dashed line is the 5-year average, taken at fiscal year ends. Now is low because profit includes $129.6B of pre-tax gains on shares in other companies over the last 12 months.",
     multiples: [
       { name: "P/E", now: 14.9, avg: 24.4 },
       { name: "P/E without investment gains (Scope estimate)", now: 26.0, avg: 24.4 },
@@ -339,7 +343,7 @@ const profitHistory: ProfitHistoryData = {
     roic: profitNums.returns.roic,
     roicFrom: profitNums.returns.roicFrom,
     wacc: 8,
-    text: `For every $100 put into the business, Alphabet earns about $${profitNums.returns.roic} a year after tax, up from $${profitNums.returns.roicFrom} in ${profitNums.returns.roicFromYear}.`,
+    text: roicText("Alphabet", profitNums.returns),
     note: "ROIC is operating profit after tax divided by average shareholders’ equity plus debt. Cost of capital (8%) is Scope’s own assumption, the same as the base case in the valuation. ROIC was 29.8% in FY24 and 26.9% in FY25 as equity and debt grew faster than profit. ROE is about 36%. The balance sheet has grown a lot in 2026 (total assets up from $595B to $1,003B), so ROIC is likely to fall further.",
   },
   tableTitle: "Every number behind the charts",
@@ -348,6 +352,7 @@ const profitHistory: ProfitHistoryData = {
 };
 
 const cashAndReturns: CashAndReturnsData = {
+  companyName: "Alphabet",
   title: "Alphabet paid out about three quarters of its free cash flow in FY25, but stopped buybacks in 2026",
   lead: "How much cash Alphabet makes, how much it gives back through buybacks and dividends, and whether it still holds more cash than debt.",
   labels: ["From 10-K filings"],
@@ -482,17 +487,10 @@ const competitors: CompetitorsData = {
     ],
     note: "Share of the combined revenue of these three only, from press summaries of their Q3 2026 reports ($46.0B, $33.2B and $30.7B). It is not a market share: the segments are defined differently, and Oracle and other clouds are left out. Google Cloud grew 103%, against 48% for Azure and 39% for AWS.",
   },
+  // Numbers for Alphabet, Microsoft and Apple come from the saved API data through shared/peers.ts.
   companies: [
-    {
-      id: "goog", name: "Alphabet", ticker: "GOOGL", kind: "self",
-      desc: "Search, YouTube, Android and Google Cloud",
-      metrics: { revenue: 471.1, growth: 22.2, opMargin: 33.3, fcf: 19.7, fcfMargin: 4.2, netDebt: -49.6 },
-    },
-    {
-      id: "msft", name: "Microsoft", ticker: "MSFT", kind: "direct",
-      desc: "Azure cloud, AI assistants and Bing search",
-      metrics: { revenue: 346.4, growth: 17.9, opMargin: 47.1, fcf: 60.0, fcfMargin: 17.3, netDebt: -29.0 },
-    },
+    peerCompany("GOOGL", { id: "goog", kind: "self", desc: "Search, YouTube, Android and Google Cloud" }),
+    peerCompany("MSFT", { id: "msft", kind: "direct", desc: "Azure cloud, AI assistants and Bing search" }),
     {
       id: "amzn", name: "Amazon", ticker: "AMZN", kind: "direct",
       desc: "AWS cloud, online ads and product search",
@@ -508,11 +506,7 @@ const competitors: CompetitorsData = {
       desc: "ChatGPT, a rival way to ask questions and find answers",
       chartNote: "Not in the charts: OpenAI is a private company with no public financials.",
     },
-    {
-      id: "aapl", name: "Apple", ticker: "AAPL", kind: "indirect",
-      desc: "iPhone and Safari, where Google pays to be the default search",
-      metrics: { revenue: 478.8, growth: 15.1, opMargin: 33.0, fcf: 136.1, fcfMargin: 28.4, netDebt: -56.8 },
-    },
+    peerCompany("AAPL", { id: "aapl", kind: "indirect", desc: "iPhone and Safari, where Google pays to be the default search" }),
     {
       id: "nvda", name: "NVIDIA", ticker: "NVDA", kind: "indirect",
       desc: "The AI chips Alphabet buys, while building its own TPUs",
@@ -523,14 +517,16 @@ const competitors: CompetitorsData = {
   compareIntro: "One card per measure, one bar per company, best first. Blue is Alphabet, grey bars are Apple and Microsoft.",
   compareHowToRead:
     "Dots to the right are higher values. The label under each line lists every company in rank order, best first. For net debt, lower is better, so rank 1 is the biggest net cash.",
-  caveat:
-    "All three use US-reported figures, but the periods differ slightly: Alphabet and Microsoft are the last 12 months to Sep 30, 2026, and Apple’s fiscal year ended Sep 26, 2026. Free cash flow is operating cash flow minus capital spending. Net cash is cash and short-term investments minus interest-bearing debt on the latest balance sheet; for Alphabet it excludes $90.4B of shares in other companies. Alphabet spent $159.8B on equipment in 12 months, which is why its free cash flow is low. Businesses differ, so read gaps as clues, not scores.",
+  caveat: peerCaveat(
+    ["GOOGL", "MSFT", "AAPL"],
+    "Alphabet’s net cash is as of Dec 31, 2025. Since then its debt has risen to $125.1B and its marketable securities include $90.4B of shares in other companies, so the cushion today is smaller (see Cash and returns). Alphabet spent $159.8B on equipment in 12 months, which is why its free cash flow is low.",
+  ),
   valuationTitle: "Growth against profitability",
   valuationIntro: "The best place to be is fast growth and a high margin at the same time. Check both together.",
   valuationHowToRead:
     "Each dot is a company. Further right means faster growth, and further up means a higher operating margin. A dot in the top right is both fast and profitable.",
   source:
-    "Sources: Alphabet Q3 2026 release (Oct 28, 2026) and Financial Modeling Prep (Nov 9, 2026); Microsoft Q1 FY27 release (quarter ended Sep 30, 2026) and Financial Modeling Prep; Apple from its FY26 results (Nov 2026). Cloud revenue for AWS and Azure is from press summaries of Amazon’s and Microsoft’s Q3 reports. Growth compares with the same 12 months a year earlier. Amazon, Meta, OpenAI and NVIDIA are described in words because comparable figures were not loaded.",
+    "Sources: Alphabet, Microsoft and Apple numbers from their filings, loaded from the saved API data (Financial Modeling Prep) on the same day as the rest of this page. Growth compares with the same 12 months a year earlier. Cloud revenue for AWS and Azure is from press summaries of Amazon’s and Microsoft’s Q3 reports. Amazon, Meta, OpenAI and NVIDIA are described in words because comparable figures were not loaded.",
 };
 
 const sourcesMethod: SourcesMethodData = {
@@ -577,39 +573,32 @@ const sourcesMethod: SourcesMethodData = {
   sourcesTitle: "Data sources",
   sourcesIntro: "Where each kind of data comes from, and the documents Scope reads for Alphabet.",
   sources: [
-    { title: "SEC filings", text: "Annual (10-K) and quarterly (10-Q) reports and event reports (8-K) for Alphabet, Microsoft and Apple. The primary source for financial figures." },
-    { title: "Company investor relations", text: "Earnings releases, slides and call transcripts published by the company. Management’s outlook and comments come from here." },
-    { title: "Market data providers", text: "Share price, market cap, fiscal-year-end multiples and growth forecasts from Financial Modeling Prep, and analyst targets from TIKR. Prices are closing prices, and Scope shows the date." },
-    { title: "News and industry data", text: "Press summaries of the earnings calls, court rulings as reported by trade press, and Statcounter and OpenAI figures for search and chatbot use. Where a figure comes only from the press, Scope says so." },
+    { title: "SEC filings", topic: "Reported financials", text: "Annual (10-K) and quarterly (10-Q) reports and event reports (8-K) for Alphabet, Microsoft and Apple. The primary source for financial figures." },
+    { title: "Company investor relations", topic: "Outlook and guidance", text: "Earnings releases, slides and call transcripts published by the company. Management’s outlook and comments come from here." },
+    { title: "Market data providers", topic: "Share price, market cap, estimates and price targets", text: "Share price, market cap, fiscal-year-end multiples and growth forecasts from Financial Modeling Prep, and analyst targets from TIKR. Prices are closing prices, and Scope shows the date." },
+    { title: "News and industry data", topic: "Industry and news context", text: "Press summaries of the earnings calls, court rulings as reported by trade press, and Statcounter and OpenAI figures for search and chatbot use. Where a figure comes only from the press, Scope says so." },
   ],
   documents: [
-    { name: "FY25 annual report", date: "Feb 2026", type: "10-K", use: "Business, risks, legal proceedings and annual financials" },
-    { name: "Q3 2026 earnings release", date: "Oct 28, 2026", type: "8-K", use: "Headline results, segments, balance sheet and cash flow" },
-    { name: "Q3 2026 quarterly report", date: "Oct 2026", type: "10-Q", use: "Equity investments, legal proceedings and geography" },
-    { name: "Q3 2026 earnings call", date: "Oct 28, 2026", type: "Transcript", use: "Capital spending guide, margin and supply comments, kept as press summaries" },
-    { name: "Equity capital raise announcement", date: "Jun 1, 2026", type: "8-K", use: "$80B equity raise and Berkshire Hathaway investment" },
-    { name: "Microsoft Q1 FY27 earnings release", date: "Oct 2026", type: "8-K", use: "Rival financials on the same basis" },
-    { name: "Analyst consensus and price targets", date: "Oct 30, 2026", type: "Estimates", use: "Average price target and post-earnings target changes" },
-    { name: "Cloud market summaries", date: "Nov 2026", type: "Data feed", use: "AWS and Azure revenue for the cloud comparison" },
+    { name: "FY25 annual report", date: "Feb 2026", type: "10-K", source: "SEC filings", use: "Business, risks, legal proceedings and annual financials" },
+    { name: "Q3 2026 earnings release", date: "Oct 28, 2026", type: "8-K", source: "SEC filings", use: "Headline results, segments, balance sheet and cash flow" },
+    { name: "Q3 2026 quarterly report", date: "Oct 2026", type: "10-Q", source: "SEC filings", use: "Equity investments, legal proceedings and geography" },
+    { name: "Q3 2026 earnings call", date: "Oct 28, 2026", type: "Transcript", source: "Company investor relations", use: "Capital spending guide, margin and supply comments, kept as press summaries" },
+    { name: "Equity capital raise announcement", date: "Jun 1, 2026", type: "8-K", source: "SEC filings", use: "$80B equity raise and Berkshire Hathaway investment" },
+    { name: "Microsoft and Apple financials", date: "Nov 2026", type: "Data feed", source: "Market data providers", use: "Rival financials, each on its own latest 12 months" },
+    { name: "Analyst consensus and price targets", date: "Oct 30, 2026", type: "Estimates", source: "Market data providers", use: "Average price target and post-earnings target changes" },
+    { name: "Cloud market summaries", date: "Nov 2026", type: "Data feed", source: "Market data providers", use: "AWS and Azure revenue for the cloud comparison" },
   ],
   formulasTitle: "How each metric is calculated",
   formulasIntro: "The exact formula behind each metric, and the definition choices that go with it.",
-  formulas: [
-    { name: "Revenue growth", formula: "(Revenue now − revenue a year earlier) ÷ revenue a year earlier × 100", note: "Year over year, to avoid seasonal swings. For the last 12 months, the comparison is with the 12 months before that. Quarterly and annual are never mixed." },
-    { name: "Operating margin", formula: "Operating income ÷ revenue × 100", note: "Uses reported operating income, with no add-backs." },
-    { name: "Net margin", formula: "Net income ÷ revenue × 100", note: "GAAP net income. For Alphabet it includes large gains and losses on shares in other companies ($129.6B of pre-tax gains in the last 12 months), so it is far above the operating margin." },
-    { name: "ROE", formula: "Net income ÷ average shareholders’ equity × 100", note: "Average of start and end of period." },
-    { name: "ROIC", formula: "Operating income × (1 − tax rate) ÷ average (equity + debt) × 100", note: "Debt is interest-bearing debt. Cash is not subtracted. Other data providers define it differently, so compare ROIC only within Scope." },
-    { name: "Debt to equity", formula: "Interest-bearing debt ÷ shareholders’ equity", note: "Debt is short-term plus long-term debt, without leases." },
-    { name: "Free cash flow", formula: "Operating cash flow − capital spending", note: "Capital spending is taken from the cash flow statement. Quarterly figures come from subtracting cumulative year-to-date totals." },
-    { name: "Net cash", formula: "Cash and short-term investments − interest-bearing debt", note: "Positive means net cash. For Alphabet the fair value model also removes $90.4B of marketable shares in other companies, because they are stakes, not cash. Scope’s Score input uses the FY25 year-end balance sheet." },
-    { name: "P/E", formula: "Share price ÷ diluted earnings per share, last 12 months", note: "GAAP earnings. The history uses the price at each fiscal year end and that year’s earnings. For Alphabet, a second figure removes the equity gains (about 22% tax assumed) and is marked as a Scope estimate." },
-    { name: "EV/EBITDA", formula: "(Market cap − net cash) ÷ (operating income + depreciation and amortization)", note: "Last 12 months. The average used in the Score is the 5-year average at fiscal year ends." },
-  ],
-  formulasNote: "Scope uses reported (GAAP) figures and interest-bearing debt. Figures with different definitions are never compared without a note.",
+  formulas: formulas({
+    "Net margin": "GAAP net income. For Alphabet it includes large gains and losses on shares in other companies ($129.6B of pre-tax gains in the last 12 months), so it is far above the operating margin.",
+    "Net cash": "Positive means net cash. For Alphabet the fair value model also removes $90.4B of marketable shares in other companies, because they are stakes, not cash. Scope’s Score input uses the FY25 year-end balance sheet.",
+    "P/E": "GAAP earnings. The history uses the price at each fiscal year end and that year’s earnings. For Alphabet, a second figure removes the equity gains (about 22% tax assumed) and is marked as a Scope estimate.",
+    "EV/EBITDA": "Last 12 months. The average used in the Score is the 5-year average at fiscal year ends.",
+  }),
+  formulasNote,
   scoringTitle: "How the Scope Score is built",
-  scoringIntro:
-    "Six categories, each with its own inputs, weights and cut-offs. Every input is scored from 0 to 10, a category is the weighted average of its inputs, and the overall score is the weighted average of the categories. Grades: A+ from 9.0, A from 8.0, B+ from 7.5, B from 7.0, C+ from 6.0, C from 5.0, D from 3.0, F below that. Labels: Excellent from 9.0, Strong from 7.5, Good from 6.0, Fair from 5.0, Weak below that.",
+  scoringIntro,
   categories: scored.categories,
   scoringNote:
     "If an input is missing, its weight is spread over the other inputs in that category, never set to zero. If more than 40% of a category’s weight is missing, the category shows “Not enough data” and the overall score is marked partial. The cut-offs are the same for every company, so a score does not depend on which other companies are on the list. For Alphabet, net margin (50.0%) and the P/E against its average (0.61×) include gains on shares in other companies, so the Profitability and Valuation scores look more favorable than the core business alone would earn. Net debt uses the Dec 31, 2025 balance sheet, before debt rose to $125.1B.",
@@ -619,6 +608,7 @@ const sourcesMethod: SourcesMethodData = {
     { name: "Discounted cash flow", what: "Estimates value per share from future free cash flow under three stated cases, starting from the last 12 months. This sets the fair value ($84 in the base case).", limit: "The result moves a lot when assumptions change, and about 69% of the value comes from after year 10. For Alphabet the starting cash flow is unusually low because of record capital spending, so the result is far below the share price." },
     { name: "Analyst price targets", what: "Shows the average of published targets from analysts who follow Alphabet, and the range of post-earnings targets named in the press.", limit: "Targets are opinions, usually for 12 months ahead, and they often follow the share price. The full range is not loaded yet." },
   ],
+  // Alphabet's own sentence: its P/E history is shown separately and does not set the fair value.
   valuationNote: "Fair value is a model output under stated assumptions, not a price the stock will reach. Alphabet’s own P/E history is shown separately and does not set the fair value.",
   freshnessTitle: "Data quality and freshness",
   freshnessIntro: "When a period ended, when it was published and when Scope loaded it are three different dates.",
@@ -633,7 +623,7 @@ const sourcesMethod: SourcesMethodData = {
     { dataset: "Cash flow", period: "FY25 plus the latest quarters", sourceDate: "Oct 28, 2026", updated: "Nov 9, 2026", status: "Verified", limit: "Last-12-month free cash flow ($19.7B) matches the company’s own reconciliation." },
     { dataset: "Share price and market cap", period: "Not applicable", sourceDate: "Nov 6, 2026 close", updated: "Nov 9, 2026", status: "Verified", limit: "Closing price only, and it moves every trading day." },
     { dataset: "Analyst estimates and targets", period: "Next 12 months", sourceDate: "Oct 30, 2026", updated: "Nov 10, 2026", status: "Pending", limit: "Consensus differs between providers and changes after earnings. The full range of targets is not loaded yet." },
-    { dataset: "Rival financials", period: "12 months to Sep 2026", sourceDate: "Oct to Nov 2026", updated: "Nov 10, 2026", status: "Verified", limit: "Microsoft and Alphabet are on the same 12-month basis; Apple’s fiscal year ends Sep 26. Amazon, Meta and OpenAI are not in the charts." },
+    { dataset: "Rival financials", period: "Each company’s latest 12 months", sourceDate: "Oct to Nov 2026", updated: "Nov 2026", status: "Verified", limit: "Each company is on its own latest 12 months and latest fiscal year-end balance sheet, so the dates differ slightly. The exact dates are in the note under the Competitors charts. Amazon, Meta and OpenAI are not in the charts." },
     { dataset: "Cloud market comparison", period: "Q3 2026 (Jul to Sep)", sourceDate: "Oct to Nov 2026", updated: "Nov 10, 2026", status: "Pending", limit: "AWS and Azure revenue come from press summaries, and the segments are defined differently." },
     { dataset: "Customer counts", period: "Not applicable", sourceDate: "Not applicable", updated: "Not applicable", status: "Unavailable", limit: "Alphabet does not report customer counts, so Scope shows Gemini users (1 billion), subscribers and cloud backlog instead." },
   ],
@@ -664,20 +654,73 @@ const closing: ClosingPanelData = {
     { name: "NVIDIA", ticker: "NVDA", reason: "Sells the AI chips Alphabet buys, while Alphabet builds its own chips, called TPUs.", href: "/company/nvidia" },
     { name: "Apple", ticker: "AAPL", reason: "Alphabet pays Apple billions to be Safari’s default search, which a court still allows, though not exclusively.", href: "/company/apple" },
   ],
-  links: [
-    { icon: "ti-git-compare", title: "Compare", href: "/compare" },
-    { icon: "ti-calculator", title: "Valuation Lab", href: "/valuation-lab" },
-    { icon: "ti-compass", title: "7 Powers", href: "/7-powers" },
-  ],
-  allLabel: "See all companies",
-  allHref: "/trending",
-  note: "The 7 Powers framework was developed by Hamilton Helmer in 7 Powers: The Foundations of Business Strategy (2016). Scope's explanations and examples are its own. Scope is built for understanding businesses, not for investment advice.",
+  ...closingShared,
 };
 
-export const googlePage: CompanyPageData = {
+const spotlight: SpotlightData = {
+  title:
+    "Alphabet’s business is booming, but AI spending cut its free cash flow from $73B to $20B in a year",
+  lead:
+    "Alphabet earns most of its money from ads on Search and YouTube, while Google Cloud, which sells computing power and AI to other companies, more than doubled last quarter. Keeping up costs a lot: capital spending was $159.8B in the last 12 months, so only a small part of the cash Alphabet earns is left. Reported profit also looks better than the business alone would earn, because of gains on shares in other companies.",
+  labels: [],
+  chart: {
+    kind: "capex-vs-cash",
+    title: "Cash coming in vs cash spent on data centers and equipment, FY25 and the last 12 months ($B)",
+    howToRead:
+      "Blue is cash from operations, red is spending on equipment and buildings. The line under each pair is what is left (free cash flow). The last 12 months run from Q4 2025 to Q3 2026.",
+    years: ["FY25", "Last 12 months"],
+    ocf: [164.7, 179.6],
+    capex: [91.4, 159.8],
+    left: [73.3, 19.7],
+    callout:
+      "In one year, capital spending rose from $91.4B to $159.8B, while cash from operations rose only from $164.7B to $179.6B, so free cash flow fell from $73.3B to $19.7B.",
+  },
+  numbers: [
+    { value: "−$9.1B", label: "free cash flow in Q3 2026, against +$24.6B in Q4 2025", tone: "negative" },
+    { value: "~$200B", label: "capital spending guided for 2026 ($195B to $205B), with a significant rise in 2027", tone: "negative" },
+    { value: "+103%", label: "Google Cloud revenue growth in Q3 2026, to $30.7B", tone: "positive" },
+    { value: "$129.6B", label: "pre-tax gains on shares in other companies in the last 12 months, which lift reported profit", tone: "neutral" },
+  ],
+  wins: [
+    {
+      title: "Cloud turns the spending into revenue",
+      detail:
+        "Cloud grew 103% to $30.7B with a 36.2% margin, and its backlog of signed contracts reached $561B.",
+    },
+    {
+      title: "The core business still earns a lot",
+      detail:
+        "Alphabet earned $179.6B of operating cash flow in the last 12 months, at a 33.3% operating margin, so the core business is still very profitable.",
+    },
+  ],
+  breaks: [
+    {
+      title: "Cash goes out faster than it comes in",
+      detail:
+        "Free cash flow was negative in Q3 2026, and Alphabet guides $195B to $205B of capital spending for 2026 and a significant rise in 2027. If AI demand slows, the spending is hard to reverse.",
+    },
+    {
+      title: "New debt and new shares are paying for it",
+      detail:
+        "Long-term debt rose to $125.1B from $46.5B at the end of 2025, buybacks stopped in 2026 and Alphabet sold $12.4B of new stock in Q3.",
+    },
+  ],
+  watch: {
+    title: "Next report: does free cash flow stay close to break-even as spending steps up?",
+    text:
+      "Free cash flow was −7.1% of sales in Q3 2026. Capital spending guided for 2026 implies about $63B to $73B in the December quarter. The report expected in early February 2027 (date not yet confirmed) shows how much cash is left.",
+    href: "#signals",
+    hrefLabel: "See all signals to watch",
+  },
+  source:
+    "Sources: Alphabet FY25 Form 10-K and Q3 2026 earnings release, call and Form 10-Q (Oct 28, 2026), as reported by CNBC and Yahoo Finance. Free cash flow is calculated by Scope as operating cash flow minus capital spending. Capital spending guidance is Alphabet’s own, not a result.",
+};
+
+export const googlePage: CompanyPageData & { spotlight: SpotlightData } = {
   hero,
   summary,
   scoreReasons,
+  spotlight,
   whatChanged,
   signalsToWatch,
   whereMoneyComes,

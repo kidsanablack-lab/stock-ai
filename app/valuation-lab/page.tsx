@@ -6,8 +6,11 @@ import ValuationWorkspace from "@/components/valuation-lab/ValuationWorkspace";
 import LearningCenter from "@/components/valuation-lab/LearningCenter";
 import "./valuation-lab.css";
 
+// "italic" is loaded for the one emphasised phrase in the hero headline.
+// Without it the browser would slant the normal font instead.
 const fraunces = Fraunces({
   subsets: ["latin"],
+  style: ["normal", "italic"],
   variable: "--vl-serif",
   display: "swap",
 });

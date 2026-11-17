@@ -15,11 +15,14 @@ import type { SourcesMethodData } from "@/components/company-next/SourcesMethod"
 import type { BottomLineData } from "@/components/company-next/BottomLine";
 import type { ClosingPanelData } from "@/components/company-next/ClosingPanel";
 import type { SpotlightData } from "@/components/company-next/Spotlight";
+import type { CompanyPageData } from "./types";
 import { applyScore } from "../scope-score/apply";
 import { appleScore } from "../scope-score/inputs";
 import rawAapl from "../../data/raw/AAPL.json";
 import { buildFacts, type RawFmp } from "../company-data/facts";
 import { cashAndReturnsNumbers, financialHighlightsMetrics, profitHistoryNumbers } from "../company-data/sections";
+import { closingShared, formulas, formulasNote, scoreHowToRead, scoringIntro, valuationNote } from "@/shared/methodology";
+import { peerCaveat, peerCompany } from "@/shared/peers";
 
 // Scope Score: numbers come from lib/scope-score (inputs.ts + config.ts).
 const scored = applyScore(appleScore.raw, appleScore.display);
@@ -30,8 +33,8 @@ const facts = buildFacts(rawAapl as unknown as RawFmp);
 const cashNums = cashAndReturnsNumbers(facts);
 const profitNums = profitHistoryNumbers(facts);
 
-// Example data: only for reviewing the look. Replace with real data later.
-const sample: CompanyHeroData = {
+// Apple page data. Prices as of Nov 6, 2026 close. Latest quarter: Q4 FY26 (ended Sep 26, 2026).
+const hero: CompanyHeroData = {
   name: "Apple Inc.",
   ticker: "AAPL",
   sector: "Technology",
@@ -79,8 +82,7 @@ const scoreReasons: ScoreReasonsData = {
     { name: "Risk", ...scored.reason["Risk"], value: "53.1%", label: "of sales from iPhone, offset by net cash of $56.8B", href: "#strengths-risks" },
     { name: "Valuation", ...scored.reason["Valuation"], value: "38.1×", label: "P/E, against its own 5-year average of 29.9×", href: "#valuation" },
   ],
-  howToRead:
-    "A is the strongest grade and F the weakest. Green means strong, amber mixed, red weak. Each grade comes from a 0 to 10 category score, and the overall score is their weighted average. The inputs, weights and cut-offs are listed under Sources and method.",
+  howToRead: scoreHowToRead(),
 };
 const whatChanged: WhatChangedData = {
   title: "Sales grew 12% to a September-quarter record, but the margin is guided down to 45% to 46% as memory costs rise",
@@ -179,6 +181,8 @@ const whereMoneyComes: WhereMoneyComesData = {
   title: "More than half of sales come from iPhone, but Services keeps far more profit from each dollar",
   lead: "$478.8B of revenue in FY26 (year ended Sep 26, 2026), split by product line, by profit and by region.",
   labels: ["From FY26 10-K"],
+  periodLabel: "FY26",
+  comparedWith: "FY25",
   products: [
     { name: "iPhone", share: 53.1, value: 254.1, yoy: 21.2, note: "All iPhone models" },
     { name: "Services", share: 25.8, value: 123.3, yoy: 13.0, note: "App Store, iCloud, advertising, AppleCare, Apple Pay, Music" },
@@ -194,6 +198,8 @@ const whereMoneyComes: WhereMoneyComesData = {
       "Gross profit is revenue minus the direct cost of making it. Apple keeps $76.20 of every $100 of Services sales but only $39.30 of every $100 of Products sales, because software and subscriptions cost far less to deliver than phones. Apple does not report iPhone’s margin on its own, so Products are shown as one group.",
     revenueTotal: "$478.8B",
     profitTotal: "$233.6B",
+    groupNames: { a: "Products", b: "Services" },
+    profitLabel: "gross profit",
     productsRevenue: 74.2,
     servicesRevenue: 25.8,
     productsProfit: 59.8,
@@ -234,7 +240,7 @@ const whereMoneyComes: WhereMoneyComesData = {
       note: "Greater China covers mainland China, Hong Kong and Taiwan. Apple’s products are assembled mostly in Asia, including mainland China, so tariffs or a trade dispute can hit sales and supply at the same time.",
     },
     howToRead:
-  "Each box’s area is the region’s share of FY26 sales. The pill shows growth versus FY25. Every region grew this year.",
+      "Each box’s area is the region’s share of FY26 sales. The pill shows growth versus FY25. Every region grew this year.",
   },
   source:
     "Source: Apple FY26 Form 10-K (year ended Sep 26, 2026): net sales by category, the segment note and the gross margin table. FY25 figures are from the same filing. Shares are calculated by Scope and rounded to one decimal, so a total can differ from 100% by 0.1.",
@@ -305,9 +311,11 @@ const valuation: ValuationData = {
       { year: "’25", value: 34.1 },
       { year: "Now", value: 38.1 },
     ],
+    peAverage: 29.9,
+    averagePeriod: "5-year",
     peSubtitle: "Price divided by the last 12 months of earnings, at each fiscal year end, and now",
     peHowToRead:
-      "P/E is the price you pay for each $1 of yearly profit. The blue bar is now, and the dashed line is the average of the ten fiscal year ends before it.",
+      "P/E is the price you pay for each $1 of yearly profit. The blue bar is now, and the dashed line is the 5-year average, taken at fiscal year ends. The bars show ten years, so you can see how rare today’s level is.",
     multiples: [
       { name: "P/E", now: 38.1, avg: 29.9 },
       { name: "Forward P/E", now: 37.3, avg: 28.4 },
@@ -315,7 +323,7 @@ const valuation: ValuationData = {
       { name: "EV/EBITDA", now: 28.8, avg: 22.0 },
     ],
     multiplesHowToRead:
-  "Each bar shows how far Apple’s multiple is above its own 5-year average, taken at fiscal year ends. A full bar means +50% or more.",
+      "Each bar shows how far Apple’s multiple is from its own 5-year average, taken at fiscal year ends. A full bar means 50% or more away from it.",
   },
   source:
     "Sources: share price $342.37 (Nov 6, 2026 close) and market data from Financial Modeling Prep; Apple FY26 Form 10-K (net cash, diluted shares, revenue, free cash flow and EPS); fiscal-year-end multiples from FullRatio and StockAnalysis annual ratios; analyst targets from Investing.com (range $215 to $405, average $329, mid-October 2026). Forward P/E differs between data providers. Fair value is Scope’s own discounted cash flow estimate under the assumptions shown, not a price target or investment advice.",
@@ -333,7 +341,7 @@ const profitHistory: ProfitHistoryData = {
   growth: {
     title: "Steady growth, with one dip in FY23 and the fastest year in FY26",
     howToRead:
-  "Top: average growth per year over four years. Bottom: change from the year before, with one group of bars per year. Bars above the line are growth, bars below are a fall.",
+      "Top: average growth per year over four years. Bottom: change from the year before, with one group of bars per year. Bars above the line are growth, bars below are a fall.",
     note: "Sales fell 2.8% in FY23, then grew 2.0%, 6.4% and 15.1%. FY24 net income includes a one-time tax charge of $10.2B, which makes FY24 look weak and FY25 look strong. Free cash flow fell 9.2% in FY25, when cash paid for income taxes rose, then jumped 37.8% in FY26.",
   },
   margins: {
@@ -354,6 +362,7 @@ const profitHistory: ProfitHistoryData = {
     "Source: Apple Form 10-K for FY22 to FY26 (income statement, balance sheet and cash flow statement). Fiscal years end in late September. Margins, growth rates, free cash flow and returns are calculated by Scope.",
 };
 const cashAndReturns: CashAndReturnsData = {
+  companyName: "Apple",
   title: "Apple paid out about three quarters of its free cash flow in FY26",
   lead: "How much cash Apple makes, how much it gives back through buybacks and dividends, and whether it still holds more cash than debt.",
   labels: ["From 10-K filings"],
@@ -364,7 +373,7 @@ const cashAndReturns: CashAndReturnsData = {
   returned: {
     title: "In five years Apple returned $515B, about 93% of the $555B of free cash flow it earned",
     howToRead:
-  "Each year has two bars: the free cash flow Apple earned and what it paid out as dividends and buybacks. The pill is payout as a share of free cash flow, and turns dark blue above 100%.",
+      "Each year has two bars: the free cash flow Apple earned and what it paid out as dividends and buybacks. The pill is payout as a share of free cash flow, and turns dark blue above 100%.",
     fcfNote:
       "Free cash flow is cash from operations ($145.1B in FY26) minus spending on equipment and buildings ($9.0B), which leaves $136.1B.",
   },
@@ -412,7 +421,7 @@ const strengthsRisks: StrengthsRisksData = {
   risks: [
     { icon: "ti-trending-up", name: "Market risk", level: 3, finding: "The share price already assumes a lot of future growth.", evidence: [{ value: "38.1×", label: "P/E, against 29.9× 5-year average" }, { value: "~28%", label: "above our base-case fair value of $267" }], why: "The price leaves little room for error, so shares can fall even if the business does fine." },
     { icon: "ti-gavel", name: "Regulatory risk", level: 3, finding: "Courts and regulators are challenging App Store rules and the Google search deal.", evidence: [{ value: "€500M", label: "EU fine, with new EU terms starting in October 2026" }, { value: "26%", label: "of FY26 sales from Services, the part under review" }], why: "The DOJ lawsuit is still open, though Apple is in early settlement talks. Google may keep paying to be Safari’s default, but not exclusively, and the DOJ is appealing. Lower fees would cut profit faster than sales." },
-    { icon: "ti-cpu-2", name: "Memory costs and supply", level: 2, finding: "Memory chip prices are rising, supply is tight, and tariffs still matter.", evidence: [{ value: "47% to 48%", label: "gross margin guided for the September quarter, against 50.1% last quarter" }, { value: "−22%", label: "global phone shipments in Q3 2026 (IDC), as memory runs short" }], why: "Apple said it paid significantly more for memory and expects supply limits on iPhone, Mac and iPad next quarter. Last quarter’s margin also included about 2 points of one-time tariff refunds. Apple is better placed than most rivals, so the damage is limited." },
+    { icon: "ti-cpu-2", name: "Memory costs and supply", level: 2, finding: "Memory chip prices are rising, supply is tight, and tariffs still matter.", evidence: [{ value: "45% to 46%", label: "gross margin guided for the December quarter, against 47.9% last quarter" }, { value: "−22%", label: "global phone shipments in Q3 2026 (IDC), as memory runs short" }], why: "Apple said it paid significantly more for memory and expects supply limits on iPhone, Mac and iPad next quarter. Last quarter’s margin also included about 1 point of one-time tariff refunds. Apple is better placed than most rivals, so the damage is limited." },
     { icon: "ti-chart-pie", name: "Concentration risk", level: 2, finding: "One product and one region carry a lot of sales.", evidence: [{ value: "53.1%", label: "of FY26 sales from iPhone" }, { value: "17.2%", label: "of FY26 sales from Greater China, up from 15.5% in FY25" }], why: "China swung from −3.8% in FY25 to +28% in FY26, which shows how much one region can move results. A weak iPhone cycle would hit more than half of sales." },
     { icon: "ti-trending-down", name: "Growth risk", level: 2, finding: "Growth is strong now, but Apple expects it to slow.", evidence: [{ value: "+11.7%", label: "revenue growth in Q4 FY26, down from +16.4% in Q3" }, { value: "+7% to +10%", label: "guided for the December quarter" }], why: "At a P/E near 40, slower growth can pull the share price down even when sales still rise." },
     { icon: "ti-user-star", name: "Leadership change", level: 1, finding: "Apple has a new CEO for the first time in 15 years.", evidence: [{ value: "Sep 1, 2026", label: "John Ternus became CEO" }, { value: "Nov 2", label: "his first earnings report as CEO" }], why: "Ternus is a long-time Apple executive, so the strategy is likely to continue. The first quarters under a new CEO are watched closely." },
@@ -486,12 +495,9 @@ const competitors: CompetitorsData = {
     ],
     note: "IDC, shares of units shipped, not of revenue. The market fell 22% from a year earlier, and Apple and Samsung were the only two of the top five makers to gain share.",
   },
+  // Numbers for Apple, Alphabet and Microsoft come from the saved API data through shared/peers.ts.
   companies: [
-    {
-      id: "aapl", name: "Apple", ticker: "AAPL", kind: "self",
-      desc: "Phones, computers, wearables and services",
-      metrics: { revenue: 478.8, growth: 15.1, opMargin: 33.0, fcf: 136.1, fcfMargin: 28.4, netDebt: -56.8 },
-    },
+    peerCompany("AAPL", { id: "aapl", kind: "self", desc: "Phones, computers, wearables and services" }),
     {
       id: "sams", name: "Samsung", ticker: "005930", kind: "direct",
       desc: "Phones, memory chips, TVs and appliances",
@@ -502,16 +508,8 @@ const competitors: CompetitorsData = {
       desc: "Phones, smart home devices and electric cars",
       chartNote: "Not in the charts: it reports in yuan with adjusted figures. First-half 2026 revenue fell 8.4%, and Q2 phone shipments fell 26.5%.",
     },
-    {
-      id: "goog", name: "Alphabet", ticker: "GOOGL", kind: "indirect",
-      desc: "Android software, search, cloud and Pixel phones",
-      metrics: { revenue: 445.9, growth: 20.0, opMargin: 33.1, fcf: 53.3, fcfMargin: 12.0, netDebt: -121.7 },
-    },
-    {
-      id: "msft", name: "Microsoft", ticker: "MSFT", kind: "indirect",
-      desc: "PC software, cloud and business tools",
-      metrics: { revenue: 331.8, growth: 17.8, opMargin: 46.8, fcf: 67.0, fcfMargin: 20.2, netDebt: 52.0 },
-    },
+    peerCompany("GOOGL", { id: "goog", kind: "indirect", desc: "Android software, search, cloud and Pixel phones" }),
+    peerCompany("MSFT", { id: "msft", kind: "indirect", desc: "PC software, cloud and business tools" }),
     {
       id: "sony", name: "Sony", ticker: "SONY", kind: "indirect",
       desc: "Consumer electronics, gaming and media",
@@ -523,14 +521,16 @@ const competitors: CompetitorsData = {
   compareIntro: "One card per measure, one bar per company, best first. Blue is Apple, grey bars are Alphabet and Microsoft.",
   compareHowToRead:
     "Dots to the right are higher values. The label under each line lists every company in rank order, best first. For net debt, lower is better, so rank 1 is the biggest net cash.",
-  caveat:
-    "All three use US-reported figures, but the periods differ slightly: Apple’s fiscal year ended Sep 26, 2026, Microsoft’s ended Jun 30, 2026, and Alphabet is the 12 months to Jun 2026. Free cash flow is operating cash flow minus capital spending, and net debt can include lease obligations. Alphabet spent $132B on equipment in that period, which is why its free cash flow is low. Businesses differ, so read gaps as clues, not scores.",
+  caveat: peerCaveat(
+    ["AAPL", "GOOGL", "MSFT"],
+    "Alphabet’s free cash flow is low because it spent far more on equipment than the others.",
+  ),
   valuationTitle: "Growth against profitability",
   valuationIntro: "The best place to be is fast growth and a high margin at the same time. Check both together.",
   valuationHowToRead:
     "Each dot is a company. Further right means faster growth, and further up means a higher operating margin. A dot in the top right is both fast and profitable.",
   source:
-    "Sources: Apple, Alphabet and Microsoft filings and S&P Global data via StockAnalysis (Oct 23 to 25, 2026); Apple is fiscal 2026 from its 10-K (Nov 2026). Alphabet is the 12 months to June 2026; Microsoft is fiscal 2026. Growth compares with the same 12 months a year earlier; Alphabet’s is calculated by Scope. Smartphone shares are IDC’s Q3 2026 estimate. Samsung and Xiaomi facts are from their Q2 2026 results.",
+    "Sources: Apple, Alphabet and Microsoft numbers from their filings, loaded from the saved API data (Financial Modeling Prep) on the same day as the rest of this page. Growth compares with the same 12 months a year earlier. Smartphone shares are IDC’s Q3 2026 estimate. Samsung and Xiaomi facts are from their Q2 2026 results.",
 };
 const sourcesMethod: SourcesMethodData = {
   title: "Every number on this page can be traced to a filing, a formula and a score",
@@ -576,40 +576,36 @@ const sourcesMethod: SourcesMethodData = {
   sourcesTitle: "Data sources",
   sourcesIntro: "Where each kind of data comes from, and the documents Scope reads for Apple.",
   sources: [
-    { title: "SEC filings", text: "Annual (10-K) and quarterly (10-Q) reports and event reports (8-K) for Apple, Alphabet and Microsoft. The primary source for financial figures." },
-    { title: "Company investor relations", text: "Earnings releases, slides and call transcripts published by the company. Management’s outlook and guidance come from here." },
-    { title: "Market data providers", text: "Share price, market cap, analyst estimates and price targets, from StockAnalysis and S&P Global Market Intelligence. Prices are closing prices, and Scope shows the date." },
-    { title: "Industry research", text: "Smartphone shipments and market shares from IDC, checked against Counterpoint and Omdia, which can differ by up to a point." },
+    { title: "SEC filings", topic: "Reported financials", text: "Annual (10-K) and quarterly (10-Q) reports and event reports (8-K) for Apple, Alphabet and Microsoft. The primary source for financial figures." },
+    { title: "Company investor relations", topic: "Outlook and guidance", text: "Earnings releases, slides and call transcripts published by the company. Management’s outlook and guidance come from here." },
+    { title: "Market data providers", topic: "Share price, market cap, estimates and price targets", text: "Share price, market cap, analyst estimates and price targets, from StockAnalysis and S&P Global Market Intelligence. Prices are closing prices, and Scope shows the date." },
+    { title: "Industry research", topic: "Industry and news context", text: "Smartphone shipments and market shares from IDC, checked against Counterpoint and Omdia, which can differ by up to a point." },
   ],
   documents: [
-    { name: "FY26 annual report", date: "Oct 2026", type: "10-K", use: "Business, risks and annual financials, product and region sales" },
-    { name: "Q4 FY26 earnings release", date: "Nov 2, 2026", type: "8-K", use: "Latest quarter, guidance and margin" },
-    { name: "Q3 FY26 earnings release", date: "Jul 30, 2026", type: "8-K", use: "Headline results and product-line sales" },
-    { name: "Q3 FY26 quarterly report", date: "Jul 2026", type: "10-Q", use: "Balance sheet, nine-month cash flow and legal proceedings" },
-    { name: "Q3 FY26 earnings call", date: "Jul 30, 2026", type: "Transcript", use: "Guidance, margin and supply comments, kept as an AI summary" },
-    { name: "Alphabet Q2 2026 results", date: "Jul 2026", type: "8-K", use: "Rival financials on the same basis" },
-    { name: "Microsoft FY26 annual report", date: "Jul 29, 2026", type: "10-K", use: "Rival financials on the same basis" },
-    { name: "Analyst consensus and price targets", date: "Oct 2026", type: "Estimates", use: "Beat and miss figures, next-report expectations and price targets" },
-    { name: "Smartphone market report", date: "Oct 2026", type: "IDC", use: "Q3 2026 shipments and market shares" },
+    { name: "FY26 annual report", date: "Oct 2026", type: "10-K", source: "SEC filings", use: "Business, risks and annual financials, product and region sales" },
+    { name: "Q4 FY26 earnings release", date: "Nov 2, 2026", type: "8-K", source: "SEC filings", use: "Latest quarter, guidance and margin" },
+    { name: "Q3 FY26 earnings release", date: "Jul 30, 2026", type: "8-K", source: "SEC filings", use: "Headline results and product-line sales" },
+    { name: "Q3 FY26 quarterly report", date: "Jul 2026", type: "10-Q", source: "SEC filings", use: "Balance sheet, nine-month cash flow and legal proceedings" },
+    { name: "Q3 FY26 earnings call", date: "Jul 30, 2026", type: "Transcript", source: "Company investor relations", use: "Guidance, margin and supply comments, kept as an AI summary" },
+    { name: "Alphabet and Microsoft financials", date: "Nov 2026", type: "Data feed", source: "Market data providers", use: "Rival financials, each on its own latest 12 months" },
+    { name: "Analyst consensus and price targets", date: "Oct 2026", type: "Estimates", source: "Market data providers", use: "Beat and miss figures, next-report expectations and price targets" },
+    { name: "Smartphone market report", date: "Oct 2026", type: "IDC", source: "Industry research", use: "Q3 2026 shipments and market shares" },
   ],
   formulasTitle: "How each metric is calculated",
   formulasIntro: "The exact formula behind each metric, and the definition choices that go with it.",
-  formulas: [
-    { name: "Revenue growth", formula: "(Revenue now − revenue a year earlier) ÷ revenue a year earlier × 100", note: "Year over year, to avoid seasonal swings. For the last 12 months, the comparison is with the 12 months before that. Quarterly and annual are never mixed." },
-    { name: "Operating margin", formula: "Operating income ÷ revenue × 100", note: "Uses reported operating income, with no add-backs." },
-    { name: "Net margin", formula: "Net income ÷ revenue × 100", note: "GAAP net income. One-time items, such as the $10.2B tax charge in FY24, are noted beside the number." },
-    { name: "ROE", formula: "Net income ÷ average shareholders’ equity × 100", note: "Average of start and end of period. A company that buys back a lot of stock can show a very high ROE." },
-    { name: "ROIC", formula: "Operating income × (1 − tax rate) ÷ average (equity + debt) × 100", note: "Debt is interest-bearing debt. Cash is not subtracted: for Apple that would leave little invested capital and push ROIC above 400%. Other data providers define it differently, so compare ROIC only within Scope." },
-    { name: "Debt to equity", formula: "Interest-bearing debt ÷ shareholders’ equity", note: "Debt is commercial paper plus term debt. It leaves out liabilities that carry no interest, so it is not comparable with total-liabilities versions." },
-    { name: "Free cash flow", formula: "Operating cash flow − capital spending", note: "Capital spending is taken from the cash flow statement. Quarterly figures come from subtracting cumulative year-to-date totals." },
-    { name: "Net cash", formula: "Cash and securities − interest-bearing debt", note: "Positive means net cash. Rival figures from data providers may include lease obligations, so they are marked." },
-    { name: "P/E", formula: "Share price ÷ diluted earnings per share, last 12 months", note: "GAAP earnings. The history uses the price at each fiscal year end and that year’s earnings." },
-    { name: "EV/EBITDA", formula: "(Market cap − net cash) ÷ (operating income + depreciation and amortization)", note: "Last 12 months. The average used in the Valuation section is the 5-year average at fiscal year ends." },
-  ],
-  formulasNote: "Scope uses reported (GAAP) figures and interest-bearing debt. Figures with different definitions are never compared without a note.",
+  formulas: formulas({
+    "Net margin": "GAAP net income. One-time items, such as the $10.2B tax charge in FY24, are noted beside the number.",
+    "ROE": "Average of start and end of period. A company that buys back a lot of stock can show a very high ROE.",
+    "ROIC": "Debt is interest-bearing debt. Cash is not subtracted: for Apple that would leave little invested capital and push ROIC above 400%. Other data providers define it differently, so compare ROIC only within Scope.",
+    "Debt to equity": "Debt is commercial paper plus term debt. It leaves out liabilities that carry no interest, so it is not comparable with total-liabilities versions.",
+    "Net cash": {
+      formula: "Cash and securities − interest-bearing debt",
+      note: "Positive means net cash. Rival figures from data providers may include lease obligations, so they are marked.",
+    },
+  }),
+  formulasNote,
   scoringTitle: "How the Scope Score is built",
-  scoringIntro:
-    "Six categories, each with its own inputs, weights and cut-offs. Every input is scored from 0 to 10, a category is the weighted average of its inputs, and the overall score is the weighted average of the categories. Grades: A+ from 9.0, A from 8.0, B+ from 7.5, B from 7.0, C+ from 6.0, C from 5.0, D from 3.0, F below that. Labels: Excellent from 9.0, Strong from 7.5, Good from 6.0, Fair from 5.0, Weak below that.",
+  scoringIntro,
   categories: scored.categories,
   scoringNote:
     "If an input is missing, its weight is spread over the other inputs in that category, never set to zero. If more than 40% of a category’s weight is missing, the category shows “Not enough data” and the overall score is marked partial. The cut-offs are the same for every company, so a score does not depend on which other companies are on the list.",
@@ -620,7 +616,7 @@ const sourcesMethod: SourcesMethodData = {
     { name: "Historical multiples", what: "Compares today’s P/E with Apple’s own range over the last ten fiscal year ends.", limit: "The past may not repeat if the business has changed, for example with more Services." },
     { name: "Analyst price targets", what: "Shows the range and average of published targets from analysts who follow Apple.", limit: "Targets are opinions, usually for 12 months ahead, and they often follow the share price." },
   ],
-  valuationNote: "Fair value is a model output under stated assumptions, not a price the stock will reach.",
+  valuationNote,
   freshnessTitle: "Data quality and freshness",
   freshnessIntro: "When a period ended, when it was published and when Scope loaded it are three different dates.",
   timeline: [
@@ -635,7 +631,7 @@ const sourcesMethod: SourcesMethodData = {
     { dataset: "Share price and market cap", period: "Not applicable", sourceDate: "Nov 6, 2026 close", updated: "Nov 7, 2026", status: "Verified", limit: "Closing price only, and it moves every trading day." },
     { dataset: "Analyst estimates and targets", period: "Q4 FY26 (estimate)", sourceDate: "Oct 2026", updated: "Oct 25, 2026", status: "Pending", limit: "Consensus differs between providers and changes before earnings. Shown only as analyst view." },
     { dataset: "Smartphone market shares", period: "Q3 2026 (Jul to Sep)", sourceDate: "Oct 2026", updated: "Oct 25, 2026", status: "Verified", limit: "Units shipped, not revenue. IDC, Counterpoint and Omdia differ by up to a point." },
-    { dataset: "Rival financials", period: "12 months to Jun 2026", sourceDate: "Jul 2026", updated: "Oct 25, 2026", status: "Verified", limit: "Alphabet reports on Oct 28, so it will be out of step with Apple until both update. Samsung, Xiaomi and Sony are not on the same basis." },
+    { dataset: "Rival financials", period: "Each company’s latest 12 months", sourceDate: "Oct to Nov 2026", updated: "Nov 2026", status: "Verified", limit: "Each rival is on its own latest 12 months and latest fiscal year-end balance sheet, so the dates differ slightly. The exact dates are in the note under the Competitors charts. Samsung, Xiaomi and Sony are not on the same basis." },
     { dataset: "Customer counts", period: "Not applicable", sourceDate: "Not applicable", updated: "Not applicable", status: "Unavailable", limit: "Apple does not report customer counts, so Scope shows active devices (2.5 billion) and Services share instead." },
   ],
   source:
@@ -644,8 +640,8 @@ const sourcesMethod: SourcesMethodData = {
 const bottomLine: BottomLineData = {
   title: "A very strong business, bought at a high price",
   lead: "Three things to take away from this page before you read the sources.",
-  score: sample.score,
-  scoreLabel: sample.scoreLabel,
+  score: hero.score,
+  scoreLabel: hero.scoreLabel,
   scoreHref: "#score",
   scoreSummary: "Top grades for quality and profit, held back by a price above our fair value and slower long-term growth.",
   items: [
@@ -664,14 +660,7 @@ const closing: ClosingPanelData = {
     { name: "NVIDIA", ticker: "NVDA", reason: "The chip maker at the center of the AI boom, the shift that may reshape tech.", href: "/company/nvidia" },
     { name: "Amazon", ticker: "AMZN", reason: "Another giant platform that keeps its customers inside its own ecosystem.", href: "/company/amazon" },
   ],
-  links: [
-    { icon: "ti-git-compare", title: "Compare", href: "/compare" },
-    { icon: "ti-calculator", title: "Valuation Lab", href: "/valuation-lab" },
-    { icon: "ti-compass", title: "7 Powers", href: "/7-powers" },
-  ],
-  allLabel: "See all companies",
-  allHref: "/trending",
-  note: "The 7 Powers framework was developed by Hamilton Helmer in 7 Powers: The Foundations of Business Strategy (2016). Scope's explanations and examples are its own. Scope is built for understanding businesses, not for investment advice.",
+  ...closingShared,
 };
 const spotlight: SpotlightData = {
   title:
@@ -692,8 +681,8 @@ const spotlight: SpotlightData = {
     ],
     marginA: 39.3,
     marginB: 76.2,
-aColor: "#15803D",
-bColor: "#2563EB",
+    aColor: "#15803D",
+    bColor: "#2563EB",
     callout: "On 25.8% of sales, Services earns 40.2% of Apple’s gross profit.",
   },
   numbers: [
@@ -736,8 +725,8 @@ bColor: "#2563EB",
   source:
     "Sources: Apple FY26 Form 10-K (year ended Sep 26, 2026): net sales by category, the segment note and the gross margin table; Apple Q4 FY26 earnings release and call (Nov 2, 2026); Apple’s Q1 FY26 earnings call (active devices); the EU Commission and the DOJ lawsuit as reported in Apple’s filings and the press. Shares are calculated by Scope and rounded to one decimal.",
 };
-export const applePage = {
-  hero: sample,
+export const applePage: CompanyPageData = {
+  hero,
   summary,
   scoreReasons,
   spotlight,
@@ -755,5 +744,3 @@ export const applePage = {
   bottomLine,
   closing,
 };
-
-export type CompanyPageData = Omit<typeof applePage, "spotlight">;
