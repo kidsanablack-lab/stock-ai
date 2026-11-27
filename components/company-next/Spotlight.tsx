@@ -7,8 +7,8 @@
 //   "capex-vs-cash"   money spent on equipment vs cash coming in (Microsoft)
 //   "profit-vs-sales" share of sales vs share of gross profit, two groups (Apple)
 //   "stacked-share"   bars split into any number of parts that add up to 100% (NVIDIA: customers)
-// To add a kind: add a type below, add it to SpotlightChartData, add a component,
-// and add a case in <SpotlightChart />.
+// To add a kind: add its type in lib/company-next/types.ts and to SpotlightChartData there,
+// add a component below, and add a case in <SpotlightChart />.
 //
 // Styling note: colors, padding and layout are inline on purpose, using the exact
 // values from the approved design. They do not depend on which Tailwind classes
@@ -16,63 +16,24 @@
 // sm:px-10) and font-serif are classes, because the other sections use them.
 
 import type { CSSProperties } from "react";
+import type {
+  CapexVsCashChart,
+  ProfitVsSalesChart,
+  SpotlightChartData,
+  SpotlightData,
+  SpotlightTone,
+  StackedShareChart,
+} from "@/lib/company-next/types";
 
-export type SpotlightTone = "positive" | "negative" | "neutral";
-
-export type CapexVsCashChart = {
-  kind: "capex-vs-cash";
-  title: string;
-  howToRead: string;
-  years: string[]; // e.g. ["FY22", ..., "FY26"]
-  ocf: (number | null)[]; // operating cash flow, $B, one per year
-  capex: (number | null)[]; // capital spending, $B, one per year
-  // Optional: the cash left over per year, if it should match a reported figure exactly.
-  // If left out, it is operating cash flow minus capital spending.
-  left?: (number | null)[];
-  callout: string;
-};
-
-export type ProfitVsSalesChart = {
-  kind: "profit-vs-sales";
-  title: string;
-  howToRead: string;
-  aName: string; // the larger, lower-margin group, e.g. "Products"
-  bName: string; // the highlighted group, e.g. "Services"
-  // Each row is one bar. a + b should add up to 100.
-  rows: { label: string; a: number; b: number }[];
-  // Gross margin of each group, in percent: how many dollars kept per $100 sold.
-  marginA: number;
-  marginB: number;
-  // Optional bar colors (hex). Default: grey for the first group, blue for the second.
-  aColor?: string;
-  bColor?: string;
-  callout: string;
-};
-
-export type StackedShareChart = {
-  kind: "stacked-share";
-  title: string;
-  howToRead: string;
-  // One entry per part of a bar, in the same order as each row's values.
-  legend: { name: string; color: string }[];
-  // Each row is one bar. values should add up to 100. tag is a short note on the right of the row label.
-  rows: { label: string; tag?: string; values: number[] }[];
-  callout: string;
-};
-
-export type SpotlightChartData = CapexVsCashChart | ProfitVsSalesChart | StackedShareChart;
-
-export type SpotlightData = {
-  title: string; // 1. conclusion headline
-  lead: string; // 2. the business story, 2 to 3 sentences
-  labels: string[]; // optional small chips under the headline (use [] for none)
-  chart: SpotlightChartData; // 3. main proof chart
-  numbers: { value: string; label: string; tone?: SpotlightTone }[]; // 4. supporting numbers (3 to 4)
-  wins: { title: string; detail: string }[]; // 5a. what has to go right
-  breaks: { title: string; detail: string }[]; // 5b. what could go wrong
-  watch: { title: string; text: string; href?: string; hrefLabel?: string }; // 6. what to watch next
-  source: string;
-};
+// The data types live in lib/company-next/types.ts. They are re-exported here so older imports keep working.
+export type {
+  SpotlightTone,
+  CapexVsCashChart,
+  ProfitVsSalesChart,
+  StackedShareChart,
+  SpotlightChartData,
+  SpotlightData,
+} from "@/lib/company-next/types";
 
 // Colors from the approved design
 const C = {
@@ -415,18 +376,7 @@ export default function Spotlight({ data }: { data: SpotlightData }) {
                 ))}
               </div>
             ) : null}
-            <h2
-              className="font-serif"
-              style={{
-                margin: 0,
-                maxWidth: 760,
-                fontSize: "clamp(24px, 2.6vw, 30px)",
-                lineHeight: 1.25,
-                fontWeight: 600,
-                letterSpacing: "-0.005em",
-                color: C.ink,
-              }}
-            >
+            <h2 className="max-w-[900px] font-serif text-[clamp(30px,3.8vw,40px)] font-medium leading-[1.1] tracking-[-0.01em] text-ink">
               {data.title}
             </h2>
             <p style={{ margin: 0, maxWidth: 680, fontSize: 17, lineHeight: 1.6, color: C.text }}>{data.lead}</p>

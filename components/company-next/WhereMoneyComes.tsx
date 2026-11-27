@@ -1,77 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import type {
+  WhereMoneyComesData,
+  WhereMoneyProduct as Product,
+  WhereMoneyRegion as Region,
+} from "@/lib/company-next/types";
 
 // Where the company makes its money: by product line, by profit, and by region.
 // Company-neutral: group names, the kind of profit and the period labels all come from `data`.
 // If a label is not given, a neutral word is used (never a company's own wording).
 
-type Product = {
-  name: string;
-  share: number;
-  value: number;
-  yoy: number;
-  note: string;
-};
-
-type Region = {
-  name: string;
-  share: number;
-  value: number;
-  yoy: number;
-};
-
-export type WhereMoneyComesData = {
-  title: string;
-  lead: string;
-  labels: string[];
-  /** Name of the period shown, for example "FY26" or "Q3 2026". Used in tooltips. */
-  periodLabel?: string;
-  /** What the growth pills are compared with, for example "FY25" or "Q3 2025". */
-  comparedWith?: string;
-  /** Optional brand colors (hex), used first for the product lines. The rest come from Scope's own palette. */
-  palette?: string[];
-  products: Product[];
-  donutHowToRead: string;
-
-  profit: {
-    title: string;
-    explain: string;
-    revenueTotal: string;
-    profitTotal: string;
-    /** Names of the two groups. `a` is the larger base group, `b` is the highlighted group. */
-    groupNames?: { a: string; b: string };
-    /** Which profit the split uses, for example "gross profit" or "operating profit". */
-    profitLabel?: string;
-    // Share of revenue and profit, in percent, and margin as text. "products*" is group A and "services*" is group B.
-    // (The field names are older than the group names above. They are kept so existing data keeps working.)
-    productsRevenue: number;
-    servicesRevenue: number;
-    productsProfit: number;
-    servicesProfit: number;
-    productsMargin: string;
-    servicesMargin: string;
-    servicesHistoryTitle: string;
-    servicesHistory: { year: string; share: number }[];
-  };
-
-  regions: {
-    title: string;
-    lead: string;
-    items: Region[];
-    focus: {
-      name: string;
-      value: number;
-      yoy: number;
-      historyTitle: string;
-      history: { year: string; share: number }[];
-      note: string;
-    };
-    howToRead: string;
-  };
-
-  source: string;
-};
+// The data types live in lib/company-next/types.ts. They are re-exported here so older imports keep working.
+export type { WhereMoneyComesData, WhereMoneyProduct, WhereMoneyRegion } from "@/lib/company-next/types";
 
 // Scope's own palette for product lines, in the order it is used. Chosen by hand: bright and
 // clearly different from each other. The last color is grey.
@@ -559,7 +500,7 @@ export default function WhereMoneyComes({
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
         {/* Heading */}
         <header className="max-w-3xl">
-          <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
+          <h2 className="max-w-[900px] font-serif text-[clamp(30px,3.8vw,40px)] font-medium leading-[1.1] tracking-[-0.01em] text-ink">
             {data.title}
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted sm:text-[15px]">
@@ -600,14 +541,14 @@ export default function WhereMoneyComes({
               </h4>
               <div className="mt-5 grid grid-cols-2 gap-4">
                 <MiniDonut
-                  bShare={profit.servicesRevenue}
+                  bShare={profit.revenueShareB}
                   aName={aName}
                   bName={bName}
                   label="Share of revenue"
                   total={profit.revenueTotal}
                 />
                 <MiniDonut
-                  bShare={profit.servicesProfit}
+                  bShare={profit.profitShareB}
                   aName={aName}
                   bName={bName}
                   label={`Share of ${profitLabel}`}
@@ -625,11 +566,11 @@ export default function WhereMoneyComes({
                 </li>
               </ul>
               <p className="mt-3 text-xs leading-relaxed text-ink-muted">
-                {bName} is {pct(profit.servicesRevenue)} of revenue but{" "}
-                {pct(profit.servicesProfit)} of {profitLabel}.{" "}
-                {profit.servicesProfit > profit.servicesRevenue
+                {bName} is {pct(profit.revenueShareB)} of revenue but{" "}
+                {pct(profit.profitShareB)} of {profitLabel}.{" "}
+                {profit.profitShareB > profit.revenueShareB
                   ? "That jump is the margin gap."
-                  : profit.servicesProfit < profit.servicesRevenue
+                  : profit.profitShareB < profit.revenueShareB
                     ? "Its share of profit is smaller than its share of revenue."
                     : "Its share of profit matches its share of revenue."}
               </p>
@@ -641,20 +582,20 @@ export default function WhereMoneyComes({
               </h4>
               <MarginRow
                 label={`${bName} ${marginWord}`}
-                margin={profit.servicesMargin}
+                margin={profit.marginB}
                 color={B_FILL}
               />
               <MarginRow
                 label={`${aName} ${marginWord}`}
-                margin={profit.productsMargin}
+                margin={profit.marginA}
                 color={A_FILL}
               />
 
-              {profit.servicesHistory.length > 0 && (
+              {profit.historyB.length > 0 && (
                 <div className="mt-5 flex flex-1 flex-col border-t border-border pt-4">
                   <HistoryBars
-                    items={profit.servicesHistory}
-                    title={profit.servicesHistoryTitle}
+                    items={profit.historyB}
+                    title={profit.historyTitleB}
                     highlight={B_FILL}
                     fill
                   />

@@ -4,8 +4,7 @@
 // Standard wording that was copy-pasted into every company data file.
 // A company file imports what it needs and overrides only what is really different.
 // Rule: no company name, fiscal year or business-specific word belongs in this file.
-import type { SourcesMethodData } from "@/components/company-next/SourcesMethod";
-import type { ClosingPanelData } from "@/components/company-next/ClosingPanel";
+import type { ClosingPanelData, SourcesMethodData } from "@/lib/company-next/types";
 
 /* ---------- Sources and method: single strings ---------- */
 

@@ -1,25 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { CompanyHeroData } from "@/lib/company-next/types";
 
-export type CompanyHeroData = {
-  name: string;
-  ticker: string;
-  sector: string;
-  /** Optional. If missing, a dashed "LOGO" placeholder is shown. */
-  logo?: string;
-  description: string;
-  score: number;
-  scoreLabel: string;
-  scoreHref?: string;
-  dataStatus?: "example" | "partial" | "live";
-  facts: {
-    label: string;
-    value: string;
-    note?: string;
-    noteTone?: "positive" | "negative" | "neutral";
-  }[];
-  source: string;
-};
+// The data type lives in lib/company-next/types.ts. It is re-exported here so older imports keep working.
+export type { CompanyHeroData } from "@/lib/company-next/types";
 
 const noteColor = {
   positive: "text-success",
@@ -86,45 +70,46 @@ export default function CompanyHero({ data }: { data: CompanyHeroData }) {
               </p>
             </div>
 
-            {/* Right: the Scope Score */}
-            <div className="rounded-3xl bg-white p-5">
-              <div className="flex items-center gap-3.5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary font-serif text-[22px] font-semibold tabular-nums text-white">
-                  {data.score.toFixed(1)}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-base font-semibold leading-tight text-ink">Scope Score</p>
-                  <p className="mt-0.5 text-sm text-ink-muted">
-                    <span className="font-semibold text-primary">{data.scoreLabel}</span>
+            {/* Right: the Scope Score (blue band + white body, same 320px column as before) */}
+            <div className="overflow-hidden rounded-3xl bg-white">
+              <p className="bg-primary-ink px-5 py-2 text-sm font-semibold text-white">Scope Score</p>
+
+              <div className="px-5 pb-4 pt-3.5">
+                <div className="flex items-baseline gap-2.5">
+                  <span className="font-serif text-[48px] font-medium leading-[0.95] tabular-nums text-primary">
+                    {data.score.toFixed(1)}
+                  </span>
+                  <span className="min-w-0 text-sm text-ink-muted">
+                    <span className="font-semibold text-primary-ink">{data.scoreLabel}</span>
                     {" "}· out of 10
-                  </p>
+                  </span>
                 </div>
-              </div>
 
-              <div
-                className="mt-4 h-1.5 overflow-hidden rounded-full bg-primary-soft"
-                role="meter"
-                aria-label="Scope Score"
-                aria-valuemin={0}
-                aria-valuemax={10}
-                aria-valuenow={data.score}
-              >
                 <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${scorePct}%` }}
-                />
-              </div>
+                  className="mt-2.5 h-2 overflow-hidden rounded-full bg-primary-soft"
+                  role="meter"
+                  aria-label="Scope Score"
+                  aria-valuemin={0}
+                  aria-valuemax={10}
+                  aria-valuenow={data.score}
+                >
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${scorePct}%` }}
+                  />
+                </div>
 
-              <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-                Sums up financial strength, growth and business quality in one number.
-              </p>
-              <Link
-                href={data.scoreHref ?? "#score"}
-                className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
-              >
-                How it&rsquo;s built
-                <i className="ti ti-arrow-right" aria-hidden="true" />
-              </Link>
+                <p className="mt-2.5 text-[13px] leading-snug text-ink-muted">
+                  Sums up financial strength, growth and business quality in one number.
+                </p>
+                <Link
+                  href={data.scoreHref ?? "#score"}
+                  className="mt-1.5 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-ink transition-colors hover:text-primary-hover"
+                >
+                  How it&rsquo;s built
+                  <i className="ti ti-arrow-right" aria-hidden="true" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>

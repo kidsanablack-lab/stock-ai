@@ -1,26 +1,31 @@
-import type { CompanyHeroData } from "@/components/company-next/CompanyHero";
-import type { CompanySummaryData } from "@/components/company-next/CompanySummary";
-import type { ScoreReasonsData } from "@/components/company-next/ScoreReasons";
-import type { WhatChangedData } from "@/components/company-next/WhatChanged";
-import type { SignalsToWatchData } from "@/components/company-next/SignalsToWatch";
-import type { WhereMoneyComesData } from "@/components/company-next/WhereMoneyComes";
-import type { FinancialHighlightsData } from "@/components/company-next/FinancialHighlights";
-import type { ValuationData } from "@/components/company-next/Valuation";
-import type { ProfitHistoryData } from "@/components/company-next/ProfitHistory";
-import type { CashAndReturnsData } from "@/components/company-next/CashAndReturns";
-import type { StrengthsRisksData } from "@/components/company-next/StrengthsRisks";
-import type { MoatEcosystemData } from "@/components/company-next/MoatEcosystem";
-import type { CompetitorsData } from "@/components/company-next/Competitors";
-import type { SourcesMethodData } from "@/components/company-next/SourcesMethod";
-import type { BottomLineData } from "@/components/company-next/BottomLine";
-import type { ClosingPanelData } from "@/components/company-next/ClosingPanel";
-import type { SpotlightData } from "@/components/company-next/Spotlight";
-import type { CompanyPageData } from "./types";
+import type {
+  CompanyPageData,
+  CompanyHeroData,
+  CompanySummaryData,
+  ScoreReasonsData,
+  WhatChangedData,
+  SignalsToWatchData,
+  WhereMoneyComesData,
+  FinancialHighlightsData,
+  ValuationData,
+  ProfitHistoryData,
+  CashAndReturnsData,
+  StrengthsRisksData,
+  MoatEcosystemData,
+  CompetitorsData,
+  SourcesMethodData,
+  BottomLineData,
+  ClosingPanelData,
+  SpotlightData,
+} from "./types";
 import { applyScore } from "../scope-score/apply";
 import { nvidiaScore } from "../scope-score/inputs";
 import rawNvda from "../../data/raw/NVDA.json";
 import { buildFacts, type RawFmp } from "../company-data/facts";
-import { cashAndReturnsNumbers, financialHighlightsMetrics, profitHistoryNumbers, roicText } from "../company-data/sections";
+import { dcfCases, impliedGrowthPct, type DcfCase } from "../company-data/dcf";
+import { money } from "../company-data/format";
+import { peAtYearEnd } from "../company-data/peHistory";
+import { cashAndReturnsNumbers, financialHighlightsMetrics, heroFacts, profitHistoryNumbers, roicText } from "../company-data/sections";
 import { closingShared, formulas, formulasNote, scoreHowToRead, scoringIntro, valuationNote } from "@/shared/methodology";
 import { peerCaveat, peerCompany } from "@/shared/peers";
 
@@ -33,26 +38,68 @@ const facts = buildFacts(rawNvda as unknown as RawFmp);
 const cashNums = cashAndReturnsNumbers(facts);
 const profitNums = profitHistoryNumbers(facts);
 
+// A missing number must stop the build with a clear message. A silent 0 or an invented value is worse.
+function need<T>(v: T | null | undefined, what: string): T {
+  if (v === null || v === undefined || (typeof v === "number" && !Number.isFinite(v))) {
+    throw new Error(`nvidia.ts: ${what} is missing. Check data/raw/NVDA.json (re-run fetch-company-data.ts NVDA).`);
+  }
+  return v;
+}
+const lastOf = <T,>(a: T[]) => a[a.length - 1];
+const round1 = (v: number) => Math.round(v * 10) / 10;
+
+// P/E at each fiscal year end, read from the saved API data (shared helper), and its average.
+// The average is worked out from the same bars, so the dashed line, the hero and the text always agree.
+const peHistory = peAtYearEnd(rawNvda as unknown as RawFmp);
+if (peHistory.length === 0) throw new Error("nvidia.ts: no P/E history in data/raw/NVDA.json");
+const peAverage = round1(peHistory.reduce((sum, p) => sum + p.value, 0) / peHistory.length);
+const peAvg = peAverage.toFixed(1);
+
 // NVIDIA page data. Prices as of Nov 6, 2026 close. Latest quarter: Q2 FY27 (ended Jul 26, 2026).
 // Fiscal year ends in late January: FY26 ended Jan 25, 2026. FY22 to FY26 are the five full years shown.
+
+// ---- Market numbers, all from the saved data ----
+const priceNow = need(facts.price, "share price");
+const epsLtm = need(facts.ttm.eps, "last-12-month diluted EPS");
+const pe = priceNow / epsLtm;
+const peNowText = pe.toFixed(1);
+const mcap = money(facts.marketCap); // "$4.50T"
+
+// ---- Fair value: Scope's discounted cash flow model (lib/company-data/dcf.ts) ----
+// Net cash is from the FY26 year-end balance sheet (Jan 25, 2026), as the page says. Shares are the Q2 FY27 diluted count.
+const DILUTED_SHARES_Q2_FY27 = 24.4;
+const fcfSeries = facts.fcf.map((v) => need(v, "annual free cash flow"));
+const dcfInput = {
+  fcf0: need(facts.ttm.fcf, "last-12-month free cash flow"),
+  netCash: need(lastOf(facts.cash), "cash") - need(lastOf(facts.debt), "debt"),
+  shares: DILUTED_SHARES_Q2_FY27,
+};
+const nvidiaCases: [DcfCase, DcfCase, DcfCase] = [
+  { g1: 0, g2: 0.03, gt: 0.025, r: 0.09 }, // Bear
+  { g1: 0.2, g2: 0.08, gt: 0.03, r: 0.08 }, // Base
+  { g1: 0.35, g2: 0.12, gt: 0.035, r: 0.08 }, // Bull
+];
+const model = need(dcfCases(dcfInput, nvidiaCases), "fair value model (free cash flow must be positive)");
+// The "growth the price needs" uses the same fixed years 6-10 (6%), terminal (3%) and discount rate (8%) on every page,
+// whatever the three cases above say.
+const neededGrowth = need(impliedGrowthPct(dcfInput, priceNow, { g2: 0.06, gt: 0.03, r: 0.08 }), "implied growth");
+const fcfGrowth = round1(((lastOf(fcfSeries) / fcfSeries[0]) ** (1 / (fcfSeries.length - 1)) - 1) * 100);
+const fair = model.fair;
+const belowFair = priceNow < fair;
+const gap = Math.round(Math.abs(1 - priceNow / fair) * 100);
 
 const hero: CompanyHeroData = {
   name: "NVIDIA Corporation",
   ticker: "NVDA",
   sector: "Technology",
-  logo: "/logos/nvidia-svgrepo-com.svg", // TODO: check this file exists in public/logos
+  logo: "/logos/nvidia-svgrepo-com.svg",
   description:
     "A chip and computing company whose graphics processors (GPUs) and software have become the main engine of AI, sold mostly to the cloud giants that build AI data centers.",
   score: Number(scored.total.toFixed(1)),
   scoreLabel: scored.label,
   scoreHref: "#score",
   dataStatus: "live",
-  facts: [
-    { label: "Market cap", value: "$4.50T", note: "As of Nov 6, 2026" },
-    { label: "Revenue, last 12 months", value: "$303.0B", note: "+83.4% vs a year earlier", noteTone: "positive" },
-    { label: "P/E ratio", value: "23.6×", note: "vs 59.7× 5-year average", noteTone: "positive" },
-    { label: "Free cash flow, last 12 months", value: "$127.0B", note: "41.9% of sales", noteTone: "positive" },
-  ],
+  facts: heroFacts(facts, { pe, peAvg: peAverage }, "Nov 6, 2026"),
   source:
     "Financials from NVIDIA’s FY26 Form 10-K (fiscal year ended Jan 25, 2026) and the Q2 FY27 earnings release (quarter ended Jul 26, 2026). Market data as of Nov 6, 2026. Next report: late November 2026, date not yet confirmed.",
 };
@@ -78,12 +125,12 @@ const scoreReasons: ScoreReasonsData = {
   takeaway:
     "NVIDIA scores top marks for growth, scale and profit, and a high mark for valuation because its P/E is far below its own 5-year average. Quality and risk hold the score back: margins swung a lot over five years, and almost all sales come from one business.",
   reasons: [
-    { name: "Quality", ...scored.reason["Quality"], value: "87%", label: "return on invested capital in FY26, but the operating margin swung between 15.7% and 62.4% in five years", href: "#history" },
-    { name: "Scale", ...scored.reason["Scale"], value: "$4.50T", label: "market cap, with $303B of revenue in the last 12 months", href: "#competitors" },
+    { name: "Quality", ...scored.reason["Quality"], value: `${profitNums.returns.roic}%`, label: "return on invested capital in FY26, but the operating margin swung between 15.7% and 62.4% in five years", href: "#history" },
+    { name: "Scale", ...scored.reason["Scale"], value: mcap, label: "market cap, with $303B of revenue in the last 12 months", href: "#competitors" },
     { name: "Profitability", ...scored.reason["Profitability"], value: "65.2%", label: "operating margin in the last 12 months, and 42% of sales kept as free cash flow", href: "#highlights" },
     { name: "Revenue growth", ...scored.reason["Revenue growth"], value: "+83.4%", label: "growth in the last 12 months, and 68% a year from FY22 to FY26", href: "#latest" },
     { name: "Risk", ...scored.reason["Risk"], value: "92.5%", label: "of Q2 FY27 sales from Data Center, offset by net cash of $54.1B", href: "#strengths-risks" },
-    { name: "Valuation", ...scored.reason["Valuation"], value: "23.6×", label: "P/E, against its own 5-year average of 59.7×, which is inflated by years of low profit", href: "#valuation" },
+    { name: "Valuation", ...scored.reason["Valuation"], value: `${peNowText}×`, label: `P/E, against its own 5-year average of ${peAvg}×, which is inflated by years of low profit`, href: "#valuation" },
   ],
   howToRead: scoreHowToRead(),
 };
@@ -203,14 +250,14 @@ const whereMoneyComes: WhereMoneyComesData = {
     profitTotal: "$139.3B",
     groupNames: { a: "Graphics", b: "Compute & Networking" },
     profitLabel: "segment operating profit",
-    productsRevenue: 10.4,
-    servicesRevenue: 89.6,
-    productsProfit: 6.6,
-    servicesProfit: 93.4,
-    productsMargin: "40.8%",
-    servicesMargin: "67.3%",
-    servicesHistoryTitle: "Compute & Networking share of NVIDIA’s sales",
-    servicesHistory: [
+    revenueShareA: 10.4,
+    revenueShareB: 89.6,
+    profitShareA: 6.6,
+    profitShareB: 93.4,
+    marginA: "40.8%",
+    marginB: "67.3%",
+    historyTitleB: "Compute & Networking share of NVIDIA’s sales",
+    historyB: [
       { year: "FY25", share: 89.0 },
       { year: "FY26", share: 89.6 },
     ],
@@ -260,16 +307,16 @@ const financialHighlights: FinancialHighlightsData = {
 };
 
 const valuation: ValuationData = {
-  title: "NVIDIA trades about 29% below our base-case fair value, and well below its own 5-year average P/E",
+  title: `NVIDIA trades about ${gap}% ${belowFair ? "below" : "above"} our base-case fair value, and ${pe < peAverage ? "well below" : "above"} its own 5-year average P/E`,
   lead: "Is the share price high or low compared with what NVIDIA’s future cash is worth, what it used to trade at, and what analysts expect?",
   labels: ["Market data as of Nov 6, 2026", "Scope estimate"],
-  price: 186.64,
+  price: priceNow,
   priceDate: "Nov 6, 2026",
-  fair: 264,
+  fair,
   field: {
     max: 900,
     rows: [
-      { name: "Cash flow (DCF)", low: 77, high: 582, mark: 264, markName: "Base" },
+      { name: "Cash flow (DCF)", low: model.fairValues[0], high: model.fairValues[2], mark: fair, markName: "Base" },
       { name: "Own P/E history", low: 299, high: 842, mark: 472, markName: "5-yr avg" },
       { name: "Analyst targets", low: 210, high: 515, mark: 339, markName: "Average" },
     ],
@@ -277,38 +324,26 @@ const valuation: ValuationData = {
       "Each bar is the range of value per share from one reference point, and the dot is its middle estimate. The dashed line is today’s price: where it sits to the left of the dot, the price looks low by that measure.",
   },
   implied: {
-    title: "To justify $187, free cash flow must grow only about 13% a year for five years, far below its pace since FY22",
-    needed: 13.2,
-    actual: 85.7,
+    title: `To justify $${Math.round(priceNow)}, free cash flow must grow only about ${Math.round(neededGrowth)}% a year for five years, far below its pace since FY22`,
+    needed: neededGrowth,
+    actual: fcfGrowth,
     actualLabel: "FY22 to FY26",
-    text: "That is 13.2% a year for the next 5 years, then 6% a year for 5 more and 3% after that, discounted at 8% a year. Free cash flow grew 85.7% a year from FY22 to FY26, but from a very low base of $8.1B, and it will be hard to repeat at today’s size.",
-    cases: ["Bear", "Base", "Bull"],
-    assumptions: [
-      { label: "Cash flow growth, years 1–5", values: ["0%", "20%", "35%"] },
-      { label: "Cash flow growth, years 6–10", values: ["3%", "8%", "12%"] },
-      { label: "Growth after year 10", values: ["2.5%", "3%", "3.5%"] },
-      { label: "Discount rate", values: ["9%", "8%", "8%"] },
-    ],
-    fairValues: [77, 264, 582],
-    note: "About 69% of the base-case value comes from after year 10, so a small change in growth or the discount rate moves the answer a lot. That is why there are three cases, and why the bear case assumes free cash flow stops growing. All three start from $127.0B of free cash flow in the last twelve months, add $54.1B of net cash, and divide by 24.4B diluted shares. Important limit: NVIDIA’s cash flow has swung more than Apple’s or Microsoft’s, and it depends on a few customers.",
+    text: `That is ${neededGrowth.toFixed(1)}% a year for the next 5 years, then 6% a year for 5 more and 3% after that, discounted at 8% a year. Free cash flow grew ${fcfGrowth.toFixed(1)}% a year from FY22 to FY26, but from a very low base of ${money(fcfSeries[0])}, and it will be hard to repeat at today’s size.`,
+    cases: model.casesLabels,
+    assumptions: model.assumptions,
+    fairValues: model.fairValues,
+    note: `About ${model.terminalSharePct}% of the base-case value comes from after year 10, so a small change in growth or the discount rate moves the answer a lot. That is why there are three cases, and why the bear case assumes free cash flow stops growing. All three start from ${money(dcfInput.fcf0)} of free cash flow in the last twelve months, add ${money(dcfInput.netCash)} of net cash, and divide by ${dcfInput.shares.toFixed(1)}B diluted shares. Important limit: NVIDIA’s cash flow has swung more than Apple’s or Microsoft’s, and it depends on a few customers.`,
   },
   history: {
     title: "NVIDIA’s P/E is the lowest in five years, because profit grew faster than the share price",
-    years: [
-      { year: "FY22", value: 62.8 },
-      { year: "FY23", value: 106.4 },
-      { year: "FY24", value: 51.6 },
-      { year: "FY25", value: 39.9 },
-      { year: "FY26", value: 37.8 },
-      { year: "Now", value: 23.6 },
-    ],
-    peAverage: 59.7,
+    years: [...peHistory, { year: "Now", value: round1(pe) }],
+    peAverage,
     averagePeriod: "5-year",
     peSubtitle: "Price divided by the last 12 months of earnings, at each fiscal year end, and now",
     peHowToRead:
       "P/E is the price you pay for each $1 of yearly profit. The blue bar is now, and the dashed line is the average of the five fiscal year ends before it. The average is high because profit was very low in FY22 and FY23.",
     multiples: [
-      { name: "P/E", now: 23.6, avg: 59.7 },
+      { name: "P/E", now: round1(pe), avg: peAverage },
       { name: "P/S", now: 14.8, avg: 21.8 },
       { name: "EV/EBITDA", now: 19.2, avg: 48.9 },
     ],
@@ -316,7 +351,7 @@ const valuation: ValuationData = {
       "Each bar shows how far NVIDIA’s multiple is above or below its own 5-year average, taken at fiscal year ends. A full bar means 50% or more away from it. Every multiple is below its average, but the averages are lifted by years when profit was small.",
   },
   source:
-    "Sources: share price $186.64 (Nov 6, 2026 close), fiscal-year-end multiples and analyst targets from Financial Modeling Prep (price targets: low $210, high $515, average $339, median $325); NVIDIA FY26 Form 10-K and Q2 FY27 results (net cash, diluted shares, last-twelve-month revenue, EBITDA and EPS). P/E history uses trailing earnings, so it looks high when earnings were small. Fair value is Scope’s own discounted cash flow estimate under the assumptions shown, not a price target or investment advice.",
+    `Sources: share price $${priceNow.toFixed(2)} (Nov 6, 2026 close), fiscal-year-end multiples and analyst targets from Financial Modeling Prep (price targets: low $210, high $515, average $339, median $325); NVIDIA FY26 Form 10-K and Q2 FY27 results (net cash, diluted shares, last-twelve-month revenue, EBITDA and EPS). P/E history uses trailing earnings, so it looks high when earnings were small. Fair value is Scope’s own discounted cash flow estimate under the assumptions shown, not a price target or investment advice.`,
 };
 
 const profitHistory: ProfitHistoryData = {
@@ -344,6 +379,7 @@ const profitHistory: ProfitHistoryData = {
     title: "NVIDIA earns far more on its money than the money costs, with returns that have risen sharply",
     roic: profitNums.returns.roic,
     roicFrom: profitNums.returns.roicFrom,
+    roicFromYear: profitNums.returns.roicFromYear,
     wacc: 8,
     text: roicText("NVIDIA", profitNums.returns),
     note: "ROIC is operating profit after tax divided by average shareholders’ equity plus debt. Cost of capital (8%) is Scope’s own assumption, the same as the base case in the valuation. ROIC was 100.6% in FY25 and 87.3% in FY26 as equity grew faster than profit. ROE is about 102%.",
@@ -407,7 +443,7 @@ const strengthsRisks: StrengthsRisksData = {
     { icon: "ti-chart-bar", name: "Strong profitability", finding: "NVIDIA keeps far more of each dollar than almost any large company, and the share keeps rising.", evidence: [{ value: "65.2%", label: "operating margin, last 12 months" }, { value: "66.2%", label: "operating margin in Q2 FY27, up from 60.8% a year earlier" }], why: "More profit left to reinvest and return to shareholders." },
     { icon: "ti-rocket", name: "Growth", finding: "AI demand is lifting sales faster than for any other company of this size.", evidence: [{ value: "+83.4%", label: "revenue growth, last 12 months" }, { value: "+105.9%", label: "revenue growth in Q2 FY27" }], why: "Fast growth at this scale is rare, and it makes up for a high price." },
     { icon: "ti-building-factory-2", name: "Demand", finding: "NVIDIA says it cannot make enough chips to meet demand, and the cloud giants keep spending.", evidence: [{ value: "$48.7B", label: "from cloud giants (hyperscalers) in Q2 FY27, about half of sales" }, { value: "$279B", label: "purchase commitments, up from $119B a quarter earlier" }], why: "Supply limits, not a lack of buyers, are what hold sales back today." },
-    { icon: "ti-flag", name: "Market position", finding: "The leader in chips for AI data centers.", evidence: [{ value: "$4.50T", label: "market cap on Nov 6, 2026" }, { value: "$303.0B", label: "revenue in the last 12 months, more than 6 times AMD’s" }], why: "Scale lowers costs and attracts the best software developers." },
+    { icon: "ti-flag", name: "Market position", finding: "The leader in chips for AI data centers.", evidence: [{ value: mcap, label: "market cap on Nov 6, 2026" }, { value: "$303.0B", label: "revenue in the last 12 months, more than 6 times AMD’s" }], why: "Scale lowers costs and attracts the best software developers." },
     { icon: "ti-coin", name: "Financial strength", finding: "NVIDIA holds more cash than debt and produces a lot of free cash.", evidence: [{ value: "+$54.1B", label: "net cash on Jan 25, 2026" }, { value: "$127.0B", label: "free cash flow, last 12 months" }], why: "NVIDIA can fund research, supply deals and buybacks without borrowing." },
   ],
   risksIntro: "Ranked from highest to lowest. Every rating comes with the reason for it.",
@@ -458,6 +494,7 @@ const moatEcosystem: MoatEcosystemData = {
     note: "This is a loop that can happen, not a result that is guaranteed.",
   },
   reliance: {
+    companyName: "NVIDIA",
     title: "Who NVIDIA relies on",
     intro: "Ranked by how hard the group would be to replace. More filled bars mean more reliance.",
     rows: [
@@ -482,6 +519,8 @@ const competitors: CompetitorsData = {
   overviewIntro: "Rivals split by how they compete for NVIDIA’s customers.",
   shares: {
     title: "Revenue of three chip makers, last 12 months, share of the combined total",
+    memberNoun: "chip makers",
+  measureLabel: "share of the three clouds’ revenue",
     items: [
       { name: "NVIDIA", value: 74.2, self: true },
       { name: "Intel", value: 14.7 },
@@ -539,23 +578,23 @@ const sourcesMethod: SourcesMethodData = {
     },
     {
       metric: "Free cash flow, last 12 months",
-      value: "$127.0B",
+      value: money(dcfInput.fcf0),
       steps: [
         "Cash flow statements in the FY26 Form 10-K and the quarterly reports",
         "Operating cash flow minus capital spending, added over the last four quarters",
         "Operating cash flow − capital spending",
-        "$127.0B free cash flow",
+        `${money(dcfInput.fcf0)} free cash flow`,
         "Profitability and Valuation scores, and the starting cash flow of the fair value model",
       ],
     },
     {
       metric: "P/E ratio",
-      value: "23.6×",
+      value: `${peNowText}×`,
       steps: [
         "Closing share price on Nov 6, 2026 from market data, and earnings per share from NVIDIA’s filings",
-        "Share price $186.64 and diluted earnings per share $7.91 over the last four quarters",
-        "186.64 ÷ 7.91",
-        "23.6× P/E",
+        `Share price $${priceNow.toFixed(2)} and diluted earnings per share $${epsLtm.toFixed(2)} over the last four quarters`,
+        `${priceNow.toFixed(2)} ÷ ${epsLtm.toFixed(2)}`,
+        `${peNowText}× P/E`,
         "Valuation score (35% of that category), the Valuation section and Strengths and risks",
       ],
     },
@@ -591,7 +630,7 @@ const sourcesMethod: SourcesMethodData = {
   valuationTitle: "How fair value is estimated",
   valuationIntro: "Three reference points, each with its own limit. None of them is a price forecast, and only the cash flow model sets the fair value.",
   methods: [
-    { name: "Discounted cash flow", what: "Estimates value per share from future free cash flow under three stated cases, starting from the last 12 months. This sets the fair value ($264 in the base case).", limit: "The result moves a lot when assumptions change. About two thirds of the value comes from after year 10, and NVIDIA’s cash flow is harder to predict than most." },
+    { name: "Discounted cash flow", what: `Estimates value per share from future free cash flow under three stated cases, starting from the last 12 months. This sets the fair value ($${fair} in the base case).`, limit: "The result moves a lot when assumptions change. About two thirds of the value comes from after year 10, and NVIDIA’s cash flow is harder to predict than most." },
     { name: "Historical multiples", what: "Compares today’s P/E with NVIDIA’s own range over the last five fiscal year ends.", limit: "The past P/Es are high because profit was small, so they say little about what is fair today." },
     { name: "Analyst price targets", what: "Shows the range and average of published targets from analysts who follow NVIDIA.", limit: "Targets are opinions, usually for 12 months ahead, and they often follow the share price." },
   ],
@@ -624,8 +663,16 @@ const bottomLine: BottomLineData = {
   scoreHref: "#score",
   scoreSummary: "Top grades for growth, scale and profit, held back by swinging margins and sales that depend on one business.",
   items: [
-    { icon: "ti-briefcase", label: "The business", verdict: "Exceptional", tone: "positive", text: "87% return on invested capital, a 65% operating margin and sales that more than doubled last quarter. The moat is built on software that customers find hard to leave.", href: "#moat", hrefLabel: "See the moat" },
-    { icon: "ti-tag", label: "The price", verdict: "Below our estimate", tone: "positive", text: "A P/E of 23.6× against 59.7× on average, and about 29% below our base-case fair value of $264. The estimate depends on growth holding for years.", href: "#valuation", hrefLabel: "See the valuation" },
+    { icon: "ti-briefcase", label: "The business", verdict: "Exceptional", tone: "positive", text: `${profitNums.returns.roic}% return on invested capital, a 65% operating margin and sales that more than doubled last quarter. The moat is built on software that customers find hard to leave.`, href: "#moat", hrefLabel: "See the moat" },
+    {
+      icon: "ti-tag",
+      label: "The price",
+      verdict: belowFair ? "Below our estimate" : "Above our estimate",
+      tone: belowFair ? "positive" : "negative",
+      text: `A P/E of ${peNowText}× against ${peAvg}× on average, and about ${gap}% ${belowFair ? "below" : "above"} our base-case fair value of $${fair}. The estimate depends on growth holding for years.`,
+      href: "#valuation",
+      hrefLabel: "See the valuation",
+    },
     { icon: "ti-alert-triangle", label: "What to watch", verdict: "Concentration", tone: "caution", text: "Two customers were 36% of FY26 sales, and 93% of sales come from Data Center. The margin is guided down to 71% to 72% by Q4. The next report is in late November.", href: "#strengths-risks", hrefLabel: "See the risks" },
   ],
   note: "This is Scope’s summary of the evidence above, not a call to buy or sell. A great business can still be a poor purchase at the wrong price, and a low price can reflect real risk.",
@@ -635,9 +682,9 @@ const closing: ClosingPanelData = {
   title: ["That is one company.", "Here is where to go next."],
   lead: "You have seen what NVIDIA earns, what protects it and what it costs. Keep building the picture.",
   companies: [
-    { name: "Microsoft", ticker: "MSFT", reason: "A cloud giant that spends $115.9B a year on data centers, much of it on AI chips.", href: "/company/microsoft" },
-    { name: "Apple", ticker: "AAPL", reason: "The other giant that designs its own chips, selling them inside devices instead of to data centers.", href: "/company/apple" },
-    { name: "Alphabet", ticker: "GOOGL", reason: "A big NVIDIA customer that also builds its own AI chips, called TPUs.", href: "/company/google" },
+    { name: "Microsoft", ticker: "MSFT", reason: "A cloud giant that spends $115.9B a year on data centers, much of it on AI chips.", href: "/company/microsoft", logo: "/logos/microsoft-svgrepo-com.svg" },
+    { name: "Apple", ticker: "AAPL", reason: "The other giant that designs its own chips, selling them inside devices instead of to data centers.", href: "/company/apple", logo: "/logos/apple-logo-svgrepo-com.svg" },
+    { name: "Alphabet", ticker: "GOOGL", reason: "A big NVIDIA customer that also builds its own AI chips, called TPUs.", href: "/company/google", logo: "/logos/google-svgrepo-com.svg" },
   ],
   ...closingShared,
 };

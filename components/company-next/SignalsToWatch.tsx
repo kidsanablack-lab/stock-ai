@@ -8,46 +8,10 @@
 // Company-neutral: no company name is written in this file. Everything specific comes from `data`.
 // Look only: the data types, props, date reading and zone logic are unchanged. `labels` stays in the data but is not shown.
 // Server Component.
+import type { SignalItem, SignalsToWatchData, SignalValueFormat as ValueFormat } from "@/lib/company-next/types";
 
-type ValueFormat = "percent" | "signedPercent" | "billions";
-
-export type SignalItem = {
-  name: string;
-  /** One sentence: what to look for in the next report. */
-  question: string;
-  /** What the company itself said to expect, if it gave a number. */
-  guidance?: string;
-  format: ValueFormat;
-  /** Left and right end of the track. */
-  range: [number, number];
-  /** Below this value the signal counts as weak. */
-  weakBelow: number;
-  /** At or above this value the signal counts as strong. */
-  strongFrom: number;
-  yearAgo: number;
-  lastQuarter: number;
-  /** Analyst estimate for the next report. Leave out if there is none. */
-  estimate?: number;
-};
-
-export type SignalsToWatchData = {
-  title: string;
-  lead: string;
-  /** Section-level labels (for example "Example data"). Kept in the data, not shown in design A. */
-  labels: string[];
-  /**
-   * The calendar tile is built from `date`. These forms are understood:
-   *   "Monday, Nov 2, 2026"                       exact day
-   *   "Around Thursday, Feb 4, 2027 (tentative)"  day, marked as approximate
-   *   "Early February 2027 (tentative)"           month only
-   *   "Late January 2027"                         month only
-   * Anything else is shown as plain text.
-   */
-  next: { date: string; note: string };
-  howToRead: string;
-  signals: SignalItem[];
-  source: string;
-};
+// The data types live in lib/company-next/types.ts. They are re-exported here so older imports keep working.
+export type { SignalItem, SignalsToWatchData } from "@/lib/company-next/types";
 
 type Zone = "strong" | "middle" | "weak";
 
@@ -280,7 +244,7 @@ export default function SignalsToWatch({ data }: { data: SignalsToWatchData }) {
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
         {/* Header */}
         <header>
-          <h2 className="max-w-[900px] font-serif text-[clamp(28px,4vw,36px)] font-normal leading-[1.12] tracking-[-0.02em] text-ink">
+          <h2 className="max-w-[900px] font-serif text-[clamp(30px,3.8vw,40px)] font-medium leading-[1.1] tracking-[-0.01em] text-ink">
             {data.title}
           </h2>
           <p className="mt-3 max-w-[680px] text-[15px] leading-relaxed text-ink-muted sm:text-base">{data.lead}</p>

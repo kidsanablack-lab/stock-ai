@@ -57,13 +57,24 @@ export function cashAndReturnsNumbers(f: Facts) {
   };
 }
 
-// The four cards at the top of the page.
-export function heroFacts(f: Facts, x: { pe: number | null; peAvg: number | null }, asOf: string) {
+// The four cards at the top of the page, worked out from the saved data.
+// `over` replaces the value, note or note colour of one card when a company needs its own wording
+// (for example Amazon's P/E note about investment gains). Keep overrides rare and explain them on the page.
+type HeroLabel = "Market cap" | "Revenue, last 12 months" | "P/E ratio" | "Free cash flow, last 12 months";
+type HeroOverride = { value?: string; note?: string; noteTone?: Tone | "neutral" };
+
+export function heroFacts(
+  f: Facts,
+  x: { pe: number | null; peAvg: number | null },
+  asOf: string,
+  over: Partial<Record<HeroLabel, HeroOverride>> = {},
+) {
   const fcfMargin = f.ttm.fcf !== null && f.ttm.revenue ? (f.ttm.fcf / f.ttm.revenue) * 100 : null;
-  return [
+  const cards: { label: HeroLabel; value: string; note: string; noteTone?: Tone | "neutral" }[] = [
     { label: "Market cap", value: money(f.marketCap), note: `As of ${asOf}` },
     { label: "Revenue, last 12 months", value: money(f.ttm.revenue), note: `${signed(f.ttm.growth)} vs a year earlier`, noteTone: tone(f.ttm.growth) },
     { label: "P/E ratio", value: x.pe === null ? "n/a" : `${x.pe.toFixed(1)}×`, note: x.peAvg === null ? "" : `vs ${x.peAvg.toFixed(1)}× 5-year average`, noteTone: tone((x.pe ?? 0) - (x.peAvg ?? 0), false) },
-    { label: "Free cash flow, last 12 months", value: money(f.ttm.fcf), note: `${pct1(fcfMargin)} of sales`, noteTone: tone(fcfMargin !== null ? 1 : null) },
+    { label: "Free cash flow, last 12 months", value: money(f.ttm.fcf), note: `${pct1(fcfMargin)} of sales`, noteTone: tone(fcfMargin) },
   ];
+  return cards.map((c) => ({ ...c, ...over[c.label] }));
 }

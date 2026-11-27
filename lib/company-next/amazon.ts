@@ -1,27 +1,30 @@
-import type { CompanyHeroData } from "@/components/company-next/CompanyHero";
-import type { CompanySummaryData } from "@/components/company-next/CompanySummary";
-import type { ScoreReasonsData } from "@/components/company-next/ScoreReasons";
-import type { WhatChangedData } from "@/components/company-next/WhatChanged";
-import type { SignalsToWatchData } from "@/components/company-next/SignalsToWatch";
-import type { WhereMoneyComesData } from "@/components/company-next/WhereMoneyComes";
-import type { FinancialHighlightsData } from "@/components/company-next/FinancialHighlights";
-import type { ValuationData } from "@/components/company-next/Valuation";
-import type { ProfitHistoryData } from "@/components/company-next/ProfitHistory";
-import type { CashAndReturnsData } from "@/components/company-next/CashAndReturns";
-import type { StrengthsRisksData } from "@/components/company-next/StrengthsRisks";
-import type { MoatEcosystemData } from "@/components/company-next/MoatEcosystem";
-import type { CompetitorsData } from "@/components/company-next/Competitors";
-import type { SourcesMethodData } from "@/components/company-next/SourcesMethod";
-import type { BottomLineData } from "@/components/company-next/BottomLine";
-import type { ClosingPanelData } from "@/components/company-next/ClosingPanel";
-import type { SpotlightData } from "@/components/company-next/Spotlight";
-import type { CompanyPageData } from "./types";
+import type {
+  CompanyPageData,
+  CompanyHeroData,
+  CompanySummaryData,
+  ScoreReasonsData,
+  WhatChangedData,
+  SignalsToWatchData,
+  WhereMoneyComesData,
+  FinancialHighlightsData,
+  ValuationData,
+  ProfitHistoryData,
+  CashAndReturnsData,
+  StrengthsRisksData,
+  MoatEcosystemData,
+  CompetitorsData,
+  SourcesMethodData,
+  BottomLineData,
+  ClosingPanelData,
+  SpotlightData,
+} from "./types";
 import { applyScore } from "../scope-score/apply";
 import { amazonScore } from "../scope-score/inputs";
 import rawAmzn from "../../data/raw/AMZN.json";
 import { buildFacts, type RawFmp } from "../company-data/facts";
+import { money } from "../company-data/format";
 import { peAtYearEnd } from "../company-data/peHistory";
-import { cashAndReturnsNumbers, financialHighlightsMetrics, profitHistoryNumbers, roicText } from "../company-data/sections";
+import { cashAndReturnsNumbers, financialHighlightsMetrics, heroFacts, profitHistoryNumbers, roicText } from "../company-data/sections";
 import { closingShared, formulas, formulasNote, scoreHowToRead, scoringIntro } from "@/shared/methodology";
 import { peerCaveat, peerCompany } from "@/shared/peers";
 
@@ -35,30 +38,55 @@ const facts = buildFacts(rawAmzn as unknown as RawFmp);
 const cashNums = cashAndReturnsNumbers(facts);
 const profitNums = profitHistoryNumbers(facts);
 
-// P/E at each fiscal year end, read from the saved API data (shared helper).
-// Years with a loss (no positive P/E) are left out. If none is found the chart shows only "Now".
+// A missing number must stop the build with a clear message. A silent 0 or an invented value is worse.
+function need<T>(v: T | null | undefined, what: string): T {
+  if (v === null || v === undefined || (typeof v === "number" && !Number.isFinite(v))) {
+    throw new Error(`amazon.ts: ${what} is missing. Check data/raw/AMZN.json (re-run fetch-company-data.ts AMZN).`);
+  }
+  return v;
+}
+const round1 = (v: number) => Math.round(v * 10) / 10;
+
+// P/E at each fiscal year end, read from the saved API data (shared helper), and its average.
+// Years with a loss (no positive P/E) are left out of both. The average is worked out from the same bars,
+// so the dashed line, the hero and the text always agree.
 const peHistory = peAtYearEnd(rawAmzn as unknown as RawFmp);
+if (peHistory.length === 0) throw new Error("amazon.ts: no P/E history in data/raw/AMZN.json");
+const peAverage = round1(peHistory.reduce((sum, p) => sum + p.value, 0) / peHistory.length);
+const peAvgAbout = Math.round(peAverage);
 
 // Amazon page data. Prices as of Nov 9, 2026 close. Latest quarter: Q3 2026 (ended Sep 30, 2026, reported Oct 29).
 // Fiscal year = calendar year. FY21 to FY25 are the five full years shown (FY26 is not finished).
+
+// ---- Market numbers, all from the saved data ----
+const priceNow = need(facts.price, "share price");
+const epsLtm = need(facts.ttm.eps, "last-12-month diluted EPS");
+const pe = priceNow / epsLtm;
+const peNowText = pe.toFixed(1);
+const mcap = money(facts.marketCap); // "$2.89T"
+const fcfLtm = need(facts.ttm.fcf, "last-12-month free cash flow");
+const fcfLtmText = money(fcfLtm); // "−$46.9B"
+
+// Scope shows no fair value for Amazon because free cash flow is negative (the model cannot start below zero).
+// If it turns positive, stop the build so this page gets the fair value model (see apple.ts and lib/company-data/dcf.ts).
+if (fcfLtm > 0) {
+  throw new Error("amazon.ts: last-12-month free cash flow is positive now, so Scope can show a fair value. Add the dcfCases() model as in apple.ts and remove noFair.");
+}
 
 const hero: CompanyHeroData = {
   name: "Amazon.com, Inc.",
   ticker: "AMZN",
   sector: "Retail & Cloud",
-  logo: "/logos/amazon-color-svgrepo-com.svg", // TODO: check this file exists in public/logos
+  logo: "/logos/amazon-color-svgrepo-com.svg",
   description:
     "The world’s largest online store, a marketplace for other sellers, an ads business and Prime, plus AWS, the cloud business that earns most of its profit.",
   score: Number(scored.total.toFixed(1)),
   scoreLabel: scored.label,
   scoreHref: "#score",
   dataStatus: "live",
-  facts: [
-    { label: "Market cap", value: "$2.89T", note: "As of Nov 9, 2026" },
-    { label: "Revenue, last 12 months", value: "$797.5B", note: "+15.4% vs a year earlier", noteTone: "positive" },
-    { label: "P/E ratio", value: "21.6×", note: "Boosted by investment gains. About 36× without them" },
-    { label: "Free cash flow, last 12 months", value: "−$46.9B", note: "−5.9% of sales", noteTone: "negative" },
-  ],
+  facts: heroFacts(facts, { pe, peAvg: peAverage }, "Nov 9, 2026", {
+    "P/E ratio": { note: "Boosted by investment gains. About 36× without them", noteTone: "neutral" },
+  }),
   source:
     "Financials from Amazon’s FY25 Form 10-K (year ended Dec 31, 2025) and the Q3 2026 earnings release (quarter ended Sep 30, 2026, reported Oct 29). Market data as of Nov 9, 2026. Next report: early February 2027, date not yet confirmed.",
 };
@@ -82,15 +110,16 @@ const summary: CompanySummaryData = {
 
 const scoreReasons: ScoreReasonsData = {
   title: `Why the Scope Score is ${scored.total.toFixed(1)}`,
-  takeaway:
-    "Amazon scores top marks for scale and a high 9.3 for growth and 9.1 for risk. Quality (3.3) is the weak spot: free cash flow has covered only 21% of net income over five years. Profitability (4.8) is held back by negative free cash flow, and net margin and P/E look better than they are because of one-time gains on Amazon’s stake in Anthropic.",
+  // The category scores in this sentence come from the score itself, so they cannot drift from the grades below.
+  // The words "top marks for scale" and "weak spot" are Amazon's own reading: check them if the inputs change.
+  takeaway: `Amazon scores top marks for scale and a high ${scored.reason["Revenue growth"].score.toFixed(1)} for growth and ${scored.reason["Risk"].score.toFixed(1)} for risk. Quality (${scored.reason["Quality"].score.toFixed(1)}) is the weak spot: free cash flow has covered only 21% of net income over five years. Profitability (${scored.reason["Profitability"].score.toFixed(1)}) is held back by negative free cash flow, and net margin and P/E look better than they are because of one-time gains on Amazon’s stake in Anthropic.`,
   reasons: [
     { name: "Quality", ...scored.reason["Quality"], value: "15.8%", label: "return on invested capital in FY25, but five-year free cash flow was only 21% of net income and the operating margin swung between 2.4% and 11.2%", href: "#history" },
-    { name: "Scale", ...scored.reason["Scale"], value: "$2.89T", label: "market cap, with $797B of revenue in the last 12 months", href: "#competitors" },
+    { name: "Scale", ...scored.reason["Scale"], value: mcap, label: "market cap, with $797B of revenue in the last 12 months", href: "#competitors" },
     { name: "Profitability", ...scored.reason["Profitability"], value: "13.1%", label: "operating margin in the last 12 months, but free cash flow was −5.9% of sales", href: "#highlights" },
     { name: "Revenue growth", ...scored.reason["Revenue growth"], value: "+15.4%", label: "growth in the last 12 months, and 11.1% a year from FY21 to FY25", href: "#latest" },
     { name: "Risk", ...scored.reason["Risk"], value: "33.9%", label: "of Q3 2026 sales from online stores, the largest line. Net cash is from the FY25 balance sheet, and by Sep 30, 2026 Amazon had about $66B more debt than cash", href: "#strengths-risks" },
-    { name: "Valuation", ...scored.reason["Valuation"], value: "21.6×", label: "P/E, against its own 5-year average of 43.1×, but investment gains make it look lower than it is", href: "#valuation" },
+    { name: "Valuation", ...scored.reason["Valuation"], value: `${peNowText}×`, label: `P/E, against its own 5-year average of ${peAverage.toFixed(1)}×, but investment gains make it look lower than it is`, href: "#valuation" },
   ],
   howToRead: scoreHowToRead(
     "Net margin and P/E use reported (GAAP) profit, which includes about $69.5B of other income in the last 12 months, mostly gains on Amazon’s Anthropic stake, so the Profitability and Valuation grades are higher than the core business alone would earn.",
@@ -210,14 +239,14 @@ const whereMoneyComes: WhereMoneyComesData = {
     profitTotal: "$28.1B",
     groupNames: { a: "Store segments", b: "AWS" },
     profitLabel: "operating profit",
-    productsRevenue: 77.2,
-    servicesRevenue: 22.8,
-    productsProfit: 36.7,
-    servicesProfit: 63.3,
-    productsMargin: "6.6%",
-    servicesMargin: "38.7%",
-    servicesHistoryTitle: "AWS share of Amazon’s sales",
-    servicesHistory: [
+    revenueShareA: 77.2,
+    revenueShareB: 22.8,
+    profitShareA: 36.7,
+    profitShareB: 63.3,
+    marginA: "6.6%",
+    marginB: "38.7%",
+    historyTitleB: "AWS share of Amazon’s sales",
+    historyB: [
       { year: "Q3 ’25", share: 18.3 },
       { year: "Q3 ’26", share: 22.8 },
     ],
@@ -271,14 +300,14 @@ const valuation: ValuationData = {
   title: "Scope does not show a fair value for Amazon, because AI spending has pushed free cash flow below zero",
   lead: "Is the share price high or low compared with its own history and with what analysts expect? Without a cash flow model, these are the two reference points we can show.",
   labels: ["Market data as of Nov 9, 2026", "Analyst view"],
-  price: 266.93,
+  price: priceNow,
   priceDate: "Nov 9, 2026",
   fair: null,
   noFair: {
     title: "Why there is no fair value for Amazon",
-    text: "Scope’s fair value model starts from the last 12 months of free cash flow. For Amazon that number is −$46.9B, because it spent $215.2B on equipment and buildings while operations brought in $168.3B of cash. A model that starts below zero gives a negative value per share in every case, which says nothing about what Amazon is worth. The spending is meant to serve AWS contracts, whose backlog is $578B. Whether it earns a return is the real question, and one year of cash flow cannot answer it.",
+    text: `Scope’s fair value model starts from the last 12 months of free cash flow. For Amazon that number is ${fcfLtmText}, because it spent $215.2B on equipment and buildings while operations brought in $168.3B of cash. A model that starts below zero gives a negative value per share in every case, which says nothing about what Amazon is worth. The spending is meant to serve AWS contracts, whose backlog is $578B. Whether it earns a return is the real question, and one year of cash flow cannot answer it.`,
     points: [
-      { label: "Free cash flow, 12 months", value: "−$46.9B", note: "Amazon itself reports −$42.4B, after proceeds and incentives" },
+      { label: "Free cash flow, 12 months", value: fcfLtmText, note: "Amazon itself reports −$42.4B, after proceeds and incentives" },
       { label: "Capital spending guide, 2026", value: "About $220B", note: "Management says 2027 will be meaningfully higher" },
       { label: "AWS backlog", value: "$578B", note: "Up from $244B at the end of 2025" },
     ],
@@ -293,23 +322,23 @@ const valuation: ValuationData = {
       "The bar is the range of analyst price targets and the dot is their average. The dashed line is today’s price: where it sits to the left of the dot, the price is below the average target. Targets are opinions, usually for 12 months ahead, and are not Scope’s estimate.",
   },
   history: {
-    title: "Amazon’s P/E of 21.6× looks low against its own average of 43×, but without Anthropic gains it is about 36×",
-    years: [...peHistory, { year: "Now", value: 21.6 }],
-    peAverage: 43.1,
+    title: `Amazon’s P/E of ${peNowText}× looks low against its own average of ${peAvgAbout}×, but without Anthropic gains it is about 36×`,
+    years: [...peHistory, { year: "Now", value: round1(pe) }],
+    peAverage,
     averagePeriod: "5-year",
     peSubtitle: "Price divided by the last 12 months of earnings, at each fiscal year end, and now",
     peHowToRead:
       "P/E is the price you pay for each $1 of yearly profit. The blue bar is now, and the dashed line is the 5-year average, taken at fiscal year ends. Years with a loss have no P/E and are left out. Now is low partly because profit includes about $69.5B of other income in the last 12 months, mostly gains on Amazon’s Anthropic stake.",
     multiples: [
-      { name: "P/E", now: 21.6, avg: 43.1 },
-      { name: "P/E without investment gains (Scope estimate)", now: 36.0, avg: 43.1 },
+      { name: "P/E", now: round1(pe), avg: peAverage },
+      { name: "P/E without investment gains (Scope estimate)", now: 36.0, avg: peAverage },
       { name: "EV/EBITDA", now: 11.4, avg: 20.2 },
     ],
     multiplesHowToRead:
       "Each bar shows how far Amazon’s multiple is above or below its own 5-year average, taken at fiscal year ends. A full bar means 50% or more away from it. The second row removes about $69.5B of other income, taxed at the 22.3% rate of the last 12 months, so it is an estimate, not a reported figure. EV/EBITDA adds back depreciation, which is very large for Amazon.",
   },
   source:
-    "Sources: share price $266.93 (Nov 9, 2026 close), the P/E and EV/EBITDA averages, and analyst targets (low $250, high $390, average $328) from Financial Modeling Prep. Other providers show a different range: a Nov 2026 summary of 60 analysts gives $230 to $405 with an average of $332 (Stocktwits, citing Koyfin). Free cash flow, capital spending and other income are from Amazon’s Q3 2026 earnings release and 10-Q (as summarised by sec-api.io). P/E without gains is calculated by Scope: last-12-month net income of $134.8B minus $69.5B of other income taxed at 22.3%, divided by about 10.9B shares. Scope shows no fair value for Amazon. Analyst targets are opinions, not advice.",
+    `Sources: share price $${priceNow.toFixed(2)} (Nov 9, 2026 close), the P/E and EV/EBITDA averages, and analyst targets (low $250, high $390, average $328) from Financial Modeling Prep. Other providers show a different range: a Nov 2026 summary of 60 analysts gives $230 to $405 with an average of $332 (Stocktwits, citing Koyfin). Free cash flow, capital spending and other income are from Amazon’s Q3 2026 earnings release and 10-Q (as summarised by sec-api.io). P/E without gains is calculated by Scope: last-12-month net income of $134.8B minus $69.5B of other income taxed at 22.3%, divided by about 10.9B shares. Scope shows no fair value for Amazon. Analyst targets are opinions, not advice.`,
 };
 
 const profitHistory: ProfitHistoryData = {
@@ -337,6 +366,7 @@ const profitHistory: ProfitHistoryData = {
     title: "Amazon earns more on its money than the money costs, though returns dipped in FY25 as the balance sheet grew",
     roic: profitNums.returns.roic,
     roicFrom: profitNums.returns.roicFrom,
+    roicFromYear: profitNums.returns.roicFromYear,
     wacc: 8,
     text: roicText("Amazon", profitNums.returns),
     note: "ROIC is operating profit after tax divided by average shareholders’ equity plus debt. Cost of capital (8%) is Scope’s own assumption, the same as in the other company pages. ROIC was 19.8% in FY24 and 15.7% in FY25 as equity and debt grew faster than profit. ROE is about 22%. The balance sheet grew again in 2026: long-term debt rose to $173.1B and equity to $613.6B by Sep 30, so ROIC is likely to fall further.",
@@ -360,7 +390,7 @@ const cashAndReturns: CashAndReturnsData = {
     howToRead:
       "Each year has two bars: the free cash flow Amazon earned and what it paid out as dividends and buybacks. The pill is payout as a share of free cash flow, and turns dark blue above 100%. Amazon paid out nothing in four of the five years, and free cash flow was negative in two of them.",
     fcfNote:
-      "Free cash flow is cash from operations ($139.5B in FY25) minus spending on equipment and buildings ($131.8B), which leaves $7.7B. Over the last 12 months it was −$46.9B.",
+      `Free cash flow is cash from operations ($139.5B in FY25) minus spending on equipment and buildings ($131.8B), which leaves $7.7B. Over the last 12 months it was ${fcfLtmText}.`,
   },
   how: {
     title: "Nothing is paid out, so the share count rises slowly instead of falling",
@@ -405,7 +435,7 @@ const strengthsRisks: StrengthsRisksData = {
   ],
   risksIntro: "Ranked from highest to lowest. Every rating comes with the reason for it.",
   risks: [
-    { icon: "ti-cash", name: "Spending and cash", level: 3, finding: "Capital spending is far above the cash Amazon earns.", evidence: [{ value: "−$42.4B", label: "free cash flow in the last 12 months, as Amazon reports it (Scope’s figure: −$46.9B)" }, { value: "About $220B", label: "capital spending guided for 2026, with meaningfully more in 2027" }], why: "Spending was $75.9B in Q3 alone, 37.6% of sales. If AI demand slows, the equipment is hard to repurpose. Purchase obligations for property and equipment were $159.6B on Sep 30, 2026." },
+    { icon: "ti-cash", name: "Spending and cash", level: 3, finding: "Capital spending is far above the cash Amazon earns.", evidence: [{ value: "−$42.4B", label: `free cash flow in the last 12 months, as Amazon reports it (Scope’s figure: ${fcfLtmText})` }, { value: "About $220B", label: "capital spending guided for 2026, with meaningfully more in 2027" }], why: "Spending was $75.9B in Q3 alone, 37.6% of sales. If AI demand slows, the equipment is hard to repurpose. Purchase obligations for property and equipment were $159.6B on Sep 30, 2026." },
     { icon: "ti-gavel", name: "Regulation and lawsuits", level: 3, finding: "US regulators are suing Amazon over how it runs its ad auctions, and other antitrust cases are still open.", evidence: [{ value: "Aug 31, 2026", label: "the FTC and 22 states sued over a hidden surcharge in sponsored-ads auctions, saying Amazon took tens of billions of dollars from advertisers" }, { value: "$2.5B", label: "paid in 2025 to settle the FTC’s Prime case" }], why: "Private class actions in the UK, the US and Canada claim billions of dollars, and other antitrust cases are pending. Amazon’s response to the new suit is not in our sources." },
     { icon: "ti-building-bank", name: "Debt and funding", level: 2, finding: "Amazon now borrows heavily to pay for the build-out.", evidence: [{ value: "$173.1B", label: "long-term debt on Sep 30, 2026, up from $65.6B at the end of 2025" }, { value: "$1.7B", label: "interest expense in Q3 2026, about three times the $0.5B of a year earlier" }], why: "Net debt was about $66B on Sep 30, 2026, against net cash of $57B at the end of 2025. Interest costs will keep rising if borrowing continues." },
     { icon: "ti-trending-up", name: "Investment gains", level: 2, finding: "Reported profit depends on the value of Amazon’s stake in Anthropic.", evidence: [{ value: "$69.5B", label: "other income in the last 12 months, mostly gains on Anthropic" }, { value: "$0.04B", label: "upward adjustments to private investments in Q3 2026, against $62.9B over the first nine months" }], why: "These gains do not repeat and can reverse. Net income was $134.8B in the last 12 months against operating income of $104.4B. Scope looks at operating income for this reason." },
@@ -451,6 +481,7 @@ const moatEcosystem: MoatEcosystemData = {
     note: "This is a loop that can happen, not a result that is guaranteed.",
   },
   reliance: {
+    companyName: "Amazon",
     title: "Who Amazon relies on",
     intro: "Ranked by how hard the group would be to replace. More filled bars mean more reliance.",
     rows: [
@@ -468,13 +499,15 @@ const moatEcosystem: MoatEcosystemData = {
 };
 
 const competitors: CompetitorsData = {
-  title: "Amazon has by far the most sales of the three, but the lowest margin and the only negative free cash flow",
+  title: "Amazon has by far the most sales of the four, but the lowest margin and the only negative free cash flow",
   lead: "Who Amazon competes with, how it compares with Microsoft and Alphabet on the same basis, and where AWS stands against Azure and Google Cloud.",
   labels: [],
   overviewTitle: "Who Amazon competes with",
   overviewIntro: "Rivals split by how they compete for Amazon’s customers.",
   shares: {
     title: "Cloud revenue of the three big clouds, Q3 2026, share of the combined total",
+        memberNoun: "clouds",
+  measureLabel: "share of the three clouds’ revenue",
     items: [
       { name: "AWS (Amazon)", value: 41.9, self: true },
       { name: "Azure (Microsoft)", value: 30.2 },
@@ -492,11 +525,7 @@ const competitors: CompetitorsData = {
       desc: "Store chain with a growing online business",
       chartNote: "Not in the charts: its figures were not loaded into Scope’s data yet.",
     },
-    {
-      id: "meta", name: "Meta", ticker: "META", kind: "indirect",
-      desc: "Social media ads that compete for advertisers’ budgets",
-      chartNote: "Not in the charts: its figures were not loaded into Scope’s data yet.",
-    },
+    peerCompany("META", { id: "meta", kind: "indirect", desc: "Social media ads that compete for advertisers’ budgets" }),
     {
       id: "nvda", name: "NVIDIA", ticker: "NVDA", kind: "indirect",
       desc: "Sells the AI chips Amazon buys, while Amazon builds its own Trainium chips",
@@ -504,19 +533,19 @@ const competitors: CompetitorsData = {
     },
   ],
   compareTitle: "How Amazon compares on results",
-  compareIntro: "One card per measure, one bar per company, best first. Blue is Amazon, grey bars are Microsoft and Alphabet.",
+  compareIntro: "One card per measure, one bar per company, best first. Blue is Amazon, grey bars are Microsoft, Alphabet and Meta.",
   compareHowToRead:
     "Dots to the right are higher values. The label under each line lists every company in rank order, best first. For net debt, lower is better, so rank 1 is the biggest net cash.",
   caveat: peerCaveat(
-    ["AMZN", "MSFT", "GOOGL"],
-    "Amazon’s and Alphabet’s balance sheets are as of Dec 31, 2025. Since then both have borrowed heavily: by Sep 30, 2026 Amazon had about $66.1B more debt than cash (see Cash and returns), and Alphabet’s debt had risen to $125.1B. Amazon and Alphabet both spent far more on equipment than Microsoft, which is why their free cash flow is low.",
+    ["AMZN", "MSFT", "GOOGL", "META"],
+    "Amazon’s, Alphabet’s and Meta’s balance sheets are as of Dec 31, 2025. Since then all three have borrowed heavily: by Sep 30, 2026 Amazon had about $66.1B more debt than cash (see Cash and returns), Alphabet’s debt had risen to $125.1B and Meta owed about $1.2B more than it held. Amazon, Alphabet and Meta all spent far more on equipment than Microsoft, which is why their free cash flow is low.",
   ),
   valuationTitle: "Growth against profitability",
   valuationIntro: "The best place to be is fast growth and a high margin at the same time. Check both together.",
   valuationHowToRead:
     "Each dot is a company. Further right means faster growth, and further up means a higher operating margin. A dot in the top right is both fast and profitable.",
   source:
-    "Sources: Amazon, Microsoft and Alphabet numbers from their filings, loaded from the saved API data (Financial Modeling Prep) on the same day as the rest of this page. Cloud revenue for AWS, Azure and Google Cloud is from press summaries of their Q3 2026 reports. Growth compares with the same 12 months a year earlier. Walmart, Meta and NVIDIA are described in words because comparable figures were not loaded.",
+    "Sources: Amazon, Microsoft, Alphabet and Meta numbers from their filings, loaded from the saved API data (Financial Modeling Prep) on the same day as the rest of this page. Cloud revenue for AWS, Azure and Google Cloud is from press summaries of their Q3 2026 reports. Growth compares with the same 12 months a year earlier. Walmart and NVIDIA are described in words because comparable figures were not loaded.",
 };
 
 const sourcesMethod: SourcesMethodData = {
@@ -539,23 +568,23 @@ const sourcesMethod: SourcesMethodData = {
     },
     {
       metric: "Free cash flow, last 12 months",
-      value: "−$46.9B",
+      value: fcfLtmText,
       steps: [
         "Cash flow statements in the FY25 Form 10-K and the quarterly reports",
         "Operating cash flow $168.3B and purchases of property and equipment $215.2B over the last four quarters",
         "168.3 − 215.2",
-        "−$46.9B free cash flow, against −$42.4B as Amazon reports it after proceeds and incentives",
+        `${fcfLtmText} free cash flow, against −$42.4B as Amazon reports it after proceeds and incentives`,
         "Profitability and Valuation scores, and the reason Scope shows no fair value",
       ],
     },
     {
       metric: "P/E ratio",
-      value: "21.6×",
+      value: `${peNowText}×`,
       steps: [
         "Closing share price on Nov 9, 2026 from market data, and earnings per share from Amazon’s filings",
-        "Share price $266.93 and diluted earnings per share $12.37 over the last four quarters",
-        "266.93 ÷ 12.37",
-        "21.6× P/E, which includes about $69.5B of other income, mostly gains on Anthropic",
+        `Share price $${priceNow.toFixed(2)} and diluted earnings per share $${epsLtm.toFixed(2)} over the last four quarters`,
+        `${priceNow.toFixed(2)} ÷ ${epsLtm.toFixed(2)}`,
+        `${peNowText}× P/E, which includes about $69.5B of other income, mostly gains on Anthropic`,
         "Valuation score (35% of that category), the Valuation section and Strengths and risks",
       ],
     },
@@ -563,7 +592,7 @@ const sourcesMethod: SourcesMethodData = {
   sourcesTitle: "Data sources",
   sourcesIntro: "Where each kind of data comes from, and the documents Scope reads for Amazon.",
   sources: [
-    { title: "SEC filings", topic: "Reported financials", text: "Annual (10-K) and quarterly (10-Q) reports and event reports (8-K) for Amazon, Alphabet and Microsoft. The primary source for financial figures." },
+    { title: "SEC filings", topic: "Reported financials", text: "Annual (10-K) and quarterly (10-Q) reports and event reports (8-K) for Amazon, Alphabet, Microsoft and Meta. The primary source for financial figures." },
     { title: "Company investor relations", topic: "Outlook and guidance", text: "Earnings releases, slides and call transcripts published by the company. Management’s outlook and comments come from here." },
     { title: "Market data providers", topic: "Share price, market cap, estimates and price targets", text: "Share price, market cap, fiscal-year-end multiples and analyst targets from Financial Modeling Prep. Prices are closing prices, and Scope shows the date." },
     { title: "News and industry data", topic: "Industry and news context", text: "Press summaries of the earnings call, a third-party SEC filing analysis for 10-Q details, the FTC’s own press release, and press summaries of rival cloud results. Where a figure comes only from the press, Scope says so." },
@@ -575,7 +604,7 @@ const sourcesMethod: SourcesMethodData = {
     { name: "Q3 2026 earnings call", date: "Oct 29, 2026", type: "Transcript", source: "Company investor relations", use: "Capital spending, AWS and advertising comments, kept as press summaries" },
     { name: "Q4 2025 earnings release", date: "Feb 5, 2026", type: "8-K", source: "SEC filings", use: "Year-ago AWS growth and operating income" },
     { name: "FTC and 22 states lawsuit", date: "Aug 31, 2026", type: "Press release", source: "News and industry data", use: "Allegations about the sponsored-ads auction" },
-    { name: "Alphabet and Microsoft financials", date: "Nov 2026", type: "Data feed", source: "Market data providers", use: "Rival financials, each on its own latest 12 months" },
+    { name: "Alphabet, Microsoft and Meta financials", date: "Nov 2026", type: "Data feed", source: "Market data providers", use: "Rival financials, each on its own latest 12 months" },
     { name: "Analyst consensus and price targets", date: "Nov 2026", type: "Estimates", source: "Market data providers", use: "Average price target and post-earnings target changes" },
   ],
   formulasTitle: "How each metric is calculated",
@@ -597,7 +626,7 @@ const sourcesMethod: SourcesMethodData = {
   valuationTitle: "How valuation is shown",
   valuationIntro: "Amazon has no Scope fair value, so two reference points are shown. Neither is a price forecast.",
   methods: [
-    { name: "Discounted cash flow (not shown for Amazon)", what: "Scope’s model estimates value per share from future free cash flow under three stated cases, starting from the last 12 months. It is used on the other company pages.", limit: "It needs a positive starting cash flow. Amazon’s is −$46.9B, so the model gives a negative value in every case and Scope does not show one." },
+    { name: "Discounted cash flow (not shown for Amazon)", what: "Scope’s model estimates value per share from future free cash flow under three stated cases, starting from the last 12 months. It is used on the other company pages.", limit: `It needs a positive starting cash flow. Amazon’s is ${fcfLtmText}, so the model gives a negative value in every case and Scope does not show one.` },
     { name: "Historical multiples", what: "Compares today’s P/E and EV/EBITDA with Amazon’s own average over the last fiscal year ends.", limit: "Profit includes large gains on Anthropic, so the P/E looks lower than it is. Scope also shows a P/E without those gains, as an estimate." },
     { name: "Analyst price targets", what: "Shows the range and average of published targets from analysts who follow Amazon.", limit: "Targets are opinions, usually for 12 months ahead, and they often follow the share price. Providers show slightly different ranges." },
   ],
@@ -616,12 +645,12 @@ const sourcesMethod: SourcesMethodData = {
     { dataset: "Cash flow", period: "FY25 plus the latest quarters", sourceDate: "Oct 29, 2026", updated: "Nov 10, 2026", status: "Verified", limit: "Last-12-month free cash flow (−$46.9B) is Scope’s calculation. Amazon reports −$42.4B after proceeds and incentives." },
     { dataset: "Share price and market cap", period: "Not applicable", sourceDate: "Nov 9, 2026 close", updated: "Nov 10, 2026", status: "Verified", limit: "Closing price only, and it moves every trading day." },
     { dataset: "Analyst estimates and targets", period: "Next 12 months", sourceDate: "Nov 2026", updated: "Nov 10, 2026", status: "Pending", limit: "Consensus differs between providers and changes after earnings. Scope shows the range from Financial Modeling Prep." },
-    { dataset: "Rival financials", period: "Each company’s latest 12 months", sourceDate: "Oct to Nov 2026", updated: "Nov 2026", status: "Verified", limit: "Each company is on its own latest 12 months and latest fiscal year-end balance sheet, so the dates differ slightly. The exact dates are in the note under the Competitors charts. Walmart, Meta and NVIDIA are not in the charts." },
+    { dataset: "Rival financials", period: "Each company’s latest 12 months", sourceDate: "Oct to Nov 2026", updated: "Nov 2026", status: "Verified", limit: "Each company is on its own latest 12 months and latest fiscal year-end balance sheet, so the dates differ slightly. The exact dates are in the note under the Competitors charts. Walmart and NVIDIA are not in the charts." },
     { dataset: "Cloud market comparison", period: "Q3 2026 (Jul to Sep)", sourceDate: "Oct to Nov 2026", updated: "Nov 10, 2026", status: "Pending", limit: "Azure and Google Cloud revenue come from press summaries, and the segments are defined differently." },
     { dataset: "Customer counts", period: "Not applicable", sourceDate: "Not applicable", updated: "Not applicable", status: "Unavailable", limit: "Amazon does not report customer counts, so Scope shows paid unit growth, subscription revenue and AWS backlog instead." },
   ],
   source:
-    "Sources: Amazon, Alphabet and Microsoft filings and earnings materials, Financial Modeling Prep market data and press coverage of Amazon’s Q3 2026 call, as of Nov 10, 2026. The score and ratings are Scope’s own methods, shown in full above.",
+    "Sources: Amazon, Alphabet, Microsoft and Meta filings and earnings materials, Financial Modeling Prep market data and press coverage of Amazon’s Q3 2026 call, as of Nov 10, 2026. The score and ratings are Scope’s own methods, shown in full above.",
 };
 
 const bottomLine: BottomLineData = {
@@ -632,8 +661,8 @@ const bottomLine: BottomLineData = {
   scoreHref: "#score",
   scoreSummary: "Top grades for scale, growth and low concentration, held back by negative free cash flow and weak cash conversion, and flattered by gains on the Anthropic stake.",
   items: [
-    { icon: "ti-briefcase", label: "The business", verdict: "Strong", tone: "positive", text: "Sales up 15%, a record 13.9% operating margin, AWS growing 39% with a $578B backlog, and a wide moat built on scale. The weak spot is cash: free cash flow was −$46.9B over 12 months.", href: "#moat", hrefLabel: "See the moat" },
-    { icon: "ti-tag", label: "The price", verdict: "Hard to judge", tone: "caution", text: "A P/E of 21.6× is half its 5-year average of 43×, but it is about 36× without Anthropic gains. Scope shows no fair value because free cash flow is negative. Analysts’ average target is $328, against a price of $267.", href: "#valuation", hrefLabel: "See the valuation" },
+    { icon: "ti-briefcase", label: "The business", verdict: "Strong", tone: "positive", text: `Sales up 15%, a record 13.9% operating margin, AWS growing 39% with a $578B backlog, and a wide moat built on scale. The weak spot is cash: free cash flow was ${fcfLtmText} over 12 months.`, href: "#moat", hrefLabel: "See the moat" },
+    { icon: "ti-tag", label: "The price", verdict: "Hard to judge", tone: "caution", text: `A P/E of ${peNowText}× is half its 5-year average of ${peAvgAbout}×, but it is about 36× without Anthropic gains. Scope shows no fair value because free cash flow is negative. Analysts’ average target is $328, against a price of $${Math.round(priceNow)}.`, href: "#valuation", hrefLabel: "See the valuation" },
     { icon: "ti-alert-triangle", label: "What to watch", verdict: "Spending and debt", tone: "caution", text: "Capital spending is guided to about $220B in 2026 and meaningfully more in 2027, paid for partly with new debt that has nearly tripled to $173.1B. The FTC lawsuit over ad auctions is new. The next report is in early February.", href: "#strengths-risks", hrefLabel: "See the risks" },
   ],
   note: "This is Scope’s summary of the evidence above, not a call to buy or sell. A great business can still be a poor purchase at the wrong price, and a low-looking multiple can hide how the profit was made.",
@@ -643,9 +672,9 @@ const closing: ClosingPanelData = {
   title: ["That is one company.", "Here is where to go next."],
   lead: "You have seen what Amazon earns, what protects it and what it costs. Keep building the picture.",
   companies: [
-    { name: "Alphabet", ticker: "GOOGL", reason: "Google Cloud grew 103% last quarter and competes with AWS, and Alphabet is also spending heavily on AI.", href: "/company/google" },
-    { name: "Microsoft", ticker: "MSFT", reason: "The other big cloud. Azure grew 48% last quarter.", href: "/company/microsoft" },
-    { name: "NVIDIA", ticker: "NVDA", reason: "Sells the AI chips Amazon buys, while Amazon designs its own Trainium chips.", href: "/company/nvidia" },
+    { name: "Alphabet", ticker: "GOOGL", reason: "Google Cloud grew 103% last quarter and competes with AWS, and Alphabet is also spending heavily on AI.", href: "/company/google", logo: "/logos/google-svgrepo-com.svg" },
+    { name: "Microsoft", ticker: "MSFT", reason: "The other big cloud. Azure grew 48% last quarter.", href: "/company/microsoft", logo: "/logos/microsoft-svgrepo-com.svg" },
+    { name: "NVIDIA", ticker: "NVDA", reason: "Sells the AI chips Amazon buys, while Amazon designs its own Trainium chips.", href: "/company/nvidia", logo: "/logos/nvidia-svgrepo-com.svg" },
   ],
   ...closingShared,
 };
@@ -676,7 +705,7 @@ const spotlight: SpotlightData = {
   numbers: [
     { value: "63.3%", label: "of Q3 2026 operating profit came from AWS, on 22.8% of sales", tone: "positive" },
     { value: "$578B", label: "AWS backlog of signed contracts, up from $244B at the end of 2025", tone: "positive" },
-    { value: "−$46.9B", label: "free cash flow in the last 12 months, after $215.2B of capital spending", tone: "negative" },
+    { value: fcfLtmText, label: "free cash flow in the last 12 months, after $215.2B of capital spending", tone: "negative" },
     { value: "$173.1B", label: "long-term debt on Sep 30, 2026, up from $65.6B at the end of 2025", tone: "negative" },
   ],
   wins: [

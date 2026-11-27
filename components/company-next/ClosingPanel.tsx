@@ -2,33 +2,16 @@
 // One job: point the reader to the next place to go on Scope.
 // The verdict itself lives in BottomLine. Server Component.
 //
-// The one big solid-blue panel on the page. Flat colors only, no gradients.
-// Top: up to 3 related companies, each with a one-line reason.
-// Bottom: a row of small links to the tools, and a link to all companies.
+// Look: centered heading, then up to 3 related-company cards (blue band on top,
+// white body), then a light-blue strip with the tool links and the full list.
+// Flat colors only, no gradients. Tailwind only, no separate CSS file.
+// Each company card shows its logo when `logo` is given, and the first letter of its name when it is not.
 import Link from "next/link";
+import Image from "next/image";
+import type { ClosingPanelData } from "@/lib/company-next/types";
 
-export type ClosingCompany = {
-  name: string; // e.g. "Alphabet"
-  ticker: string; // e.g. "GOOGL", shown as a tile
-  reason: string; // one line: why this company, tied to the page's company
-  href: string; // must be a real route
-};
-
-export type ClosingLink = {
-  icon: string; // Tabler icon name, e.g. "ti-git-compare"
-  title: string;
-  href: string; // must be a real route
-};
-
-export type ClosingPanelData = {
-  title: string[]; // one entry per line of the headline
-  lead?: string; // one sentence under the headline
-  companies: ClosingCompany[]; // 1 to 3
-  links: ClosingLink[]; // small tool links, 2 to 4
-  allLabel: string; // e.g. "See all companies"
-  allHref: string;
-  note: string;
-};
+// The data types live in lib/company-next/types.ts. They are re-exported here so older imports keep working.
+export type { ClosingCompany, ClosingLink, ClosingPanelData } from "@/lib/company-next/types";
 
 // Tailwind needs whole class names, so the column count is looked up, not built.
 const COLS: Record<number, string> = {
@@ -39,81 +22,104 @@ const COLS: Record<number, string> = {
 
 export default function ClosingPanel({ data }: { data: ClosingPanelData }) {
   const cols = COLS[Math.min(Math.max(data.companies.length, 1), 3)];
+  const lastLine = data.title.length - 1;
 
   return (
     <section className="bg-white py-16 lg:py-[72px]">
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
-        <div className="rounded-[28px] bg-primary px-6 py-12 text-white sm:px-10 sm:py-16">
-          <div className="max-w-[760px]">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1 text-[13px] font-semibold">
-              <i className="ti ti-compass" aria-hidden="true" />
-              Keep exploring
-            </div>
-            <h2 className="mt-5 font-serif text-[clamp(34px,5vw,56px)] font-normal leading-[1.08] tracking-[-0.02em]">
-              {data.title.map((line) => (
-                <span key={line} className="block">
-                  {line}
-                </span>
-              ))}
-            </h2>
-            {data.lead && (
-              <p className="mt-4 max-w-[560px] text-base leading-relaxed text-white/85">{data.lead}</p>
-            )}
-          </div>
+        <div className="flex flex-col items-center gap-5 text-center">
+          <h2 className="font-serif text-[clamp(36px,5.4vw,60px)] font-medium leading-[1.06] tracking-[-0.01em] text-ink">
+            {data.title.map((line, i) => (
+              <span key={line} className="block">
+                {i === lastLine && lastLine > 0 ? (
+                  <em className="italic text-primary-ink">{line}</em>
+                ) : (
+                  line
+                )}
+              </span>
+            ))}
+          </h2>
+          {data.lead && (
+            <p className="max-w-[560px] text-lg leading-relaxed text-ink-muted">{data.lead}</p>
+          )}
+        </div>
 
-          {/* related companies */}
-          <ul className={`mt-10 grid gap-3 ${cols}`}>
-            {data.companies.map((c) => (
-              <li key={c.name}>
-                <Link
-                  href={c.href}
-                  className="group flex h-full flex-col rounded-2xl bg-white p-5 text-ink transition-colors hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                >
-                  <span className="flex items-center gap-3">
-                    <span className="grid h-11 min-w-11 place-items-center rounded-xl bg-primary-soft px-2 text-[13px] font-bold tracking-tight text-primary-ink group-hover:bg-white">
-                      {c.ticker}
-                    </span>
-                    <span className="text-[19px] font-semibold leading-tight">{c.name}</span>
+        {/* related companies */}
+        <ul className={`mt-11 grid gap-6 ${cols}`}>
+          {data.companies.map((c) => (
+            <li key={c.name} className="flex">
+              <Link
+                href={c.href}
+                className="group flex w-full flex-col overflow-hidden rounded-[28px] border border-border bg-white text-ink transition-colors hover:bg-primary-soft/35 focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-primary"
+              >
+                {/* blue band: logo slot + ticker */}
+                <span className="flex items-center gap-4 bg-primary px-[26px] py-[18px] text-white">
+                  {/* Logo slot: the company logo, or its first letter when there is no logo file. */}
+                  <span
+                    className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white font-serif text-[28px] font-medium leading-none text-primary-ink"
+                    aria-hidden="true"
+                  >
+                    {c.logo ? (
+                      <Image
+                        src={c.logo}
+                        alt=""
+                        width={40}
+                        height={40}
+                        unoptimized
+                        className="h-10 w-10 object-contain"
+                      />
+                    ) : (
+                      c.name.charAt(0)
+                    )}
                   </span>
-                  <span className="mt-4 flex-1 text-[15px] leading-snug text-ink-muted">{c.reason}</span>
-                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-ink">
+                  <span className="min-w-0 font-serif text-[30px] font-medium leading-[1.1] tracking-[0.01em]">
+                    {c.ticker}
+                  </span>
+                </span>
+                {/* white body */}
+                <span className="flex flex-1 flex-col gap-2.5 p-[26px]">
+                  <span className="text-[22px] font-semibold leading-tight">{c.name}</span>
+                  <span className="flex-1 text-[15.5px] leading-relaxed text-ink-muted">{c.reason}</span>
+                  <span className="mt-2.5 inline-flex items-center gap-2 text-[15px] font-semibold text-primary-ink">
                     View {c.name}
                     <i
                       className="ti ti-arrow-right transition-transform group-hover:translate-x-0.5"
                       aria-hidden="true"
                     />
                   </span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        {/* tools and the full list */}
+        <div className="mt-11 flex flex-col items-start gap-5 rounded-[28px] bg-primary-soft/35 p-6 min-[900px]:flex-row min-[900px]:items-center min-[900px]:justify-between min-[900px]:rounded-full min-[900px]:px-8">
+          <ul className="flex flex-wrap gap-3">
+            {data.links.map((l) => (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  className="inline-flex h-12 items-center gap-2.5 rounded-full border border-primary bg-white px-5 text-[15px] font-semibold text-primary-ink transition-colors hover:bg-primary-soft focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-primary"
+                >
+                  <i className={`ti ${l.icon} text-xl`} aria-hidden="true" />
+                  {l.title}
                 </Link>
               </li>
             ))}
           </ul>
-
-          {/* tools and the full list */}
-          <div className="mt-8 flex flex-col gap-4 border-t border-white/25 pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <ul className="flex flex-wrap gap-x-6 gap-y-3">
-              {data.links.map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className="inline-flex items-center gap-2 text-[15px] font-semibold text-white underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                  >
-                    <i className={`ti ${l.icon} text-lg`} aria-hidden="true" />
-                    {l.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href={data.allHref}
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-white/40 px-4 text-[15px] font-semibold text-white transition-colors hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:self-auto"
-            >
-              {data.allLabel}
-              <i className="ti ti-arrow-right" aria-hidden="true" />
-            </Link>
-          </div>
-
-          <p className="mt-8 max-w-[760px] text-[13px] leading-relaxed text-white/80">{data.note}</p>
+          <Link
+            href={data.allHref}
+            className="inline-flex h-[52px] w-full shrink-0 items-center justify-center gap-2.5 rounded-full bg-primary px-[26px] text-base font-semibold text-white transition-colors hover:bg-primary-hover focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-primary min-[480px]:w-auto"
+          >
+            {data.allLabel}
+            <i className="ti ti-arrow-right" aria-hidden="true" />
+          </Link>
         </div>
+
+        <p className="mx-auto mt-9 max-w-[760px] text-center text-[13px] leading-relaxed text-ink-muted">
+          {data.note}
+        </p>
       </div>
     </section>
   );

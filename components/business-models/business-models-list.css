@@ -1,0 +1,552 @@
+/* Business Models list page (hero "bmh-", groups "bmg-", closing "bmc-").
+   Imported directly by app/business-models/page.tsx so it always loads on this page. */
+
+/* =====================================================================
+   Business Models — Hero (redesign, variation B)
+   New block only: paste at the END of your existing Business Models CSS
+   file. All classes are prefixed "bmh-", so nothing existing changes.
+   ===================================================================== */
+
+.bmh-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 40px;
+  padding: 32px 20px;
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--color-primary-soft, #dbeafe) 35%, #ffffff);
+}
+
+.bmh-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  min-width: 0;
+}
+
+.bmh-title {
+  margin: 0;
+  font-family: var(--pl-serif, var(--font-serif, Georgia, "Times New Roman", serif));
+  font-size: clamp(44px, 8vw, 72px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  color: var(--color-ink, #172b4d);
+}
+
+.bmh-title em {
+  font-style: italic;
+  color: var(--color-primary-ink, #1e40af);
+}
+
+.bmh-lead {
+  margin: 0;
+  max-width: 480px;
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--color-ink-muted, #52627a);
+}
+
+.bmh-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-sizing: border-box;
+  min-height: 52px;
+  padding: 0 26px;
+  border-radius: 16px;
+  background: var(--color-primary, #2563eb);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 180ms ease;
+}
+.bmh-cta:hover {
+  background: var(--color-primary-hover, #1d4ed8);
+}
+.bmh-cta:focus-visible {
+  outline: 3px solid var(--color-primary-ink, #1e40af);
+  outline-offset: 2px;
+}
+
+.bmh-rule {
+  width: 100%;
+  max-width: 440px;
+  height: 1px;
+  margin: 4px 0 0;
+  border: 0;
+  background: var(--color-primary-soft, #dbeafe);
+}
+
+.bmh-tagline {
+  margin: 0;
+  font-family: var(--pl-serif, var(--font-serif, Georgia, "Times New Roman", serif));
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--color-primary-ink, #1e40af);
+}
+
+/* ---------- Card: blue band on top, white body ---------- */
+.bmh-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border, #dce4ee);
+  border-radius: 28px;
+  background: #ffffff;
+}
+
+.bmh-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 20px 24px;
+  background: var(--color-primary, #2563eb);
+  color: #ffffff;
+}
+
+.bmh-band-title {
+  font-family: var(--pl-serif, var(--font-serif, Georgia, "Times New Roman", serif));
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.bmh-band-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.bmh-band-number {
+  font-family: var(--pl-serif, var(--font-serif, Georgia, "Times New Roman", serif));
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.bmh-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 20px;
+}
+
+.bmh-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 116px;
+  padding: 18px 6px;
+  border: 1px solid var(--color-border, #dce4ee);
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.bmh-tile-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-primary-soft, #dbeafe);
+  color: var(--color-primary-ink, #1e40af);
+  font-size: 22px;
+}
+
+.bmh-tile-name {
+  max-width: 100%;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--color-ink, #172b4d);
+  overflow-wrap: anywhere;
+}
+
+.bmh-tile-more {
+  border-color: var(--color-primary, #2563eb);
+  background: var(--color-primary, #2563eb);
+}
+.bmh-tile-more .bmh-tile-icon {
+  background: color-mix(in srgb, #ffffff 20%, var(--color-primary, #2563eb));
+  color: #ffffff;
+}
+.bmh-tile-more .bmh-tile-name {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+@media (min-width: 640px) {
+  .bmh-panel {
+    padding: 40px 36px;
+  }
+  .bmh-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bmh-panel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 56px;
+    padding: 56px;
+    border-radius: 44px;
+  }
+}
+/* =====================================================================
+   Business Models — Groups (redesign, variation A)
+   New block only: paste at the END of your existing Business Models CSS
+   file (after the "bmh-" hero block). Classes are prefixed "bmg-".
+
+   BusinessModelRow.tsx is a shared component and is NOT edited. Its look
+   is adjusted below by selectors scoped under ".bmg-list". These rules are
+   plain (un-layered) CSS, so they win over its Tailwind utility classes.
+   Row structure these selectors rely on (children of the row <a>):
+     1 icon <span>, 2 text <span>, 3 arrow <i>, 4 "Earns from" <span>.
+   ===================================================================== */
+
+.bmg-card {
+  overflow: hidden;
+  border: 1px solid var(--color-border, #dce4ee);
+  border-radius: 28px;
+  background: #ffffff;
+}
+
+/* ---------- Blue band: name, description, count ---------- */
+.bmg-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 32px;
+  padding: 24px 20px;
+  background: var(--color-primary, #2563eb);
+  color: #ffffff;
+}
+
+.bmg-band-text {
+  display: flex;
+  flex: 1 1 360px;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bmg-title {
+  margin: 0;
+  font-family: var(--pl-serif, var(--font-serif, Georgia, "Times New Roman", serif));
+  font-size: clamp(32px, 5vw, 44px);
+  font-weight: 500;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.bmg-description {
+  margin: 0;
+  max-width: 520px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: #ffffff;
+}
+
+.bmg-count {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.bmg-count-number {
+  font-family: var(--pl-serif, var(--font-serif, Georgia, "Times New Roman", serif));
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- List body (white) ---------- */
+.bmg-list {
+  margin: 0;
+  padding: 8px 20px 12px;
+  list-style: none;
+}
+
+/* Row (shared BusinessModelRow), restyled from here */
+.bmg-list > li:last-child > a {
+  border-bottom: 0;
+}
+
+.bmg-list > li > a {
+  grid-template-columns: 52px minmax(0, 1fr) 36px;
+  padding: 20px 0;
+  border-bottom-color: var(--color-border, #dce4ee);
+  column-gap: 16px;
+  border-radius: 0;
+}
+/* No tinted background on hover. The title turns blue and the arrow button
+   fills (the title color comes from BusinessModelRow's own group-hover class). */
+.bmg-list > li > a:hover {
+  background: transparent;
+}
+.bmg-list > li > a:focus-visible {
+  outline: 3px solid var(--color-primary, #2563eb);
+  outline-offset: -3px;
+}
+
+/* 1 · icon */
+.bmg-list > li > a > span:nth-child(1) {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+}
+.bmg-list > li > a > span:nth-child(1) i {
+  font-size: 26px;
+}
+
+/* 2 · name + description */
+.bmg-list > li > a > span:nth-child(2) b {
+  font-size: 20px;
+  line-height: 1.25;
+}
+.bmg-list > li > a > span:nth-child(2) b + span {
+  margin-top: 4px;
+}
+
+/* 3 · arrow becomes a round button */
+.bmg-list > li > a > i.ti-arrow-right {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-top: 0;
+  border: 1px solid var(--color-border, #dce4ee);
+  border-radius: 50%;
+  background: #ffffff;
+  font-size: 18px;
+  color: var(--color-ink-muted, #52627a);
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+.bmg-list > li > a:hover > i.ti-arrow-right {
+  border-color: var(--color-primary, #2563eb);
+  background: var(--color-primary, #2563eb);
+  color: #ffffff;
+}
+
+/* 4 · "Earns from" chips */
+.bmg-list > li > a > span:nth-child(4) > span:first-child {
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.bmg-list > li > a > span:nth-child(4) > span:last-child {
+  gap: 8px;
+}
+.bmg-list > li > a > span:nth-child(4) > span:last-child > span {
+  padding: 6px 14px;
+  font-size: 13.5px;
+}
+
+@media (min-width: 640px) {
+  .bmg-band {
+    padding: 32px 40px;
+  }
+  .bmg-list {
+    padding: 12px 40px 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .bmg-list > li > a {
+    grid-template-columns: 52px minmax(0, 1.5fr) minmax(0, 1.2fr) 36px;
+    column-gap: 28px;
+  }
+}
+/* =====================================================================
+   Business Models — Closing (redesign, variation B)
+   New block only: paste at the END of your existing Business Models CSS
+   file (after the "bmh-" hero and "bmg-" groups blocks).
+   All classes are prefixed "bmc-", so nothing existing changes.
+   ===================================================================== */
+
+.bmc-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 40px;
+  padding: 32px 20px;
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--color-primary-soft, #dbeafe) 35%, #ffffff);
+}
+
+.bmc-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  min-width: 0;
+}
+
+.bmc-title {
+  margin: 0;
+  font-family: var(--pl-serif, var(--font-serif, Georgia, "Times New Roman", serif));
+  font-size: clamp(34px, 6vw, 56px);
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.01em;
+  color: var(--color-ink, #172b4d);
+}
+
+.bmc-title em {
+  font-style: italic;
+  color: var(--color-primary-ink, #1e40af);
+}
+
+.bmc-rule {
+  width: 100%;
+  max-width: 440px;
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--color-primary-soft, #dbeafe);
+}
+
+.bmc-note {
+  margin: 0;
+  max-width: 440px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--color-ink-muted, #52627a);
+}
+
+/* ---------- Card: blue band on top, white body ---------- */
+.bmc-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border, #dce4ee);
+  border-radius: 28px;
+  background: #ffffff;
+}
+
+.bmc-band {
+  padding: 20px 24px;
+  background: var(--color-primary, #2563eb);
+  color: #ffffff;
+  font-family: var(--pl-serif, var(--font-serif, Georgia, "Times New Roman", serif));
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.bmc-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  border-top: 1px solid var(--color-border, #dce4ee);
+  background: #ffffff;
+  text-decoration: none;
+  transition: background-color 180ms ease;
+}
+.bmc-band + .bmc-row {
+  border-top: 0;
+}
+.bmc-row:hover {
+  background: color-mix(in srgb, var(--color-primary-soft, #dbeafe) 35%, #ffffff);
+}
+.bmc-row:focus-visible {
+  outline: 3px solid var(--color-primary, #2563eb);
+  outline-offset: -3px;
+}
+
+.bmc-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--color-primary-soft, #dbeafe);
+  color: var(--color-primary-ink, #1e40af);
+  font-size: 26px;
+}
+
+.bmc-row-text {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.bmc-row-title {
+  display: block;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-ink, #172b4d);
+}
+
+.bmc-row-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-ink-muted, #52627a);
+}
+
+/* Round arrow button */
+.bmc-go {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border, #dce4ee);
+  border-radius: 50%;
+  background: #ffffff;
+  font-size: 18px;
+  color: var(--color-ink-muted, #52627a);
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+.bmc-row:hover .bmc-go {
+  border-color: var(--color-primary, #2563eb);
+  background: var(--color-primary, #2563eb);
+  color: #ffffff;
+}
+
+@media (min-width: 640px) {
+  .bmc-panel {
+    padding: 40px 36px;
+  }
+  .bmc-band {
+    padding: 22px 28px;
+  }
+  .bmc-row {
+    padding: 22px 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bmc-panel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 56px;
+    padding: 56px;
+    border-radius: 44px;
+  }
+}

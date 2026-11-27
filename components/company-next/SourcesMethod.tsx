@@ -1,113 +1,38 @@
 import { type ReactNode } from "react";
+import type { DataStatus, SourcesMethodData } from "@/lib/company-next/types";
+import { scoreLabel } from "@/lib/company-next/scoreLabel";
+import SectionNote from "./SectionNote";
 
 // Section 20: Sources and method (page footer, outside the tabs).
 // One question: where does each number come from, how is it calculated, and how far can it be trusted?
 // Company-neutral: no industry wording is guessed in this file. Every source gives its own `topic` in the data,
 // and every document names the `source` (by its title) that it belongs to. Nothing is worked out from patterns.
+// Look only: the data types, props, score maths, timeline scale and source/document matching are unchanged.
+// Layout: Trace a number and Data sources are blue-band cards. Formulas is one table card. Scope Score, Fair value and
+// Freshness are one card each, with the score categories as rows. `labels` stays in the data but is not shown.
+// The timeline can hold any number of dates: the card title and the column count follow `data.timeline`.
 // Server Component. No client JS needed.
 
-export type TraceData = {
-  metric: string;
-  value: string;
-  // Exactly 5 steps: source, reported figures, formula, result, where it is used
-  steps: [string, string, string, string, string];
-};
-
-export type DataStatus = "Verified" | "Pending" | "Unavailable";
-
-export type SourcesMethodData = {
-  title: string;
-  lead: string;
-  labels: string[]; // shown once at section level
-  traceTitle: string;
-  traceIntro: string;
-  traces: TraceData[];
-  sourcesTitle: string;
-  sourcesIntro: string;
-  sources: {
-    title: string;
-    text: string;
-    topic: string; // what this source feeds, e.g. "Outlook and guidance"
-  }[];
-  documents: {
-    name: string;
-    date: string;
-    type: string;
-    use: string;
-    source: string; // title of the source it belongs to, copied exactly from `sources[].title`
-  }[];
-  formulasTitle: string;
-  formulasIntro: string;
-  formulas: { name: string; formula: string; note: string }[];
-  formulasNote: string;
-  scoringTitle: string;
-  scoringIntro: string;
-  categories: {
-    name: string;
-    weight: number; // percent of the overall score
-    coverage: number; // percent of inputs available
-    score?: number; // 0 to 10, this company's category score
-    inputs: {
-      name: string;
-      weight: number;
-      analyst?: boolean;
-      value?: string; // this company's figure for the input
-      score?: number; // 0 to 10
-    }[];
-    rule: string;
-    missing: string;
-  }[];
-  scoringNote: string;
-  valuationTitle: string;
-  valuationIntro: string;
-  methods: { name: string; what: string; limit: string }[];
-  valuationNote: string;
-  freshnessTitle: string;
-  freshnessIntro: string;
-  timeline: { date: string; label: string }[]; // 3 items: period end, source date, last update
-  freshness: {
-    dataset: string;
-    period: string;
-    sourceDate: string;
-    updated: string;
-    status: DataStatus;
-    limit: string;
-  }[];
-  source: string;
-};
+// The data types live in lib/company-next/types.ts. They are re-exported here so older imports keep working.
+export type { TraceData, DataStatus, SourcesMethodData } from "@/lib/company-next/types";
 
 const STEP_LABELS = ["Source", "Reported figures", "Scope formula", "Result", "Used in"];
 
-const CARD_SHADOW = "shadow-[0_8px_30px_rgba(20,30,70,0.05)]";
-
 // Each status has an icon and a word, so meaning never depends on color alone.
-const STATUS: Record<DataStatus, { cls: string; icon: string }> = {
-  Verified: { cls: "bg-success-soft text-success", icon: "ti-circle-check" },
-  Pending: { cls: "bg-warning-soft text-warning", icon: "ti-clock" },
-  Unavailable: { cls: "bg-surface text-ink-muted", icon: "ti-minus" },
+// pill = the chip on a white card, text = the same color for use on a white chip inside a blue band.
+const STATUS: Record<DataStatus, { cls: string; text: string; icon: string }> = {
+  Verified: { cls: "bg-success-soft text-success", text: "text-success", icon: "ti-circle-check" },
+  Pending: { cls: "bg-warning-soft text-warning", text: "text-warning", icon: "ti-clock" },
+  Unavailable: { cls: "bg-[#f1f5fa] text-ink-muted", text: "text-ink-muted", icon: "ti-minus" },
 };
 
-// Category colors are fixed by position so the weight tiles and the cards below match.
+// Category colors are fixed by position so the weight tiles and the category rows match.
 // The third color is light, so its label is dark.
 const CAT_BG = ["bg-share-1", "bg-share-2", "bg-share-3", "bg-share-4", "bg-share-5", "bg-primary"];
 const CAT_DARK_TEXT = [false, false, true, false, false, false];
 
-// Score level, from the Scope Score labels.
-const level = (s: number) => (s >= 9 ? "Excellent" : s >= 7.5 ? "Strong" : s >= 6 ? "Good" : s >= 5 ? "Fair" : "Weak");
-const tone = (s: number) =>
-  s >= 7.5
-    ? { seg: "bg-success", pill: "bg-success-soft text-success", top: "border-t-success" }
-    : s >= 5
-      ? { seg: "bg-warning", pill: "bg-warning-soft text-warning", top: "border-t-warning" }
-      : { seg: "bg-danger", pill: "bg-danger-soft text-danger", top: "border-t-danger" };
-
-// Source rows: one color per source, in the order the sources are listed.
-const SRC_STYLE = [
-  { card: "bg-primary-soft", title: "text-primary-ink", dot: "bg-primary", chip: "bg-primary-soft text-primary-ink" },
-  { card: "bg-[#e2f1ef]", title: "text-[#2a6d68]", dot: "bg-[#3f8a84]", chip: "bg-[#d6ece8] text-[#2a6d68]" },
-  { card: "bg-share-2/10", title: "text-share-2", dot: "bg-share-2", chip: "bg-share-2/15 text-share-2" },
-  { card: "bg-warning-soft", title: "text-warning", dot: "bg-warning", chip: "bg-warning-soft text-warning" },
-];
+// The score label cut-offs (Excellent, Strong, Good, Fair, Weak) live in lib/company-next/scoreLabel.ts,
+// shared with the Score section.
 
 // A document whose `source` matches no source title (a typo in the data) is not dropped. It is shown in this last row,
 // so the mistake is visible on the page instead of the document vanishing.
@@ -127,6 +52,15 @@ const SEG = [
   { line: "bg-warning-soft", text: "text-warning" },
   { line: "bg-primary/25", text: "text-primary-ink" },
 ];
+
+// Tailwind needs whole class names, so the column count of the date list is looked up, not built.
+// More than 4 dates wrap onto a new row of 4.
+const TIMELINE_COLS: Record<number, string> = {
+  1: "",
+  2: "sm:grid-cols-2",
+  3: "sm:grid-cols-3",
+  4: "sm:grid-cols-2 lg:grid-cols-4",
+};
 
 function StatusPill({ status }: { status: DataStatus }) {
   const s = STATUS[status];
@@ -153,9 +87,7 @@ function Block({
 }) {
   return (
     <div id={id} className="scroll-mt-24 pt-12">
-      <h3 className="max-w-[760px] font-serif text-[clamp(22px,2.6vw,28px)] font-normal leading-[1.15] tracking-[-0.02em] text-ink">
-        {title}
-      </h3>
+      <h3 className="max-w-[820px] font-serif text-h3 font-medium tracking-title text-ink">{title}</h3>
       <p className="mt-1.5 max-w-[680px] text-[15px] leading-relaxed text-ink-muted">{intro}</p>
       <div className="mt-5">{children}</div>
     </div>
@@ -164,20 +96,46 @@ function Block({
 
 function Note({ children }: { children: ReactNode }) {
   return (
-    <p className="mt-4 max-w-[760px] border-l-[3px] border-primary pl-3 text-[13px] leading-relaxed text-ink-muted">
+    <SectionNote className="mt-6">
       {children}
-    </p>
+    </SectionNote>
   );
 }
 
-function FormulaCard({ f }: { f: { name: string; formula: string; note: string } }) {
+/* Card with a blue header band and a white body, the same card language as the other pages. */
+function BandCard({
+  title,
+  aside,
+  children,
+  className = "",
+}: {
+  title: ReactNode;
+  aside?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <li className="rounded-2xl border border-border bg-white p-4">
-      <div className="text-[15px] font-semibold text-ink">{f.name}</div>
-      <code className="mt-2.5 block rounded-lg bg-surface px-3 py-2 font-sans text-sm font-medium leading-snug text-ink">
-        {f.formula}
-      </code>
-      <p className="mt-2.5 text-sm leading-relaxed text-ink-muted">{f.note}</p>
+    <div className={`overflow-hidden rounded-[28px] border border-border bg-white ${className}`}>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-primary px-5 py-3.5 text-white sm:px-7">
+        <div className="font-serif text-xl font-medium leading-tight sm:text-[22px]">{title}</div>
+        {aside}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function DocRow({ d }: { d: { name: string; type: string; date: string; use: string } }) {
+  return (
+    <li className="border-t border-border py-3 first:border-t-0 first:pt-0">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[15px] font-semibold text-ink">{d.name}</span>
+          <span className="rounded-lg bg-primary-soft px-2.5 py-0.5 text-xs font-semibold text-primary-ink">{d.type}</span>
+        </div>
+        <span className="text-[13px] tabular-nums text-ink-muted">{d.date}</span>
+      </div>
+      <p className="mt-1 text-sm leading-snug text-ink-muted">{d.use}</p>
     </li>
   );
 }
@@ -201,15 +159,20 @@ export default function SourcesMethod({ data }: { data: SourcesMethodData }) {
   const tileRows = [tiles.slice(0, split), tiles.slice(split)].filter((r) => r.length > 0);
 
   // Data sources: each source with the documents that name it.
-  const sourceRows = data.sources.map((s, i) => ({
+  const sourceRows = data.sources.map((s) => ({
     title: s.title,
     text: s.text,
     topic: s.topic,
-    style: SRC_STYLE[i % SRC_STYLE.length],
     docs: data.documents.filter((d) => d.source === s.title),
   }));
   const knownSources = new Set(data.sources.map((s) => s.title));
   const otherDocs = data.documents.filter((d) => !knownSources.has(d.source));
+  const allRows = [
+    ...sourceRows,
+    ...(otherDocs.length > 0
+      ? [{ title: UNMATCHED_ROW_TOPIC, text: "", topic: UNMATCHED_ROW_TOPIC, docs: otherDocs }]
+      : []),
+  ];
 
   // Timeline drawn to scale. Falls back to even spacing if a date cannot be read.
   const times = data.timeline.map((t) => Date.parse(t.date));
@@ -219,24 +182,16 @@ export default function SourcesMethod({ data }: { data: SourcesMethodData }) {
     toScale ? ((times[i] - times[0]) / (times[count - 1] - times[0])) * 100 : count > 1 ? (i * 100) / (count - 1) : 0,
   );
   const gaps = pcts.slice(1).map((_, i) => (toScale ? Math.round((times[i + 1] - times[i]) / 86400000) : null));
-
-  // Freshness: first three datasets as cards, the rest folded into one card.
-  const featured = data.freshness.slice(0, 3);
-  const rest = data.freshness.slice(3);
-  const restSummary = (["Verified", "Pending", "Unavailable"] as DataStatus[])
-    .map((s) => ({ s, n: rest.filter((r) => r.status === s).length }))
-    .filter((x) => x.n > 0)
-    .map((x) => `${x.n} ${x.s.toLowerCase()}`)
-    .join(", ");
+  // The card title counts the dates in the data, so it stays correct if a company has 2 or 4 dates.
+  const timelineTitle = `${count} ${count === 1 ? "date" : "dates"}${toScale ? ", drawn to scale" : ""}`;
+  const timelineCols = TIMELINE_COLS[Math.min(Math.max(count, 1), 4)];
 
   return (
     <section id="sources" className="scroll-mt-24 bg-white py-10 sm:py-12">
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
         {/* Header */}
         <header>
-          <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
-            {data.title}
-          </h2>
+          <h2 className="max-w-[900px] font-serif text-[clamp(30px,3.8vw,40px)] font-medium leading-[1.1] tracking-[-0.01em] text-ink">{data.title}</h2>
           <p className="mt-3 max-w-[680px] text-[15px] leading-relaxed text-ink-muted sm:text-base">{data.lead}</p>
           <nav aria-label="On this section" className="mt-5 flex flex-wrap gap-2">
             {NAV.map((n) => (
@@ -251,29 +206,29 @@ export default function SourcesMethod({ data }: { data: SourcesMethodData }) {
           </nav>
         </header>
 
-        {/* Trace a number: a vertical path on mobile, a horizontal path on desktop. */}
+        {/* Trace a number: one blue-band card per number. A vertical path on mobile, a horizontal path on desktop. */}
         <Block id="trace" title={data.traceTitle} intro={data.traceIntro}>
           <div className="grid gap-4">
             {data.traces.map((t) => (
-              <article key={t.metric} className="overflow-hidden rounded-2xl border border-border bg-white">
-                <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1 border-b border-border px-5 pb-4 pt-5 sm:px-6">
-                  <h4 className="text-base font-semibold text-ink">{t.metric}</h4>
-                  <span className="font-serif text-[36px] font-medium leading-none tracking-tight tabular-nums text-ink sm:text-[44px]">
+              <article key={t.metric} className="overflow-hidden rounded-[28px] border border-border bg-white">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 bg-primary px-5 py-3.5 text-white sm:px-7">
+                  <h4 className="text-base font-semibold">{t.metric}</h4>
+                  <span className="font-serif text-[clamp(32px,4vw,40px)] font-semibold leading-none tracking-title tabular-nums">
                     {t.value}
                   </span>
                 </div>
 
-                <ol className="grid gap-0 px-5 py-5 sm:px-6 lg:grid-cols-5 lg:gap-4">
+                <ol className="grid gap-0 px-5 py-6 sm:px-7 lg:grid-cols-5 lg:gap-3">
                   {t.steps.map((s, i) => {
                     const result = i === 3;
                     const last = i === t.steps.length - 1;
                     return (
-                      <li key={i} className="relative flex gap-4 pb-5 last:pb-0 lg:block lg:pb-0">
+                      <li key={i} className="relative flex gap-4 pb-5 last:pb-0 lg:block lg:pb-0 lg:pr-3">
                         {/* connector */}
                         {!last && (
                           <span
                             aria-hidden="true"
-                            className="absolute left-[15px] top-8 h-[calc(100%-1rem)] w-px bg-border lg:left-9 lg:top-[15px] lg:h-px lg:w-[calc(100%-1.5rem)]"
+                            className="absolute left-[15px] top-8 h-[calc(100%-1rem)] w-px bg-border lg:left-10 lg:right-0 lg:top-[15px] lg:h-px lg:w-auto"
                           />
                         )}
                         <span
@@ -306,232 +261,201 @@ export default function SourcesMethod({ data }: { data: SourcesMethodData }) {
           </div>
         </Block>
 
-        {/* Data sources: what it feeds  ←  where it comes from  ←  the documents */}
+        {/* Data sources: one blue-band card per source, what it is on the left and its documents on the right */}
         <Block id="data-sources" title={data.sourcesTitle} intro={data.sourcesIntro}>
-          <ul className="border-b border-border">
-            {[
-              ...sourceRows,
-              ...(otherDocs.length > 0
-                ? [
-                    {
-                      title: UNMATCHED_ROW_TOPIC,
-                      text: "",
-                      topic: UNMATCHED_ROW_TOPIC,
-                      style: { card: "bg-surface", title: "text-ink", dot: "bg-ink-muted", chip: "bg-surface text-ink-muted" },
-                      docs: otherDocs,
-                    },
-                  ]
-                : []),
-            ].map((row) => (
-              <li
-                key={row.title}
-                className="grid items-center gap-4 border-t border-border py-6 lg:grid-cols-[minmax(0,0.85fr)_28px_minmax(0,1.25fr)_28px_minmax(0,1.5fr)] lg:gap-x-4"
-              >
-                <h4 className="font-serif text-[clamp(20px,2.2vw,26px)] font-normal leading-tight tracking-[-0.01em] text-ink">
-                  {row.topic}
-                </h4>
-                <span aria-hidden="true" className="hidden text-center text-2xl leading-none text-ink-muted/60 lg:block">
-                  ←
-                </span>
-                <div className={`rounded-3xl border border-border p-5 ${row.style.card}`}>
-                  <div className="flex items-center gap-2.5">
-                    <span className={`size-3.5 shrink-0 rounded-full ${row.style.dot}`} aria-hidden="true" />
-                    <span className={`text-[18px] font-semibold leading-tight ${row.style.title}`}>{row.title}</span>
+          <ul className="grid gap-4">
+            {allRows.map((row) => (
+              <li key={row.title}>
+                <BandCard
+                  title={row.topic}
+                  aside={
+                    <span className="text-sm text-white/90">
+                      {row.title === UNMATCHED_ROW_TOPIC ? "" : `${row.title} · `}
+                      {row.docs.length} {row.docs.length === 1 ? "document" : "documents"}
+                    </span>
+                  }
+                >
+                  <div className="grid gap-5 px-5 py-5 sm:px-7 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-8">
+                    <div>
+                      {row.text && (
+                        <>
+                          <div className="text-[13px] font-semibold text-ink-muted">What it is</div>
+                          <p className="mt-1.5 text-[15px] leading-relaxed text-ink">{row.text}</p>
+                        </>
+                      )}
+                    </div>
+                    <div>
+                      <div className="pb-2 text-[13px] font-semibold text-ink-muted">Documents Scope reads</div>
+                      <ul>
+                        {row.docs.length === 0 && <li className="text-sm text-ink-muted">No documents listed.</li>}
+                        {row.docs.map((d) => (
+                          <DocRow key={d.name} d={d} />
+                        ))}
+                      </ul>
+                    </div>
                   </div>
-                  {row.text && <p className="mt-2.5 text-[15px] leading-relaxed text-ink">{row.text}</p>}
-                </div>
-                <span aria-hidden="true" className="hidden text-center text-2xl leading-none text-ink-muted/60 lg:block">
-                  ←
-                </span>
-                <ul className="grid gap-4">
-                  {row.docs.length === 0 && <li className="text-sm text-ink-muted">No documents listed.</li>}
-                  {row.docs.map((d) => (
-                    <li key={d.name}>
-                      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[16px] font-semibold text-ink">{d.name}</span>
-                          <span className={`rounded-lg px-2.5 py-0.5 text-[13px] font-semibold ${row.style.chip}`}>
-                            {d.type}
-                          </span>
-                        </div>
-                        <span className="text-[14px] tabular-nums text-ink-muted">{d.date}</span>
-                      </div>
-                      <p className="mt-1 text-[15px] leading-snug text-ink-muted">{d.use}</p>
-                    </li>
-                  ))}
-                </ul>
+                </BandCard>
               </li>
             ))}
           </ul>
         </Block>
 
-        {/* Formulas */}
+        {/* Formulas: one card, one row per formula */}
         <Block id="formulas" title={data.formulasTitle} intro={data.formulasIntro}>
-          <ul className="grid gap-3 md:grid-cols-3">
-            {data.formulas.slice(0, 3).map((f) => (
-              <FormulaCard key={f.name} f={f} />
-            ))}
-          </ul>
-          {data.formulas.length > 3 && (
-            <details className="group mt-3 rounded-2xl border-2 border-dashed border-border bg-white p-4 sm:p-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
-                <span className="text-[15px] text-ink-muted">
-                  {data.formulas.length - 3} more formula{data.formulas.length - 3 === 1 ? "" : "s"}
-                </span>
-                <span className="inline-flex shrink-0 items-center gap-1.5 text-[15px] font-semibold text-primary-ink">
-                  <span className="group-open:hidden">Show all</span>
-                  <span className="hidden group-open:inline">Hide</span>
-                  <i className="ti ti-chevron-down transition-transform group-open:rotate-180" aria-hidden="true" />
-                </span>
-              </summary>
-              <ul className="mt-4 grid gap-3 md:grid-cols-3">
-                {data.formulas.slice(3).map((f) => (
-                  <FormulaCard key={f.name} f={f} />
-                ))}
-              </ul>
-            </details>
-          )}
+          <BandCard title={`${data.formulas.length} ${data.formulas.length === 1 ? "formula" : "formulas"}`}>
+            <ul>
+              {data.formulas.map((f) => (
+                <li
+                  key={f.name}
+                  className="grid gap-x-6 gap-y-2 border-t border-border px-5 py-4 first:border-t-0 sm:px-7 md:grid-cols-[180px_minmax(0,1fr)_minmax(0,1.2fr)]"
+                >
+                  <div className="text-base font-semibold text-ink">{f.name}</div>
+                  <code className="block self-start rounded-[10px] bg-primary-soft px-3 py-2 font-sans text-sm font-medium leading-snug text-primary-ink">
+                    {f.formula}
+                  </code>
+                  <p className="text-sm leading-relaxed text-ink-muted">{f.note}</p>
+                </li>
+              ))}
+            </ul>
+          </BandCard>
           <Note>{data.formulasNote}</Note>
         </Block>
 
-        {/* Scoring */}
-        <div id="scoring" className="scroll-mt-24 pt-12">
-          <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:gap-12">
-            <div>
-              <h3 className="font-serif text-[clamp(28px,3.4vw,40px)] font-normal leading-[1.1] tracking-[-0.02em] text-ink">
-                {data.scoringTitle}
-              </h3>
-              <p className="mt-4 max-w-[560px] text-[15px] leading-relaxed text-ink-muted">{data.scoringIntro}</p>
+        {/* Scoring: one card. Overall score and weight tiles on top, one row per category below. */}
+        <Block id="scoring" title={data.scoringTitle} intro={data.scoringIntro}>
+          <div className="overflow-hidden rounded-[28px] border border-border bg-white">
+            <div className={`grid ${overall !== null ? "lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]" : ""}`}>
               {overall !== null && (
-                <div className="mt-5 inline-flex flex-wrap items-baseline gap-x-3 rounded-2xl bg-primary-soft px-5 py-3">
-                  <span className="text-[15px] font-medium text-primary-ink">Overall score</span>
-                  <span className="font-serif text-[clamp(44px,5vw,60px)] font-medium leading-none tracking-tight tabular-nums text-primary-ink">
-                    {overall.toFixed(1)}
-                  </span>
-                  <span className="text-[15px] text-primary-ink">out of 10</span>
+                <div className="flex flex-col justify-center bg-primary px-6 py-7 text-white sm:px-8">
+                  <div className="text-[15px] font-semibold">Overall score</div>
+                  <div className="mt-1.5 flex flex-wrap items-baseline gap-x-3">
+                    <span className="font-serif text-[clamp(60px,8vw,84px)] font-semibold leading-none tracking-title tabular-nums">
+                      {overall.toFixed(1)}
+                    </span>
+                    <span className="text-[17px]">out of 10</span>
+                  </div>
+                  <div className="mt-3 self-start rounded-full bg-white px-3.5 py-1.5 text-sm font-semibold text-primary-ink">
+                    {scoreLabel(overall)}
+                  </div>
                 </div>
               )}
-            </div>
 
-            <div className="min-w-0">
-              <div
-                className="flex h-[210px] flex-col gap-1.5 sm:h-[250px]"
-                role="img"
-                aria-label={`Score weights: ${data.categories.map((c) => `${c.name} ${c.weight}%`).join(", ")}`}
-              >
-                {tileRows.map((row, ri) => (
-                  <div
-                    key={ri}
-                    className="flex min-h-0 gap-1.5"
-                    style={{ flex: `${row.reduce((s, t) => s + t.c.weight, 0)} 1 0` }}
-                  >
-                    {row.map(({ c, i }) => (
-                      <div
-                        key={c.name}
-                        className={`flex min-w-0 flex-col justify-between rounded-xl p-2.5 sm:p-3.5 ${CAT_BG[i % CAT_BG.length]} ${
-                          CAT_DARK_TEXT[i % CAT_DARK_TEXT.length] ? "text-ink" : "text-white"
-                        }`}
-                        style={{ flex: `${c.weight} 1 0` }}
-                        title={`${c.name}: ${c.weight}%`}
-                      >
-                        <span className="break-words text-[12px] font-medium leading-tight sm:text-[14px]">{c.name}</span>
-                        <span className="font-serif text-[clamp(20px,2.6vw,30px)] font-semibold leading-none tabular-nums">
-                          {c.weight}%
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+              <div className="min-w-0 px-5 py-5 sm:px-7">
+                <div
+                  className="flex h-[210px] flex-col gap-1.5 sm:h-[250px]"
+                  role="img"
+                  aria-label={`Score weights: ${data.categories.map((c) => `${c.name} ${c.weight}%`).join(", ")}`}
+                >
+                  {tileRows.map((row, ri) => (
+                    <div
+                      key={ri}
+                      className="flex min-h-0 gap-1.5"
+                      style={{ flex: `${row.reduce((s, t) => s + t.c.weight, 0)} 1 0` }}
+                    >
+                      {row.map(({ c, i }) => (
+                        <div
+                          key={c.name}
+                          className={`flex min-w-0 flex-col justify-between rounded-xl p-2.5 sm:p-3.5 ${CAT_BG[i % CAT_BG.length]} ${
+                            CAT_DARK_TEXT[i % CAT_DARK_TEXT.length] ? "text-ink" : "text-white"
+                          }`}
+                          style={{ flex: `${c.weight} 1 0` }}
+                          title={`${c.name}: ${c.weight}%`}
+                        >
+                          <span className="break-words text-[12px] font-medium leading-tight sm:text-[14px]">{c.name}</span>
+                          <span className="font-serif text-[clamp(20px,2.6vw,28px)] font-semibold leading-none tabular-nums">
+                            {c.weight}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                <p className={`mt-2.5 text-[13px] ${weightsOk ? "text-ink-muted" : "font-semibold text-danger"}`}>
+                  {weightsOk
+                    ? `Weights add up to ${totalWeight}%. Each row below uses the same color.`
+                    : `Check the weights: they add up to ${totalWeight}%, not 100%.`}
+                </p>
               </div>
-              <p className={`mt-2.5 text-[13px] ${weightsOk ? "text-ink-muted" : "font-semibold text-danger"}`}>
-                {weightsOk
-                  ? `Weights add up to ${totalWeight}%. Each card below uses the same color.`
-                  : `Check the weights: they add up to ${totalWeight}%, not 100%.`}
-              </p>
             </div>
-          </div>
 
-          <ul className="mt-8 grid gap-4">
-            {data.categories.map((c, i) => {
-              const t = c.score !== undefined ? tone(c.score) : null;
-              const partial = c.coverage < 90;
-              return (
-                <li key={c.name} className={`overflow-hidden rounded-3xl border border-border bg-white ${CARD_SHADOW}`}>
-                  {/* Header: filled with the category color from the weight tiles, compact, content centered */}
-                  <div
-                    className={`flex flex-wrap items-center justify-center gap-x-5 gap-y-2 px-5 py-3 text-center sm:px-8 sm:py-3.5 ${
-                      CAT_BG[i % CAT_BG.length]
-                    } ${CAT_DARK_TEXT[i % CAT_DARK_TEXT.length] ? "text-ink" : "text-white"}`}
+            <ul>
+              {data.categories.map((c, i) => {
+                const partial = c.coverage < 90;
+                const dark = CAT_DARK_TEXT[i % CAT_DARK_TEXT.length];
+                // The light category color would vanish on the pale input card, so its bars use the primary blue.
+                const barColor = dark ? "bg-primary" : CAT_BG[i % CAT_BG.length];
+                return (
+                  <li
+                    key={c.name}
+                    className="grid border-t border-border md:grid-cols-[150px_minmax(0,1fr)] lg:grid-cols-[150px_minmax(0,1fr)_340px]"
                   >
-                    <h4 className="font-serif text-[clamp(18px,2vw,22px)] font-bold leading-tight tracking-tight">
-                      {c.name}
-                    </h4>
-                    {c.score !== undefined && t && (
-                      <>
-                        <div className="flex items-baseline gap-1">
-                          <span className="font-serif text-[30px] font-bold leading-none tabular-nums">
+                    {/* Left block: category color, name, score, level and weight */}
+                    <div
+                      className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 px-4 py-4 text-center md:flex-col md:py-6 ${
+                        CAT_BG[i % CAT_BG.length]
+                      } ${dark ? "text-ink" : "text-white"}`}
+                    >
+                      <h4 className="text-[15px] font-semibold leading-tight">{c.name}</h4>
+                      {c.score !== undefined && (
+                        <>
+                          <span className="font-serif text-[40px] font-semibold leading-none tabular-nums">
                             {c.score.toFixed(1)}
                           </span>
-                          <span className="text-[13px] opacity-80">/ 10</span>
-                        </div>
-                        <span className="rounded-full bg-white px-2.5 py-0.5 text-[13px] font-semibold text-ink">
-                          {level(c.score)}
-                        </span>
-                      </>
-                    )}
-                    <span className="text-[13px] font-medium tabular-nums opacity-90">Weight {c.weight}%</span>
-                  </div>
-
-                  {/* Body: this company's figures, and how data becomes a score */}
-                  <div className="grid md:grid-cols-2">
-                    <div className="p-6 sm:p-8">
-                      <div className="text-[15px] text-ink-muted">Inputs, weights and this company’s figure</div>
-                      <ul className="mt-4 grid gap-3">
-                        {c.inputs.map((inp) => (
-                          <li key={inp.name} className="rounded-2xl bg-surface px-4 py-3.5">
-                            <div className="flex items-baseline justify-between gap-3 text-sm text-ink">
-                              <span>
-                                {inp.name}
-                                {inp.analyst && (
-                                  <span className="ml-2 rounded-full border border-dashed border-primary-ink px-2 text-xs font-medium text-primary-ink">
-                                    Analyst view
-                                  </span>
-                                )}
-                              </span>
-                              <span className="shrink-0 font-semibold tabular-nums text-ink-muted">{inp.weight}%</span>
-                            </div>
-                            {inp.value !== undefined && (
-                              <div className="mt-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-                                <span className="font-serif text-[24px] font-medium leading-none tabular-nums text-ink">
-                                  {inp.value}
-                                </span>
-                                {inp.score !== undefined && (
-                                  <span className="text-[13px] tabular-nums text-ink-muted">
-                                    scores {inp.score.toFixed(1)} of 10
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                            {inp.score !== undefined && (
-                              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-white">
-                                <div
-                                  className={`h-full rounded-full ${CAT_BG[i % CAT_BG.length]}`}
-                                  style={{ width: `${Math.min(100, Math.max(0, inp.score * 10))}%` }}
-                                />
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
+                          <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-ink">
+                            {scoreLabel(c.score)}
+                          </span>
+                        </>
+                      )}
+                      <span className="text-xs tabular-nums opacity-90">Weight {c.weight}%</span>
                     </div>
 
-                    <div className="p-6 sm:p-8 md:border-l md:border-l-border">
-                      <div className="text-[15px] font-semibold text-ink-muted">How data becomes a score</div>
-                      <p className="mt-2 text-[16px] leading-relaxed text-ink">{c.rule}</p>
-                      <div className="mt-5 text-[15px] font-semibold text-ink-muted">If data is missing</div>
-                      <p className="mt-2 text-[16px] leading-relaxed text-ink">{c.missing}</p>
+                    {/* Middle: inputs, weights and this company's figure */}
+                    <div className="grid content-center gap-2 px-5 py-5 sm:px-6">
+                      {c.inputs.map((inp) => (
+                        <div key={inp.name} className="rounded-2xl bg-[#f1f5fa] px-3.5 py-3">
+                          <div className="flex items-baseline justify-between gap-3 text-sm text-ink">
+                            <span>
+                              {inp.name}
+                              {inp.analyst && (
+                                <span className="ml-2 rounded-full border border-dashed border-primary-ink px-2 text-xs font-medium text-primary-ink">
+                                  Analyst view
+                                </span>
+                              )}
+                            </span>
+                            <span className="shrink-0 font-semibold tabular-nums text-ink-muted">{inp.weight}%</span>
+                          </div>
+                          {inp.value !== undefined && (
+                            <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                              <span className="font-serif text-[22px] font-medium leading-none tabular-nums text-ink">
+                                {inp.value}
+                              </span>
+                              {inp.score !== undefined && (
+                                <span className="text-[13px] tabular-nums text-ink-muted">
+                                  scores {inp.score.toFixed(1)} of 10
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {inp.score !== undefined && (
+                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white">
+                              <div
+                                className={`h-full rounded-full ${barColor}`}
+                                style={{ width: `${Math.min(100, Math.max(0, inp.score * 10))}%` }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Right: how data becomes a score, and what happens when data is missing */}
+                    <div className="border-t border-border px-5 py-5 sm:px-6 md:col-span-2 lg:col-span-1 lg:border-l lg:border-t-0">
+                      <p className="text-sm leading-relaxed text-ink">{c.rule}</p>
+                      <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">
+                        <span className="font-semibold text-ink">If data is missing:</span> {c.missing}
+                      </p>
                       <span
-                        className={`mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[15px] font-semibold ${
+                        className={`mt-3 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold ${
                           partial ? "bg-warning-soft text-warning" : "bg-success-soft text-success"
                         }`}
                       >
@@ -539,160 +463,145 @@ export default function SourcesMethod({ data }: { data: SourcesMethodData }) {
                         {partial ? "Partial" : "Full"} data coverage · {c.coverage}%
                       </span>
                     </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <Note>{data.scoringNote}</Note>
+        </Block>
+
+        {/* Valuation: one card, one column per reference point */}
+        <Block id="fair-value" title={data.valuationTitle} intro={data.valuationIntro}>
+          <BandCard title="Reference points">
+            <ul className="grid md:grid-cols-3 md:divide-x md:divide-border">
+              {data.methods.map((m) => (
+                <li key={m.name} className="flex flex-col border-t border-border px-5 py-5 first:border-t-0 sm:px-7 md:border-t-0">
+                  <div className="font-serif text-[22px] font-medium leading-tight text-ink">{m.name}</div>
+                  <p className="mt-2.5 text-[15px] leading-relaxed text-ink">{m.what}</p>
+                  <div className="mt-auto pt-4">
+                    <div className="rounded-[14px] bg-warning-soft px-3.5 py-3 text-[13.5px] leading-snug text-ink">
+                      <span className="flex items-center gap-1.5 font-semibold text-warning">
+                        <i className="ti ti-alert-triangle" aria-hidden="true" />
+                        Limit
+                      </span>
+                      <span className="mt-0.5 block">{m.limit}</span>
+                    </div>
                   </div>
                 </li>
-              );
-            })}
-          </ul>
-          <Note>{data.scoringNote}</Note>
-        </div>
-
-        {/* Valuation */}
-        <Block id="fair-value" title={data.valuationTitle} intro={data.valuationIntro}>
-          <ul className="grid gap-3 md:grid-cols-3">
-            {data.methods.map((m) => (
-              <li key={m.name} className="flex flex-col rounded-2xl border border-border bg-white p-5">
-                <div className="font-serif text-xl leading-tight tracking-tight text-ink">{m.name}</div>
-                <p className="mt-2.5 text-sm leading-relaxed text-ink">{m.what}</p>
-                <div className="mt-auto pt-4">
-                  <div className="rounded-xl bg-warning-soft px-3.5 py-2.5 text-[13px] leading-snug text-ink">
-                    <span className="flex items-center gap-1.5 font-semibold text-warning">
-                      <i className="ti ti-alert-triangle" aria-hidden="true" />
-                      Limit
-                    </span>
-                    <span className="mt-0.5 block">{m.limit}</span>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </ul>
+          </BandCard>
           <Note>{data.valuationNote}</Note>
         </Block>
 
-        {/* Freshness */}
+        {/* Freshness: the timeline in one card, every dataset in one table */}
         <Block id="freshness" title={data.freshnessTitle} intro={data.freshnessIntro}>
-          {/* Three dates, drawn to scale. Labels sit in their own row so they never overlap. */}
-          <div className={`rounded-3xl bg-white p-5 sm:p-8 ${CARD_SHADOW}`}>
-            <div className="text-[15px] font-semibold text-ink-muted">
-              {toScale ? "Three dates, drawn to scale" : "Three dates"}
-            </div>
-
-            <div className="relative mx-4 mb-2 mt-10 h-8" aria-hidden="true">
-              {pcts.slice(1).map((p, i) => {
-                const seg = SEG[i % SEG.length];
-                return (
-                  <div key={i}>
-                    <span
-                      className={`absolute top-1/2 h-2.5 -translate-y-1/2 rounded-full ${seg.line}`}
-                      style={{ left: `${pcts[i]}%`, width: `${p - pcts[i]}%` }}
-                    />
-                    {gaps[i] !== null && (
+          {/* The dates, drawn to scale. Labels sit in their own row so they never overlap. */}
+          <BandCard title={timelineTitle}>
+            <div className="px-5 pb-7 pt-2 sm:px-8">
+              <div className="relative mx-4 mb-2 mt-12 h-8" aria-hidden="true">
+                {pcts.slice(1).map((p, i) => {
+                  const seg = SEG[i % SEG.length];
+                  return (
+                    <div key={i}>
                       <span
-                        className={`absolute bottom-full mb-1.5 -translate-x-1/2 whitespace-nowrap text-[14px] font-semibold tabular-nums ${seg.text}`}
-                        style={{ left: `${(pcts[i] + p) / 2}%` }}
-                      >
-                        {gaps[i]} days
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-              {data.timeline.map((t, i) => (
-                <span
-                  key={t.label}
-                  className={`absolute top-1/2 grid size-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full text-[14px] font-semibold tabular-nums ${
-                    i === count - 1 ? "bg-primary text-white" : "border border-border bg-white text-ink"
-                  }`}
-                  style={{ left: `${pcts[i]}%` }}
-                >
-                  {i + 1}
-                </span>
-              ))}
-            </div>
-
-            <ol className="mt-6 grid gap-5 sm:grid-cols-3 sm:gap-6">
-              {data.timeline.map((t, i) => (
-                <li key={t.label} className="flex gap-3">
+                        className={`absolute top-1/2 h-2.5 -translate-y-1/2 rounded-full ${seg.line}`}
+                        style={{ left: `${pcts[i]}%`, width: `${p - pcts[i]}%` }}
+                      />
+                      {gaps[i] !== null && (
+                        <span
+                          className={`absolute bottom-full mb-1.5 -translate-x-1/2 whitespace-nowrap text-[14px] font-semibold tabular-nums ${seg.text}`}
+                          style={{ left: `${(pcts[i] + p) / 2}%` }}
+                        >
+                          {gaps[i]} days
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+                {data.timeline.map((t, i) => (
                   <span
-                    className={`mt-1 grid size-7 shrink-0 place-items-center rounded-full text-[13px] font-semibold tabular-nums ${
+                    key={t.label}
+                    className={`absolute top-1/2 grid size-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full text-[14px] font-semibold tabular-nums ${
                       i === count - 1 ? "bg-primary text-white" : "border border-border bg-white text-ink"
                     }`}
+                    style={{ left: `${pcts[i]}%` }}
                   >
                     {i + 1}
                   </span>
-                  <div>
-                    <div className="font-serif text-[clamp(20px,2.2vw,26px)] font-medium leading-tight tracking-tight tabular-nums text-ink">
-                      {t.date}
+                ))}
+              </div>
+
+              <ol className={`mt-6 grid gap-5 sm:gap-6 ${timelineCols}`}>
+                {data.timeline.map((t, i) => (
+                  <li key={t.label} className="flex gap-3">
+                    <span
+                      className={`mt-1 grid size-7 shrink-0 place-items-center rounded-full text-[13px] font-semibold tabular-nums ${
+                        i === count - 1 ? "bg-primary text-white" : "border border-border bg-white text-ink"
+                      }`}
+                    >
+                      {i + 1}
+                    </span>
+                    <div>
+                      <div className="font-serif text-[clamp(20px,2.2vw,24px)] font-medium leading-tight tracking-tight tabular-nums text-ink">
+                        {t.date}
+                      </div>
+                      <div className="mt-1 text-[14px] leading-snug text-ink-muted">{t.label}</div>
                     </div>
-                    <div className="mt-1 text-[14px] leading-snug text-ink-muted">{t.label}</div>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </BandCard>
 
-          <div className="mt-6 flex flex-wrap gap-2">
-            {counts.map(({ s, n }) => (
-              <span
-                key={s}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-semibold ${STATUS[s].cls}`}
-              >
-                <i className={`ti ${STATUS[s].icon}`} aria-hidden="true" />
-                {n} {s.toLowerCase()}
-              </span>
-            ))}
-          </div>
-
-          {/* One card per dataset; the rest open from the dashed card */}
-          <div className="mt-3 grid gap-4 md:grid-cols-2">
-            {featured.map((r) => (
-              <article key={r.dataset} className="flex flex-col rounded-3xl border border-border bg-white p-6 sm:p-7">
-                <div className="flex items-start justify-between gap-3">
-                  <h4 className="font-serif text-[clamp(22px,2.4vw,28px)] font-medium leading-tight tracking-[-0.01em] text-ink">
-                    {r.dataset}
-                  </h4>
-                  <StatusPill status={r.status} />
-                </div>
-                <div className="mt-4">
-                  <div className="text-[15px] text-ink-muted">Reporting period</div>
-                  <div className="text-[17px] font-semibold text-ink">{r.period}</div>
-                  <div className="mt-1 text-[13px] tabular-nums text-ink-muted">
-                    Source {r.sourceDate} · Updated {r.updated}
-                  </div>
-                </div>
-                <p className="mt-4 border-t border-border pt-4 text-[15px] leading-relaxed text-ink">{r.limit}</p>
-              </article>
-            ))}
-
-            {rest.length > 0 && (
-              <details className="group grid content-center rounded-3xl border-2 border-dashed border-border bg-surface/50 p-6 open:bg-white sm:p-7 md:open:col-span-2">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
-                  <span className="text-[17px] leading-relaxed text-ink-muted">
-                    {rest.length} more dataset{rest.length === 1 ? "" : "s"}: {restSummary}.
+          <BandCard
+            className="mt-5"
+            title="Every dataset"
+            aside={
+              <div className="flex flex-wrap gap-2">
+                {counts.map(({ s, n }) => (
+                  <span
+                    key={s}
+                    className={`inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-0.5 text-[13px] font-semibold ${STATUS[s].text}`}
+                  >
+                    <i className={`ti ${STATUS[s].icon}`} aria-hidden="true" />
+                    {n} {s.toLowerCase()}
                   </span>
-                  <span className="inline-flex shrink-0 items-center gap-1.5 text-[15px] font-semibold text-primary-ink">
-                    <span className="group-open:hidden">Show all</span>
-                    <span className="hidden group-open:inline">Hide</span>
-                    <i className="ti ti-chevron-down transition-transform group-open:rotate-180" aria-hidden="true" />
-                  </span>
-                </summary>
-                <ul className="mt-5 divide-y divide-border">
-                  {rest.map((r) => (
-                    <li key={r.dataset} className="py-4 first:pt-0 last:pb-0">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="font-serif text-xl font-medium leading-tight text-ink">{r.dataset}</span>
+                ))}
+              </div>
+            }
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[860px] border-collapse text-sm">
+                <caption className="sr-only">{data.freshnessTitle}</caption>
+                <thead>
+                  <tr className="text-left text-[13px] text-ink-muted">
+                    <th scope="col" className="px-5 py-3 font-semibold sm:pl-7">Dataset</th>
+                    <th scope="col" className="px-3 py-3 font-semibold">Period</th>
+                    <th scope="col" className="px-3 py-3 font-semibold">Source date</th>
+                    <th scope="col" className="px-3 py-3 font-semibold">Updated</th>
+                    <th scope="col" className="px-3 py-3 font-semibold">Status</th>
+                    <th scope="col" className="px-3 py-3 font-semibold sm:pr-7">Limit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.freshness.map((r) => (
+                    <tr key={r.dataset} className="border-t border-border align-top leading-snug">
+                      <th scope="row" className="px-5 py-3.5 text-left font-semibold text-ink sm:pl-7">{r.dataset}</th>
+                      <td className="px-3 py-3.5 text-ink">{r.period}</td>
+                      <td className="px-3 py-3.5 tabular-nums text-ink-muted">{r.sourceDate}</td>
+                      <td className="px-3 py-3.5 tabular-nums text-ink-muted">{r.updated}</td>
+                      <td className="px-3 py-3.5">
                         <StatusPill status={r.status} />
-                      </div>
-                      <div className="mt-1.5 text-[13px] tabular-nums text-ink-muted">
-                        Period {r.period} · Source {r.sourceDate} · Updated {r.updated}
-                      </div>
-                      <p className="mt-2 text-[15px] leading-relaxed text-ink">{r.limit}</p>
-                    </li>
+                      </td>
+                      <td className="px-3 py-3.5 text-ink-muted sm:pr-7">{r.limit}</td>
+                    </tr>
                   ))}
-                </ul>
-              </details>
-            )}
-          </div>
+                </tbody>
+              </table>
+            </div>
+          </BandCard>
         </Block>
 
         <p className="mt-10 border-t border-border pt-4 text-[13px] leading-relaxed text-ink-muted">{data.source}</p>

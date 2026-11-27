@@ -61,7 +61,14 @@ export function buildFacts(raw: RawFmp): Facts {
   const capex = cf.map((r) => bn(abs(num(r, "capitalExpenditure", "investmentsInPropertyPlantAndEquipment"))));
   const fcf = cf.map((r, i) => bn(num(r, "freeCashFlow")) ?? (ocf[i] !== null && capex[i] !== null ? ocf[i]! - capex[i]! : null));
   const dividends = cf.map((r) => bn(abs(num(r, "commonDividendsPaid", "netDividendsPaid", "dividendsPaid"))));
-  const buybacks = cf.map((r) => bn(abs(num(r, "commonStockRepurchased", "netCommonStockIssuance"))));
+  // Buybacks: use the repurchase line. Only if it is missing, fall back to net issuance, and count it
+  // only when it is negative (a net buyback). A positive net issuance means new shares were sold, never a buyback.
+  const buybacks = cf.map((r) => {
+    const repurchased = num(r, "commonStockRepurchased");
+    if (repurchased !== null) return bn(Math.abs(repurchased));
+    const net = num(r, "netCommonStockIssuance");
+    return net === null ? null : bn(net < 0 ? -net : 0);
+  });
 
   // Scope's rule: debt = loans and bonds only (no finance leases); cash = cash + short-term investments.
   const debtOf = (b: Row) => {
@@ -83,7 +90,9 @@ export function buildFacts(raw: RawFmp): Facts {
   const operatingMargin = revenue.map((r, i) => pct(operatingIncome[i], r));
   const roic = inc.map((r, i) => {
     if (i === 0) return null;
-    const tax = (num(r, "incomeTaxExpense") ?? NaN) / (num(r, "incomeBeforeTax") ?? NaN);
+    // The tax rate is kept between 0% and 50%, so a loss year (negative profit before tax) cannot flip the sign of ROIC.
+    const rawTax = (num(r, "incomeTaxExpense") ?? NaN) / (num(r, "incomeBeforeTax") ?? NaN);
+    const tax = Number.isFinite(rawTax) ? Math.min(Math.max(rawTax, 0), 0.5) : NaN;
     const cap = (j: number) => (equity[j] ?? NaN) + (debt[j] ?? NaN);
     const v = (operatingIncome[i] ?? NaN) * (1 - tax) / ((cap(i) + cap(i - 1)) / 2) * 100;
     return Number.isFinite(v) ? v : null;
@@ -97,6 +106,14 @@ export function buildFacts(raw: RawFmp): Facts {
   const revQ = (r: Row) => num(r, "revenue");
   const ttmRev = last4(q, revQ), prevRev = last4(q, revQ, 4);
   const fcfOfRow = (r: Row) => num(r, "freeCashFlow") ?? ((num(r, "netCashProvidedByOperatingActivities", "operatingCashFlow") ?? NaN) + (num(r, "capitalExpenditure") ?? NaN) || null);
+
+  // When the latest quarter is the fiscal year end, the last 12 months ARE the fiscal year. Use the reported annual
+  // diluted EPS then, because adding four rounded quarterly EPS figures can differ from it by a cent (Apple: 8.97 vs 8.98).
+  const latestQuarterDate = String(q[q.length - 1]?.date ?? "");
+  const fiscalYearEndDate = String(inc[inc.length - 1]?.date ?? "");
+  const epsTtm = latestQuarterDate !== "" && latestQuarterDate === fiscalYearEndDate && eps.length > 0
+    ? eps[eps.length - 1]
+    : last4(q, (r) => num(r, "epsDiluted", "epsdiluted", "eps"));
 
   const quarters = {
     date: q.map((r) => String(r.date)),
@@ -117,7 +134,7 @@ export function buildFacts(raw: RawFmp): Facts {
     roic,
     ttm: {
       revenue: bn(ttmRev), operatingIncome: bn(last4(q, (r) => num(r, "operatingIncome"))), netIncome: bn(last4(q, (r) => num(r, "netIncome"))),
-      fcf: bn(last4(cfq, fcfOfRow)), eps: last4(q, (r) => num(r, "epsDiluted", "epsdiluted", "eps")),
+      fcf: bn(last4(cfq, fcfOfRow)), eps: epsTtm,
       growth: ttmRev !== null && prevRev !== null ? (ttmRev / prevRev - 1) * 100 : null,
     },
     quarters,

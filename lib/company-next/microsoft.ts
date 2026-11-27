@@ -1,27 +1,31 @@
-import type { CompanyHeroData } from "@/components/company-next/CompanyHero";
-import type { CompanySummaryData } from "@/components/company-next/CompanySummary";
-import type { ScoreReasonsData } from "@/components/company-next/ScoreReasons";
-import type { WhatChangedData } from "@/components/company-next/WhatChanged";
-import type { SignalsToWatchData } from "@/components/company-next/SignalsToWatch";
-import type { WhereMoneyComesData } from "@/components/company-next/WhereMoneyComes";
-import type { FinancialHighlightsData } from "@/components/company-next/FinancialHighlights";
-import type { ValuationData } from "@/components/company-next/Valuation";
-import type { ProfitHistoryData } from "@/components/company-next/ProfitHistory";
-import type { CashAndReturnsData } from "@/components/company-next/CashAndReturns";
-import type { StrengthsRisksData } from "@/components/company-next/StrengthsRisks";
-import type { MoatEcosystemData } from "@/components/company-next/MoatEcosystem";
-import type { CompetitorsData } from "@/components/company-next/Competitors";
-import type { SourcesMethodData } from "@/components/company-next/SourcesMethod";
-import type { BottomLineData } from "@/components/company-next/BottomLine";
-import type { ClosingPanelData } from "@/components/company-next/ClosingPanel";
-import type { SpotlightData } from "@/components/company-next/Spotlight";
-import type { CompanyPageData } from "./types";
+import type {
+  CompanyPageData,
+  CompanyHeroData,
+  CompanySummaryData,
+  ScoreReasonsData,
+  WhatChangedData,
+  SignalsToWatchData,
+  WhereMoneyComesData,
+  FinancialHighlightsData,
+  ValuationData,
+  ProfitHistoryData,
+  CashAndReturnsData,
+  StrengthsRisksData,
+  MoatEcosystemData,
+  CompetitorsData,
+  SourcesMethodData,
+  BottomLineData,
+  ClosingPanelData,
+  SpotlightData,
+} from "./types";
 import { applyScore } from "../scope-score/apply";
 import { microsoftScore } from "../scope-score/inputs";
 import rawMsft from "../../data/raw/MSFT.json";
 import { buildFacts, type RawFmp } from "../company-data/facts";
+import { dcfCases, impliedGrowthPct, type DcfCase } from "../company-data/dcf";
+import { money, pct1 } from "../company-data/format";
 import { peAtYearEnd } from "../company-data/peHistory";
-import { cashAndReturnsNumbers, financialHighlightsMetrics, profitHistoryNumbers, roicText } from "../company-data/sections";
+import { cashAndReturnsNumbers, financialHighlightsMetrics, heroFacts, profitHistoryNumbers, roicText } from "../company-data/sections";
 import { closingShared, formulas, formulasNote, scoreHowToRead, scoringIntro, valuationNote } from "@/shared/methodology";
 import { peerCaveat, peerCompany } from "@/shared/peers";
 
@@ -33,6 +37,16 @@ const scored = applyScore(microsoftScore.raw, microsoftScore.display);
 const facts = buildFacts(rawMsft as unknown as RawFmp);
 const cashNums = cashAndReturnsNumbers(facts);
 const profitNums = profitHistoryNumbers(facts);
+
+// A missing number must stop the build with a clear message. A silent 0 or an invented value is worse.
+function need<T>(v: T | null | undefined, what: string): T {
+  if (v === null || v === undefined || (typeof v === "number" && !Number.isFinite(v))) {
+    throw new Error(`microsoft.ts: ${what} is missing. Check data/raw/MSFT.json (re-run fetch-company-data.ts MSFT).`);
+  }
+  return v;
+}
+const lastOf = <T,>(a: T[]) => a[a.length - 1];
+const round1 = (v: number) => Math.round(v * 10) / 10;
 
 // P/E at each fiscal year end, read from the saved API data (shared helper), and its average.
 // The average is worked out from the same bars, so the dashed line and the text always agree.
@@ -48,26 +62,63 @@ const oneDecimal = (series: (number | null)[], what: string): number[] =>
     return Math.round(v * 10) / 10;
   });
 
-// Microsoft page data. Prices as of Nov 6, 2026 close. Latest quarter: Q1 FY27 (ended Sep 30, 2026).
+// ---- Market numbers, all from the saved data ----
+// Prices as of Nov 6, 2026 close. Latest quarter: Q1 FY27 (ended Sep 30, 2026).
 // Fiscal year ends Jun 30. FY22 to FY26 are the five full years shown.
+const priceNow = need(facts.price, "share price");
+const epsLtm = need(facts.ttm.eps, "last-12-month diluted EPS");
+const pe = priceNow / epsLtm;
+const peNowText = pe.toFixed(1);
+const mcap = money(facts.marketCap); // "$3.94T"
+
+// ---- Fair value: Scope's discounted cash flow model (lib/company-data/dcf.ts) ----
+const dcfInput = {
+  fcf0: need(facts.ttm.fcf, "last-12-month free cash flow"),
+  netCash: need(lastOf(facts.cash), "cash") - need(lastOf(facts.debt), "debt"),
+  shares: need(lastOf(facts.shares), "diluted shares"),
+};
+const msftCases: [DcfCase, DcfCase, DcfCase] = [
+  { g1: 0.08, g2: 0.04, gt: 0.025, r: 0.09 }, // Bear
+  { g1: 0.15, g2: 0.08, gt: 0.03, r: 0.08 }, // Base
+  { g1: 0.22, g2: 0.1, gt: 0.035, r: 0.08 }, // Bull
+];
+const model = need(dcfCases(dcfInput, msftCases), "fair value model (free cash flow must be positive)");
+// The "growth the price needs" uses the same fixed years 6-10 (6%), terminal (3%) and discount rate (8%) on every page,
+// whatever the three cases above say.
+const neededGrowth = need(impliedGrowthPct(dcfInput, priceNow, { g2: 0.06, gt: 0.03, r: 0.08 }), "implied growth");
+const fair = model.fair;
+const bull = model.fairValues[2];
+const aboveBull = priceNow > bull;
+const premium = Math.round((priceNow / fair - 1) * 100);
+
+const fcfSeries = facts.fcf.map((v) => need(v, "annual free cash flow"));
+const ocfSeries = facts.ocf.map((v) => need(v, "annual operating cash flow"));
+const capexSeries = facts.capex.map((v) => need(v, "annual capital spending"));
+const cagr = (a: number[]) => round1(((a[a.length - 1] / a[0]) ** (1 / (a.length - 1)) - 1) * 100);
+const fcfGrowth = cagr(fcfSeries);
+const ocfGrowth = Math.round(cagr(ocfSeries));
+const fcfYield = (dcfInput.fcf0 / need(facts.marketCap, "market cap")) * 100;
+const fcfMarginNow = (dcfInput.fcf0 / need(facts.ttm.revenue, "last-12-month revenue")) * 100;
+const fcfMarginPrev = need(facts.fcfMargin[facts.fcfMargin.length - 2], "previous-year free cash flow margin");
+const pctBelowHigh = Math.round((1 - priceNow / 559) * 100); // 52-week high $559
 
 const hero: CompanyHeroData = {
   name: "Microsoft Corporation",
   ticker: "MSFT",
   sector: "Technology",
-  logo: "/logos/microsoft-svgrepo-com.svg", // TODO: check this file exists in public/logos
+  logo: "/logos/microsoft-svgrepo-com.svg",
   description:
     "A global software and cloud company that sells the tools businesses run on, from Azure and Microsoft 365 to GitHub, and is now building AI into all of them.",
   score: Number(scored.total.toFixed(1)),
   scoreLabel: scored.label,
   scoreHref: "#score",
   dataStatus: "live",
-  facts: [
-    { label: "Market cap", value: "$3.94T", note: "As of Nov 6, 2026" },
-    { label: "Revenue, last 12 months", value: "$346.4B", note: "+17.9% vs a year earlier", noteTone: "positive" },
-    { label: "P/E ratio", value: "27.7×", note: `vs ${peAvg}× 5-year average`, noteTone: "positive" },
-    { label: "Free cash flow, last 12 months", value: "$59.9B", note: "17.3% of sales, down from 25.4% in FY25", noteTone: "negative" },
-  ],
+  facts: heroFacts(facts, { pe, peAvg: peAverage }, "Nov 6, 2026", {
+    "Free cash flow, last 12 months": {
+      note: `${pct1(fcfMarginNow)} of sales, down from ${pct1(fcfMarginPrev)} in FY25`,
+      noteTone: "negative",
+    },
+  }),
   source:
     "Financials from SEC filings (Q1 FY27 earnings release for the quarter ended Sep 30, 2026, and the FY26 10-K). Market data as of Nov 6, 2026. Next report: late January 2027.",
 };
@@ -94,11 +145,11 @@ const scoreReasons: ScoreReasonsData = {
     "Microsoft scores top marks for scale, profit and growth, and strong marks for risk. Cash flow quality and valuation are held back by record capital spending, which keeps free cash flow low.",
   reasons: [
     { name: "Quality", ...scored.reason["Quality"], value: "28.8%", label: "return on invested capital in FY26, but free cash flow was only 72% of net income over five years because of capital spending", href: "#history" },
-    { name: "Scale", ...scored.reason["Scale"], value: "$3.94T", label: "market cap, with $346B of revenue in the last 12 months", href: "#competitors" },
+    { name: "Scale", ...scored.reason["Scale"], value: mcap, label: "market cap, with $346B of revenue in the last 12 months", href: "#competitors" },
     { name: "Profitability", ...scored.reason["Profitability"], value: "47.1%", label: "operating margin in the last 12 months, and 17% of sales kept as free cash flow", href: "#highlights" },
     { name: "Revenue growth", ...scored.reason["Revenue growth"], value: "+17.9%", label: "growth in the last 12 months, and 13.7% a year from FY22 to FY26", href: "#latest" },
     { name: "Risk", ...scored.reason["Risk"], value: "35.9%", label: "of sales from Azure, the largest product line, and net cash of $36.5B", href: "#strengths-risks" },
-    { name: "Valuation", ...scored.reason["Valuation"], value: "27.7×", label: `P/E, against its own 5-year average of ${peAvg}×, but only a 1.5% free cash flow yield`, href: "#valuation" },
+    { name: "Valuation", ...scored.reason["Valuation"], value: `${peNowText}×`, label: `P/E, against its own 5-year average of ${peAvg}×, but only a ${fcfYield.toFixed(1)}% free cash flow yield`, href: "#valuation" },
   ],
   howToRead: scoreHowToRead(),
 };
@@ -245,14 +296,14 @@ const whereMoneyComes: WhereMoneyComesData = {
     profitTotal: "$45.9B",
     groupNames: { a: "Devices and Consumer", b: "Agents and Infra" },
     profitLabel: "operating profit",
-    productsRevenue: 16.8,
-    servicesRevenue: 83.2,
-    productsProfit: 11.7,
-    servicesProfit: 88.3,
-    productsMargin: "34.6%",
-    servicesMargin: "52.8%",
-    servicesHistoryTitle: "Agents and Infra share of Microsoft’s sales",
-    servicesHistory: [
+    revenueShareA: 16.8,
+    revenueShareB: 83.2,
+    profitShareA: 11.7,
+    profitShareB: 88.3,
+    marginA: "34.6%",
+    marginB: "52.8%",
+    historyTitleB: "Agents and Infra share of Microsoft’s sales",
+    historyB: [
       { year: "FY24", share: 76.2 },
       { year: "FY25", share: 77.7 },
       { year: "FY26", share: 80.8 },
@@ -305,16 +356,18 @@ const financialHighlights: FinancialHighlightsData = {
 };
 
 const valuation: ValuationData = {
-  title: "Microsoft trades above even our bull-case value, because the cash flow we start from is held down by record data-center spending",
+  title: aboveBull
+    ? "Microsoft trades above even our bull-case value, because the cash flow we start from is held down by record data-center spending"
+    : `Microsoft trades about ${premium}% above our base-case fair value, because the cash flow we start from is held down by record data-center spending`,
   lead: "Is the share price high or low compared with what Microsoft’s future cash is worth, what it used to trade at, and what analysts expect?",
   labels: ["Market data as of Nov 6, 2026", "Scope estimate"],
-  price: 530.61,
+  price: priceNow,
   priceDate: "Nov 6, 2026",
-  fair: 336,
+  fair,
   field: {
     max: 750,
     rows: [
-      { name: "Cash flow (DCF)", low: 173, high: 515, mark: 336, markName: "Base" },
+      { name: "Cash flow (DCF)", low: model.fairValues[0], high: bull, mark: fair, markName: "Base" },
       { name: "Own P/E history", low: 396, high: 737, mark: 601, markName: "5-yr avg" },
       { name: "Analyst targets", low: 600, high: 700, mark: 633, markName: "Average" },
     ],
@@ -322,38 +375,33 @@ const valuation: ValuationData = {
       "Each bar is the range of value per share from one reference point, and the dot is its middle estimate. The dashed line is today’s price: where it sits to the right of the dot, the price looks high by that measure.",
   },
   implied: {
-    title: "To justify $531, free cash flow must grow about 29% a year for five years, because it has barely grown since FY22",
-    needed: 28.8,
-    actual: 0.7,
+    title: `To justify $${Math.round(priceNow)}, free cash flow must grow about ${Math.round(neededGrowth)}% a year for five years, because it has barely grown since FY22`,
+    needed: neededGrowth,
+    actual: fcfGrowth,
     actualLabel: "FY22 to FY26",
-    text: "That is 28.8% a year for the next 5 years, then 6% a year for 5 more and 3% after that, discounted at 8% a year. Free cash flow grew only 0.7% a year from FY22 to FY26, because capital spending rose from $23.9B to $115.9B while operating cash flow grew 20% a year.",
-    cases: ["Bear", "Base", "Bull"],
-    assumptions: [
-      { label: "Cash flow growth, years 1–5", values: ["8%", "15%", "22%"] },
-      { label: "Cash flow growth, years 6–10", values: ["4%", "8%", "10%"] },
-      { label: "Growth after year 10", values: ["2.5%", "3%", "3.5%"] },
-      { label: "Discount rate", values: ["9%", "8%", "8%"] },
-    ],
-    fairValues: [173, 336, 515],
-    note: "About 69% of the base-case value comes from after year 10, so a small change in growth or the discount rate moves the answer a lot. All three start from $59.9B of free cash flow in the last twelve months, add $36.5B of net cash, and divide by 7.45B diluted shares. Important limit: that starting cash flow is lowered by $116B a year of capital spending that is meant to build future revenue. If that spending turns into much faster growth, today’s free cash flow understates the business, and the model will look too low.",
+    text: `That is ${neededGrowth.toFixed(1)}% a year for the next 5 years, then 6% a year for 5 more and 3% after that, discounted at 8% a year. Free cash flow grew only ${fcfGrowth.toFixed(1)}% a year from FY22 to FY26, because capital spending rose from ${money(capexSeries[0])} to ${money(capexSeries[capexSeries.length - 1])} while operating cash flow grew ${ocfGrowth}% a year.`,
+    cases: model.casesLabels,
+    assumptions: model.assumptions,
+    fairValues: model.fairValues,
+    note: `About ${model.terminalSharePct}% of the base-case value comes from after year 10, so a small change in growth or the discount rate moves the answer a lot. All three start from ${money(dcfInput.fcf0)} of free cash flow in the last twelve months, add ${money(dcfInput.netCash)} of net cash, and divide by ${dcfInput.shares.toFixed(2)}B diluted shares. Important limit: that starting cash flow is lowered by $${Math.round(capexSeries[capexSeries.length - 1])}B a year of capital spending that is meant to build future revenue. If that spending turns into much faster growth, today’s free cash flow understates the business, and the model will look too low.`,
   },
   history: {
     title: "Microsoft’s P/E is a little below its 5-year average, but its price is high compared with the cash it produces",
-    years: [...peHistory, { year: "Now", value: 27.7 }],
+    years: [...peHistory, { year: "Now", value: round1(pe) }],
     peAverage,
     averagePeriod: "5-year",
     peSubtitle: "Price divided by the last 12 months of earnings, at each fiscal year end, and now",
     peHowToRead:
       "P/E is the price you pay for each $1 of yearly profit. The blue bar is now, and the dashed line is the average of the five fiscal year ends before it.",
     multiples: [
-      { name: "P/E", now: 27.7, avg: peAverage },
+      { name: "P/E", now: round1(pe), avg: peAverage },
       { name: "EV/EBITDA", now: 20.1, avg: 20.9 },
     ],
     multiplesHowToRead:
       "Each bar shows how far Microsoft’s multiple is above or below its own 5-year average, taken at fiscal year ends. A full bar means 50% or more away from it.",
   },
   source:
-    "Sources: share price $530.61 (Nov 6, 2026 close) and market data from StockAnalysis; Microsoft Q1 FY27 earnings release and FY26 10-K (net cash, diluted shares, last-twelve-month revenue, EBITDA and EPS); fiscal-year-end P/E from Financial Modeling Prep, and the EV/EBITDA average from stockrow, StockResearch and StockAnalysis, which differ between providers, so the multiples are approximate; analyst targets from StockAnalysis (57 analysts, average $633) and individual targets published after the Oct 28 report (BofA $600 to UBS $700). The analyst bar is a spread of recent individual targets, not the full published range. Forward P/E is not shown because providers disagree. Fair value is Scope’s own discounted cash flow estimate under the assumptions shown, not a price target or investment advice.",
+    "Sources: share price (Nov 6, 2026 close) and market data from Financial Modeling Prep; Microsoft Q1 FY27 earnings release and FY26 10-K (net cash, diluted shares, last-twelve-month revenue, EBITDA and EPS); fiscal-year-end P/E from Financial Modeling Prep, and the EV/EBITDA average from stockrow, StockResearch and StockAnalysis, which differ between providers, so the multiples are approximate; analyst targets from StockAnalysis (57 analysts, average $633) and individual targets published after the Oct 28 report (BofA $600 to UBS $700). The analyst bar is a spread of recent individual targets, not the full published range. Forward P/E is not shown because providers disagree. Fair value is Scope’s own discounted cash flow estimate under the assumptions shown, not a price target or investment advice.",
 };
 
 const profitHistory: ProfitHistoryData = {
@@ -381,6 +429,7 @@ const profitHistory: ProfitHistoryData = {
     title: "Microsoft earns far more on its money than the money costs, although the return has eased as spending grows",
     roic: profitNums.returns.roic,
     roicFrom: profitNums.returns.roicFrom,
+    roicFromYear: profitNums.returns.roicFromYear,
     wacc: 8,
     text: roicText("Microsoft", profitNums.returns, "New data centers add to the capital base."),
     note: "ROIC is operating profit after tax divided by average shareholders’ equity plus debt. Cost of capital (8%) is Scope’s own assumption, the same as the base case in the valuation. ROE is 34% and ROA is 19%. Finance leases for data centers are not counted as debt here, so ROIC would be lower if they were.",
@@ -444,7 +493,7 @@ const strengthsRisks: StrengthsRisksData = {
     { icon: "ti-chart-bar", name: "Strong profitability", finding: "Microsoft keeps far more of each dollar than most large companies.", evidence: [{ value: "46.8%", label: "operating margin in FY26, up from 42.1% in FY22" }, { value: "49.8%", label: "operating margin in Q1 FY27" }], why: "More profit left to reinvest and return to shareholders." },
     { icon: "ti-star", name: "Cloud growth at scale", finding: "Azure is growing almost 50% while already earning more than $100B a year.", evidence: [{ value: "+48%", label: "Azure revenue growth in Q1 FY27" }, { value: "$63.9B", label: "Microsoft Cloud revenue in the quarter, up 30%" }], why: "Fast growth on a big base lifts the whole company’s growth rate." },
     { icon: "ti-refresh", name: "Recurring revenue", finding: "Most sales repeat every month or year through subscriptions and usage.", evidence: [{ value: "$27.8B", label: "Microsoft 365 cloud revenue in Q1 FY27, up 17%" }, { value: "83%", label: "of Q1 FY27 sales from Agents and Infra" }], why: "Steadier income than selling products one at a time." },
-    { icon: "ti-flag", name: "Market position", finding: "A top-two player in cloud infrastructure and the leader in workplace software.", evidence: [{ value: "$3.94T", label: "market cap on Nov 6, 2026" }, { value: "$346.4B", label: "revenue in the last 12 months" }], why: "Scale lowers costs and attracts partners and developers." },
+    { icon: "ti-flag", name: "Market position", finding: "A top-two player in cloud infrastructure and the leader in workplace software.", evidence: [{ value: mcap, label: "market cap on Nov 6, 2026" }, { value: "$346.4B", label: "revenue in the last 12 months" }], why: "Scale lowers costs and attracts partners and developers." },
     { icon: "ti-coin", name: "Financial strength", finding: "Microsoft holds more cash than debt and produces cash every year.", evidence: [{ value: "+$36.5B", label: "net cash on Jun 30, 2026, without finance leases" }, { value: "$182.9B", label: "operating cash flow in FY26" }], why: "Microsoft can fund its own growth, buybacks and dividends without needing outside money." },
   ],
   risksIntro: "Ranked from highest to lowest. Every rating comes with the reason for it.",
@@ -453,7 +502,7 @@ const strengthsRisks: StrengthsRisksData = {
     { icon: "ti-gavel", name: "Regulatory risk", level: 2, finding: "US regulators are looking at how Microsoft bundles products and how it works with AI partners.", evidence: [{ value: "Jan 2026", label: "FTC orders to Microsoft, OpenAI and other AI partnerships" }, { value: "Open", label: "FTC probe into cloud licensing and bundling practices" }], why: "No fine or order has been set, but a ruling could change how Microsoft sells Azure and Microsoft 365 together." },
     { icon: "ti-chart-pie", name: "OpenAI dependence", level: 2, finding: "A large stake and a lot of AI revenue are linked to one partner.", evidence: [{ value: "~27%", label: "stake in OpenAI after its restructuring, valued at about $135B" }, { value: "$12.0B", label: "equity-method investments on Jun 30, 2026" }], why: "OpenAI’s terms, finances and relationships with other cloud providers can change. They also swing Microsoft’s reported net income, which is why Microsoft publishes figures that exclude them." },
     { icon: "ti-cpu-2", name: "Margin and cost pressure", level: 2, finding: "New data centers add depreciation faster than sales are growing.", evidence: [{ value: "26% to 27%", label: "cost of revenue growth guided for Q2, against 18% to 19% sales growth" }, { value: "67.8%", label: "gross margin in Q1 FY27, down from 69.0% a year earlier" }], why: "Microsoft guides the operating margin down slightly year over year. A small slip matters because the share price already assumes high profit." },
-    { icon: "ti-trending-down", name: "Market risk", level: 2, finding: "The share price is high compared with free cash flow.", evidence: [{ value: "1.5%", label: "free cash flow yield at $530.61" }, { value: "27.7×", label: `P/E, against ${peAvg}× 5-year average` }], why: "The shares rose 6.7% in a day after the Oct 28 report and have since eased to $530.61, about 5% below their 52-week high of $559. A market that expects a lot leaves little room for disappointment." },
+    { icon: "ti-trending-down", name: "Market risk", level: 2, finding: "The share price is high compared with free cash flow.", evidence: [{ value: `${fcfYield.toFixed(1)}%`, label: `free cash flow yield at $${priceNow.toFixed(2)}` }, { value: `${peNowText}×`, label: `P/E, against ${peAvg}× 5-year average` }], why: `The shares rose 6.7% in a day after the Oct 28 report and have since eased to $${priceNow.toFixed(2)}, about ${pctBelowHigh}% below their 52-week high of $559. A market that expects a lot leaves little room for disappointment.` },
     { icon: "ti-user-star", name: "Consumer weakness", level: 1, finding: "The Windows and Xbox side of the business is shrinking.", evidence: [{ value: "−22%", label: "Windows OEM and devices revenue in Q1 FY27" }, { value: "17%", label: "of Q1 FY27 sales from Devices and Consumer" }], why: "The effect is small because this segment is a minor part of sales and profit, but it is a drag on total growth." },
   ],
   risksHowToRead:
@@ -495,6 +544,7 @@ const moatEcosystem: MoatEcosystemData = {
     note: "This is a loop that can happen, not a result that is guaranteed.",
   },
   reliance: {
+    companyName: "Microsoft",
     title: "Who Microsoft relies on",
     intro: "Ranked by how hard the group would be to replace. More filled bars mean more reliance.",
     rows: [
@@ -519,6 +569,8 @@ const competitors: CompetitorsData = {
   overviewIntro: "Rivals split by how they compete for Microsoft’s customers.",
   shares: {
     title: "Cloud infrastructure market share, 2025",
+      memberNoun: 	"providers",
+  measureLabel: "share of cloud spending",
     items: [
       { name: "Amazon (AWS)", value: 31 },
       { name: "Microsoft (Azure)", value: 25, self: true },
@@ -585,23 +637,23 @@ const sourcesMethod: SourcesMethodData = {
     },
     {
       metric: "Free cash flow, last 12 months",
-      value: "$59.9B",
+      value: money(dcfInput.fcf0),
       steps: [
         "Form 10-K for FY26 and the Q1 FY27 earnings release, cash flow statements",
         "FY26 free cash flow $67.0B, plus Q1 FY27 $18.6B, minus Q1 FY26 $25.7B",
         "67.0 + 18.6 − 25.7",
-        "$59.9B free cash flow",
+        `${money(dcfInput.fcf0)} free cash flow`,
         "Profitability and Valuation scores, and the starting cash flow of the fair value model",
       ],
     },
     {
       metric: "P/E ratio",
-      value: "27.7×",
+      value: `${peNowText}×`,
       steps: [
         "Closing share price on Nov 6, 2026 from market data, and earnings per share from Microsoft’s filings",
-        "Share price $530.61 and diluted earnings per share $19.15 over the last four quarters",
-        "530.61 ÷ 19.15",
-        "27.7× P/E",
+        `Share price $${priceNow.toFixed(2)} and diluted earnings per share $${epsLtm.toFixed(2)} over the last four quarters`,
+        `${priceNow.toFixed(2)} ÷ ${epsLtm.toFixed(2)}`,
+        `${peNowText}× P/E`,
         "Valuation score (35% of that category), the Valuation section and Strengths and risks",
       ],
     },
@@ -611,7 +663,7 @@ const sourcesMethod: SourcesMethodData = {
   sources: [
     { title: "SEC filings", topic: "Reported financials", text: "Annual (10-K) and quarterly (10-Q) reports and event reports (8-K) for Microsoft, Apple and Alphabet. The primary source for financial figures." },
     { title: "Company investor relations", topic: "Outlook and guidance", text: "Earnings releases, slides and call transcripts published by the company. Management’s outlook and guidance come from here." },
-    { title: "Market data providers", topic: "Share price, market cap, estimates and price targets", text: "Share price, market cap, analyst estimates and price targets, from StockAnalysis and S&P Global Market Intelligence. Prices are closing prices, and Scope shows the date." },
+    { title: "Market data providers", topic: "Share price, market cap, estimates and price targets", text: "Share price, market cap, fiscal-year-end P/E and the saved financial statements from Financial Modeling Prep. The EV/EBITDA average from stockrow, StockResearch and StockAnalysis, and analyst price targets from StockAnalysis. Prices are closing prices, and Scope shows the date." },
     { title: "Industry research", topic: "Industry and news context", text: "Cloud market shares from Holori’s overview and press coverage of Synergy Research, which can differ by several points." },
   ],
   documents: [
@@ -645,7 +697,7 @@ const sourcesMethod: SourcesMethodData = {
   valuationTitle: "How fair value is estimated",
   valuationIntro: "Three reference points, each with its own limit. None of them is a price forecast, and only the cash flow model sets the fair value.",
   methods: [
-    { name: "Discounted cash flow", what: "Estimates value per share from future free cash flow under three stated cases, starting from the last 12 months. This sets the fair value ($336 in the base case).", limit: "The result moves a lot when assumptions change. About two thirds of the value comes from after year 10, and today’s free cash flow is lowered by record data-center spending." },
+    { name: "Discounted cash flow", what: `Estimates value per share from future free cash flow under three stated cases, starting from the last 12 months. This sets the fair value ($${fair} in the base case).`, limit: "The result moves a lot when assumptions change. About two thirds of the value comes from after year 10, and today’s free cash flow is lowered by record data-center spending." },
     { name: "Historical multiples", what: "Compares today’s P/E with Microsoft’s own range over the last five fiscal year ends.", limit: "The past may not repeat if the business has changed, for example with AI spending." },
     { name: "Analyst price targets", what: "Shows the average and a spread of recent published targets from analysts who follow Microsoft.", limit: "Targets are opinions, usually for 12 months ahead, and they often follow the share price." },
   ],
@@ -668,7 +720,7 @@ const sourcesMethod: SourcesMethodData = {
     { dataset: "Customer counts", period: "Not applicable", sourceDate: "Not applicable", updated: "Not applicable", status: "Unavailable", limit: "Microsoft does not report total customers. Scope shows Copilot seats and backlog instead." },
   ],
   source:
-    "Sources: Microsoft, Apple and Alphabet filings and earnings materials, StockAnalysis (S&P Global) market data and press coverage of Microsoft’s Q1 FY27 call, as of Nov 6, 2026. The score, fair value and ratings are Scope’s own methods, shown in full above.",
+    "Sources: Microsoft, Apple and Alphabet filings and earnings materials, Financial Modeling Prep market data, StockAnalysis price targets and press coverage of Microsoft’s Q1 FY27 call, as of Nov 6, 2026. The score, fair value and ratings are Scope’s own methods, shown in full above.",
 };
 
 const bottomLine: BottomLineData = {
@@ -680,7 +732,7 @@ const bottomLine: BottomLineData = {
   scoreSummary: "Top grades for scale, profit and growth, held back by weak cash conversion and a price that already assumes success.",
   items: [
     { icon: "ti-briefcase", label: "The business", verdict: "Excellent", tone: "positive", text: "Sales are growing 18% a year at a 47% operating margin, Azure is growing 48%, and the backlog is $677B. Quality is held back by cash conversion of only 72%.", href: "#moat", hrefLabel: "See the moat" },
-    { icon: "ti-tag", label: "The price", verdict: "Full", tone: "caution", text: `A P/E of 27.7× against ${peAvg}× on average looks fair, but the free cash flow yield is just 1.5% and the price is still above our bull-case fair value of $515.`, href: "#valuation", hrefLabel: "See the valuation" },
+    { icon: "ti-tag", label: "The price", verdict: "Full", tone: "caution", text: `A P/E of ${peNowText}× against ${peAvg}× on average looks fair, but the free cash flow yield is just ${fcfYield.toFixed(1)}% and the price is ${aboveBull ? "still above" : "below"} our bull-case fair value of $${bull}.`, href: "#valuation", hrefLabel: "See the valuation" },
     { icon: "ti-trending-down", label: "What to watch", verdict: "Spending payback", tone: "caution", text: "Capital spending is $45.2B a quarter and heading above $50B, while free cash flow fell 27%. The January report shows whether Azure can reach the guided 49% to 50%.", href: "#strengths-risks", hrefLabel: "See the risks" },
   ],
   note: "This is Scope’s summary of the evidence above, not a call to buy or sell. A great business can still be a poor purchase at the wrong price.",
@@ -690,9 +742,9 @@ const closing: ClosingPanelData = {
   title: ["That is one company.", "Here is where to go next."],
   lead: "You have seen what Microsoft earns, what protects it and what it costs. Keep building the picture.",
   companies: [
-    { name: "Alphabet", ticker: "GOOGL", reason: "Microsoft’s closest rival in cloud and AI, with Google Cloud growing over 100%.", href: "/company/google" },
-    { name: "NVIDIA", ticker: "NVDA", reason: "The chip maker whose AI chips fill the data centers Microsoft is spending billions to build.", href: "/company/nvidia" },
-    { name: "Amazon", ticker: "AMZN", reason: "Owner of AWS, the largest cloud and Azure’s biggest competitor.", href: "/company/amazon" },
+    { name: "Alphabet", ticker: "GOOGL", reason: "Microsoft’s closest rival in cloud and AI, with Google Cloud growing over 100%.", href: "/company/google", logo: "/logos/google-svgrepo-com.svg" },
+    { name: "NVIDIA", ticker: "NVDA", reason: "The chip maker whose AI chips fill the data centers Microsoft is spending billions to build.", href: "/company/nvidia", logo: "/logos/nvidia-svgrepo-com.svg" },
+    { name: "Amazon", ticker: "AMZN", reason: "Owner of AWS, the largest cloud and Azure’s biggest competitor.", href: "/company/amazon", logo: "/logos/amazon-color-svgrepo-com.svg" },
   ],
   ...closingShared,
 };

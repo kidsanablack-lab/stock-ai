@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import type { CompanyProfile } from "@/types/company";
-import type { CompanyPageData } from "@/lib/company-next/apple";
+import type { CompanyPageData } from "@/lib/company-next/types";
 
 export async function getCompanyPage(
   slug: string,

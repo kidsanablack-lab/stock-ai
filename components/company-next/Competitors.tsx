@@ -1,55 +1,29 @@
 // Section 19: Competitors (category: Business).
 // One question: who does the company compete with, and how does it compare on results?
 // Company-neutral: the company name comes from `data` (the company marked kind "self").
+// The wording of the market share card also comes from `data.shares` (memberNoun, measureLabel), so no hardware wording
+// is written in this file. `data.shares` is optional: without it the card is hidden and the orbit map uses the full width.
+// The third small card ("held by the N named ...") only makes sense next to an "Others" row (an item with muted: true).
+// Without one, the named players add up to 100%, so the card is hidden and the other two share the row.
 // Negative values (for example negative free cash flow) and net debt are shown with a minus sign and red bars.
 // Server Component. No client JS needed.
+//
+// Redesign (looks only): header answer card, Part 1 "orbit map + result card", Part 2 "scoreboard table".
+// Part 3 keeps its old layout; only the Growth rank box is now light blue.
+// The three rival groups in "What each rival does" show an icon in front of the title.
+// Styling is Tailwind utilities with Scope tokens, like the old file, so there is no separate CSS file.
 
-import { Plus_Jakarta_Sans } from "next/font/google";
+import type {
+  CompetitorCompany,
+  CompetitorMetricKey as MetricKey,
+  CompetitorsData,
+} from "@/lib/company-next/types";
+import SectionNote from "./SectionNote";
 
-// Display font for the big "4 of 6" number. Swap for another Google font if you like
-// (e.g. Bricolage_Grotesque, Sora, Instrument_Serif, Fraunces).
-const display = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["700", "800"],
-  display: "swap",
-});
-
-export type MetricKey = "revenue" | "growth" | "opMargin" | "fcf" | "fcfMargin" | "netDebt";
-
-export type CompetitorCompany = {
-  id: string;
-  name: string;
-  ticker: string;
-  kind: "self" | "direct" | "indirect" | "future";
-  desc: string;
-  // Leave out (or leave a measure out) when there is no comparable figure.
-  // Companies without metrics stay in the list but not in the charts.
-  metrics?: Partial<Record<MetricKey, number>>;
-  // Why this company is not in the charts, shown under its description.
-  chartNote?: string;
-};
-
-export type CompetitorsData = {
-  title: string;
-  lead: string;
-  labels: string[]; // shown once at section level
-  overviewTitle: string;
-  overviewIntro: string;
-  shares: {
-    title: string;
-    items: { name: string; value: number; self?: boolean; muted?: boolean }[];
-    note: string;
-  };
-  companies: CompetitorCompany[]; // the viewed company first
-  compareTitle: string;
-  compareIntro: string;
-  compareHowToRead: string;
-  caveat: string;
-  valuationTitle: string; // title of the growth vs profitability chart
-  valuationIntro: string;
-  valuationHowToRead: string;
-  source: string;
-};
+// The data types live in lib/company-next/types.ts. They are re-exported here so older imports keep working.
+// (MetricKey was the old name of CompetitorMetricKey.)
+export type { CompetitorCompany, CompetitorsData } from "@/lib/company-next/types";
+export type { CompetitorMetricKey as MetricKey } from "@/lib/company-next/types";
 
 type MetricDef = {
   key: MetricKey;
@@ -84,17 +58,19 @@ const METRICS: MetricDef[] = [
   },
 ];
 
+// icon = a Tabler icon class, shown in the tile in front of each group title.
 const GROUPS: { kind: CompetitorCompany["kind"]; title: string; sub: string; icon: string }[] = [
   { kind: "direct", title: "Direct rivals", sub: "Sell similar products to the same customers", icon: "ti-swords" },
   { kind: "indirect", title: "Indirect rivals", sub: "Compete for the same time and spending", icon: "ti-arrows-split" },
   { kind: "future", title: "Possible future entrants", sub: "Not yet comparable", icon: "ti-hourglass" },
 ];
 
-// Rings for the orbit diagram. radius = distance from the centre as % of the diagram width.
-const RINGS: { kind: CompetitorCompany["kind"]; label: string; size: number; radius: number; fill: string }[] = [
-  { kind: "future", label: "Possible future entrants", size: 100, radius: 44, fill: "#F3F4FA" },
-  { kind: "indirect", label: "Indirect rivals", size: 76.5, radius: 32, fill: "#ECEEF9" },
-  { kind: "direct", label: "Direct rivals", size: 52, radius: 18, fill: "#E2E8FC" },
+// Rings for the orbit diagram. size = ring width as % of the diagram. radius = distance of the names from the centre, as % of the diagram width.
+// tint = how much primary blue is mixed into white for the ring fill.
+const RINGS: { kind: CompetitorCompany["kind"]; label: string; size: number; radius: number; tint: number }[] = [
+  { kind: "future", label: "Possible future entrants", size: 100, radius: 45, tint: 4 },
+  { kind: "indirect", label: "Indirect rivals", size: 76, radius: 38, tint: 8 },
+  { kind: "direct", label: "Direct rivals", size: 52, radius: 26, tint: 14 },
 ];
 
 // Angles in degrees (0 = right, 90 = down) for each company on its ring.
@@ -112,11 +88,29 @@ function angleFor(kind: CompetitorCompany["kind"], i: number, n: number) {
 }
 
 const CARD = "rounded-3xl border border-border bg-white";
+// Blue header band used on every white card in this section.
+const HEAD = "bg-primary px-6 py-5 text-white sm:px-7";
+const HEAD_TITLE = "font-serif text-[22px] font-semibold leading-tight";
+// Purple-tinted note (no yellow in Scope). Used for "not in the charts" notes.
+const NOTE =
+  "rounded-xl bg-[color-mix(in_srgb,var(--cat-2)_8%,#ffffff)] px-3 py-2.5 text-[13px] leading-relaxed text-ink";
 
 function median(values: number[]) {
   const s = [...values].sort((a, b) => a - b);
   const m = s.length >> 1;
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+function ordinal(n: number) {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  const suffix = n % 10 === 1 ? "st" : n % 10 === 2 ? "nd" : n % 10 === 3 ? "rd" : "th";
+  return `${n}${suffix}`;
+}
+
+function joinNames(names: string[]) {
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
 function SubHeading({ title, intro }: { title: string; intro: string }) {
@@ -247,7 +241,33 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
   const plotted = data.companies.filter((c) => c.metrics && Object.keys(c.metrics).length > 0);
   const peers = self ? plotted.filter((c) => c.id !== self.id) : [];
   const hasCompare = !!self?.metrics && peers.length > 0;
-  const totalShare = data.shares.items.reduce((s, i) => s + i.value, 0) || 1;
+
+  // Market share card. `shares` is optional: without it the card is hidden and the orbit map takes the full width.
+  const shares = data.shares;
+  // Wording comes from the data. Neutral words are used when the data does not give any.
+  const noun = shares?.memberNoun ?? "companies";
+  const measure = shares?.measureLabel ?? "market share";
+
+  // Where the company ranks in the market-share bar (named players only, not "Others").
+  const named = shares ? [...shares.items].filter((i) => !i.muted).sort((a, b) => b.value - a.value) : [];
+  const mineShare = named.find((i) => i.self);
+  const shareMax = shares ? Math.max(...shares.items.map((i) => i.value), 1e-9) : 1;
+  const shareRank = mineShare ? named.indexOf(mineShare) + 1 : 0;
+  const shareLeader = named[0];
+  const shareNext = named[1];
+  const shareGap =
+    mineShare && shareLeader
+      ? shareRank === 1
+        ? shareNext
+          ? mineShare.value - shareNext.value
+          : 0
+        : shareLeader.value - mineShare.value
+      : 0;
+  const shareGapLabel = shareRank === 1 ? (shareNext ? `ahead of ${shareNext.name}` : "") : `behind ${shareLeader?.name ?? ""}`;
+  const namedTotal = named.reduce((s, i) => s + i.value, 0);
+  // "Held by the N named ..." only means something when an "Others" row shows the rest of the market.
+  // Without one, the named players add up to 100% by definition, so the card is left out.
+  const hasOthers = shares ? shares.items.some((i) => i.muted) : false;
 
   // Per-measure ranks, using only the companies that have a value for that measure.
   const compare = hasCompare
@@ -276,6 +296,10 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
   });
   const measured = ahead.length + behind.length;
 
+  // Table columns for Part 2: the company first, then its peers.
+  const cols = hasCompare ? [self, ...peers] : [];
+  const tableCols = `300px repeat(${cols.length}, minmax(0, 1fr)) 150px`;
+
   const scatterRows = plotted.flatMap((c) =>
     c.metrics!.growth !== undefined && c.metrics!.opMargin !== undefined
       ? [{ name: c.name, x: c.metrics!.growth, y: c.metrics!.opMargin, self: c.id === self.id }]
@@ -290,15 +314,12 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
   const hasScatter = hasCompare && scatterRows.length >= 3 && marginRank > 0 && growthRank > 0;
   const axes = hasScatter ? scatterAxes(scatterRows) : null;
 
-  const GREY_SHADES = ["#AEB2C6", "#C7CADB", "#D6D9E6"];
-  let greyIdx = 0;
-
   return (
     <section id="competitors" className="scroll-mt-24 bg-white py-8 sm:py-10">
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
         {/* Header */}
         <header>
-          <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
+          <h2 className="max-w-[900px] font-serif text-[clamp(30px,3.8vw,40px)] font-medium leading-[1.1] tracking-[-0.01em] text-ink">
             {data.title}
           </h2>
           <p className="mt-2 max-w-[680px] text-sm leading-relaxed text-ink-muted sm:text-[15px]">{data.lead}</p>
@@ -306,32 +327,22 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
 
         {/* The answer first: how many measures the company leads on */}
         {hasCompare && measured > 0 && (
-          <div className="mt-6 grid gap-5 rounded-3xl border border-primary bg-primary p-6 text-white lg:grid-cols-[auto_1fr] lg:items-center lg:gap-12">
-            <div>
-              <div className="text-sm font-medium text-white/90">Against the median rival, {self.name} is ahead on</div>
-              <div
-                className={`${display.className} mt-2 flex items-baseline gap-[0.2em] text-[clamp(52px,7vw,76px)] font-extrabold leading-none tracking-[-0.04em] tabular-nums text-white`}
-              >
+          <div className="mt-6 overflow-hidden rounded-panel border border-border bg-white">
+            <div className="bg-primary px-6 py-6 text-white sm:px-8">
+              <div className="text-base font-medium text-white">Against the median rival, {self.name} is ahead on</div>
+              <div className="mt-3 flex items-baseline gap-[0.25em] font-serif text-[clamp(52px,7vw,76px)] font-semibold leading-none tracking-[-0.02em] text-white">
                 <span>{ahead.length}</span>
-                <span className="text-[0.5em] font-bold tracking-normal text-white/70">of</span>
-                <span>{measured}</span>
+                <span className="text-[0.4em] tracking-normal">of {measured} measures</span>
               </div>
-              <div className="mt-2 text-sm font-medium text-white/90">measures</div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl bg-white p-4">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-success">
-                  <i className="ti ti-arrow-up-right" aria-hidden="true" />
-                  Ahead
-                </div>
-                <p className="mt-1.5 text-base leading-snug text-ink">{ahead.length ? ahead.join(", ") : "None"}</p>
+            <div className="grid gap-6 px-6 pb-7 pt-6 sm:grid-cols-2 sm:gap-8 sm:px-8">
+              <div className="border-t border-border pt-5">
+                <div className="text-sm font-semibold text-success">Ahead</div>
+                <p className="mt-2 text-[17px] leading-snug text-ink">{ahead.length ? ahead.join(", ") : "None"}</p>
               </div>
-              <div className="rounded-2xl bg-white p-4">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-danger">
-                  <i className="ti ti-arrow-down-right" aria-hidden="true" />
-                  Behind
-                </div>
-                <p className="mt-1.5 text-base leading-snug text-ink">{behind.length ? behind.join(", ") : "None"}</p>
+              <div className="border-t border-border pt-5">
+                <div className="text-sm font-semibold text-danger">Behind</div>
+                <p className="mt-2 text-[17px] leading-snug text-ink">{behind.length ? behind.join(", ") : "None"}</p>
               </div>
             </div>
           </div>
@@ -340,28 +351,39 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
         {/* Part 1: who the rivals are */}
         <div className="pt-12">
           <SubHeading title={data.overviewTitle} intro={data.overviewIntro} />
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,11fr)_minmax(0,10fr)] lg:items-start lg:gap-6">
-            {/* Left: orbit diagram + shares */}
-            <div className="grid gap-5">
-              <div className={`${CARD} px-5 pb-8 pt-6`}>
-                <p className="text-center text-sm text-ink-muted">
-                  Closer to {self.name} means a closer fight for the same customers
-                </p>
-                <div className="relative mx-auto mt-5 aspect-square w-full max-w-[540px]">
+          <div
+            className={`grid gap-5 ${
+              shares ? "lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-stretch" : ""
+            }`}
+          >
+            {/* Left: orbit map */}
+            <div className={`${CARD} overflow-hidden`}>
+              <div className={HEAD}>
+                <div className={HEAD_TITLE}>How close each rival is</div>
+                <div className="mt-1 text-sm leading-snug">
+                  Closer to {self.name} means a closer fight for the same customers.
+                </div>
+              </div>
+              <div className="px-4 pb-8 pt-8 sm:px-6">
+                <div className="relative mx-auto aspect-square w-full max-w-[540px]">
                   {RINGS.map((r) => (
                     <div
                       key={r.kind}
                       className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border"
-                      style={{ width: `${r.size}%`, height: `${r.size}%`, background: r.fill }}
+                      style={{
+                        width: `${r.size}%`,
+                        height: `${r.size}%`,
+                        background: `color-mix(in srgb, var(--color-primary) ${r.tint}%, #ffffff)`,
+                      }}
                     >
-                      <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-white/80 px-2 py-0.5 text-[11px] font-semibold text-ink-muted">
+                      <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-ink-muted">
                         {r.label}
                       </span>
                     </div>
                   ))}
 
-                  <div className="absolute left-1/2 top-1/2 grid aspect-square w-[19.5%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-primary shadow-[0_8px_24px_-8px_rgba(40,70,220,0.6)]">
-                    <span className="font-serif text-[clamp(15px,2.6vw,24px)] font-semibold text-white">{self.name}</span>
+                  <div className="absolute left-1/2 top-1/2 grid aspect-square w-[20%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-primary">
+                    <span className="font-serif text-[clamp(15px,2.6vw,22px)] font-semibold text-white">{self.name}</span>
                   </div>
 
                   {RINGS.map((r) => {
@@ -373,7 +395,7 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
                       return (
                         <span
                           key={c.id}
-                          className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-ink shadow-sm sm:px-4 sm:text-sm"
+                          className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-ink sm:px-4 sm:text-sm"
                           style={{ left: `${left}%`, top: `${top}%` }}
                         >
                           {c.name}
@@ -383,39 +405,84 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
                   })}
                 </div>
               </div>
-
-              <div className={`${CARD} p-6`}>
-                <h4 className="text-lg font-semibold leading-snug text-ink">{data.shares.title}</h4>
-                <ul className="mt-4 flex h-[72px] gap-1.5 overflow-hidden rounded-2xl">
-                  {data.shares.items.map((it) => {
-                    const shade = it.self || it.muted ? undefined : GREY_SHADES[Math.min(greyIdx++, GREY_SHADES.length - 1)];
-                    return (
-                      <li
-                        key={it.name}
-                        className={`flex min-w-0 flex-col justify-center px-3 ${
-                          it.self ? "bg-primary text-white" : it.muted ? "bg-border text-ink" : "text-ink"
-                        }`}
-                        style={{ width: `${(it.value / totalShare) * 100}%`, background: shade }}
-                      >
-                        <span className="truncate text-xs opacity-90">{it.name}</span>
-                        <span className="font-serif text-[clamp(16px,2.4vw,26px)] font-semibold leading-none tabular-nums">
-                          {it.value}%
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-                <p className="mt-4 text-sm leading-relaxed text-ink-muted">{data.shares.note}</p>
-              </div>
             </div>
 
-            {/* Right: one card, three groups */}
-            <div className={`${CARD} divide-y divide-border p-6 sm:p-7`}>
+            {/* Right: result card with the market share ranking. Hidden when the data has no shares. */}
+            {shares && (
+              <div className="flex flex-col gap-6 rounded-panel bg-primary p-6 text-white sm:p-7">
+                {mineShare && shareRank > 0 && (
+                  <div>
+                    <div className="text-base font-medium text-white">{self.name} ranks</div>
+                    <div className="mt-2 flex flex-wrap items-baseline gap-x-3 font-serif">
+                      <span className="text-[clamp(56px,7vw,76px)] font-semibold leading-none tracking-[-0.03em]">
+                        {ordinal(shareRank)}
+                      </span>
+                      <span className="font-sans text-base font-medium">
+                        of the {named.length} {noun} named
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {mineShare && (
+                  <div className={`grid gap-2.5 ${hasOthers ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+                    <div className="rounded-2xl bg-white px-4 py-3.5 text-ink">
+                      <div className="font-serif text-2xl font-semibold leading-tight">{mineShare.value.toFixed(1)}%</div>
+                      <div className="mt-1.5 text-[13px] leading-snug text-ink-muted">
+                        {self.name}’s {measure}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl bg-white px-4 py-3.5 text-ink">
+                      <div className="font-serif text-2xl font-semibold leading-tight">{shareGap.toFixed(1)} pts</div>
+                      <div className="mt-1.5 text-[13px] leading-snug text-ink-muted">{shareGapLabel}</div>
+                    </div>
+                    {hasOthers && (
+                      <div className="rounded-2xl bg-white px-4 py-3.5 text-ink">
+                        <div className="font-serif text-2xl font-semibold leading-tight">{namedTotal.toFixed(1)}%</div>
+                        <div className="mt-1.5 text-[13px] leading-snug text-ink-muted">
+                          held by the {named.length} named {noun}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div>
+                  <h4 className="text-[17px] font-semibold leading-snug text-white">{shares.title}</h4>
+                  <ul className="mt-4 grid gap-3.5">
+                    {shares.items.map((it) => (
+                      <li key={it.name} className="grid grid-cols-[4.75rem_minmax(0,1fr)_4rem] items-center gap-3">
+                        <span className="truncate text-[15px] font-medium text-white">{it.name}</span>
+                        <div className="h-3.5 overflow-hidden rounded-full bg-primary-ink">
+                          <div
+                            className={`h-full rounded-full ${it.self ? "bg-white" : it.muted ? "bg-primary-soft" : "bg-chart-4"}`}
+                            style={{ width: `${(it.value / shareMax) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-right font-serif text-xl font-semibold leading-none tabular-nums text-white">
+                          {it.value.toFixed(1)}%
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <p className="text-sm leading-relaxed text-white">{shares.note}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Below: what each rival does, one column per group */}
+          <div className={`${CARD} mt-5 overflow-hidden`}>
+            <div className={HEAD}>
+              <div className={HEAD_TITLE}>What each rival does</div>
+            </div>
+            <div className="grid divide-y divide-border lg:grid-cols-3 lg:divide-x lg:divide-y-0">
               {GROUPS.map((g) => {
                 const list = data.companies.filter((c) => c.kind === g.kind);
                 if (!list.length) return null;
                 return (
-                  <div key={g.kind} className="py-6 first:pt-0 last:pb-0">
+                  <div key={g.kind} className="p-6 sm:p-7">
                     <div className="flex items-center gap-4">
                       <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary-soft text-2xl text-primary">
                         <i className={`ti ${g.icon}`} aria-hidden="true" />
@@ -425,19 +492,17 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
                         <div className="mt-0.5 text-sm text-ink-muted">{g.sub}</div>
                       </div>
                     </div>
-                    <ul className="mt-5 grid gap-5 sm:pl-16">
+                    <ul className="mt-5 grid gap-5">
                       {list.map((c) => (
                         <li key={c.id}>
                           <div className="flex flex-wrap items-center gap-2.5">
                             <span className="text-lg font-semibold text-ink">{c.name}</span>
-                            <span className="rounded-full border border-border px-3 py-0.5 text-xs font-medium tabular-nums text-ink-muted">
+                            <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium tabular-nums text-ink-muted">
                               {c.ticker}
                             </span>
                           </div>
-                          <p className="mt-1 text-[15px] leading-snug text-ink">{c.desc}</p>
-                          {c.chartNote && (
-                            <p className="mt-1.5 text-[13px] leading-relaxed text-ink-muted">{c.chartNote}</p>
-                          )}
+                          <p className="mt-1.5 text-[15px] leading-snug text-ink">{c.desc}</p>
+                          {c.chartNote && <p className={`${NOTE} mt-2.5`}>{c.chartNote}</p>}
                         </li>
                       ))}
                     </ul>
@@ -448,71 +513,99 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
           </div>
         </div>
 
-        {/* Part 2: financial comparison as bar cards */}
+        {/* Part 2: financial comparison as one scoreboard table */}
         {hasCompare && compare.length > 0 && (
           <div className="pt-12">
             <SubHeading title={data.compareTitle} intro={data.compareIntro} />
-            <ol className="grid gap-5 lg:grid-cols-2">
-              {compare.map(({ m, vals, ordered, rank }) => {
-                const maxAbs = Math.max(...ordered.map((o) => Math.abs(o.v)), 1e-9);
-                return (
-                  <li key={m.key} className={`${CARD} p-6`}>
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <h4 className="text-xl font-bold leading-tight text-[#0b1220]">{m.label}</h4>
-                        <p className="mt-1.5 text-sm text-ink-muted">{m.hint}</p>
-                      </div>
-                      <span className="shrink-0 rounded-full bg-primary-soft px-4 py-2 text-sm font-semibold tabular-nums text-primary-ink">
-                        {self.name} #{rank} of {vals.length}
+            <div className={`${CARD} overflow-hidden`}>
+              <div className={HEAD}>
+                <div className={HEAD_TITLE}>
+                  {self.name} against {joinNames(peers.map((p) => p.name))}
+                </div>
+                <div className="mt-1 text-sm leading-snug">
+                  Bars are drawn within each row, so compare across a row, not down a column.
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <div className="min-w-[860px]">
+                  <div
+                    className="grid border-b border-border text-sm font-semibold text-ink-muted"
+                    style={{ gridTemplateColumns: tableCols }}
+                  >
+                    <span className="py-4 pl-7">Measure</span>
+                    {cols.map((c) => (
+                      <span
+                        key={c.id}
+                        className={`p-4 ${c.id === self.id ? "bg-primary/5 text-primary-ink" : ""}`}
+                      >
+                        {c.name}
                       </span>
-                    </div>
-                    <ul className="mt-5 grid gap-3">
-                      {ordered.map((o, i) => {
-                        const isSelf = o.c.id === self.id;
-                        const w = Math.max(4, (Math.abs(o.v) / maxAbs) * 100);
-                        // A "bad" value is a loss on a higher-is-better measure, or net debt on the net debt measure.
-                        // It gets a red bar and a red number, so a negative value is never drawn like a positive one.
-                        const bad = m.better === "higher" ? o.v < 0 : o.v > 0;
-                        const barColor = bad
-                          ? isSelf
-                            ? "bg-danger"
-                            : "bg-danger opacity-60"
-                          : isSelf
-                            ? "bg-primary"
-                            : "bg-ink-muted opacity-60";
-                        return (
-                          <li
-                            key={o.c.id}
-                            className="grid grid-cols-[6.5rem_minmax(0,1fr)_6rem] items-center gap-3 sm:grid-cols-[8rem_minmax(0,1fr)_8.5rem] sm:gap-4"
-                          >
-                            <span className={`text-[15px] ${isSelf ? "font-semibold text-primary-ink" : "text-ink"}`}>
-                              {i + 1}. {o.c.name}
-                            </span>
-                            <div className={`overflow-hidden rounded-full bg-surface ${isSelf ? "h-5" : "h-3.5"}`}>
-                              <div className={`h-full rounded-full ${barColor}`} style={{ width: `${w}%` }} />
+                    ))}
+                    <span className="py-4 pl-4 pr-7 text-right">{self.name}’s rank</span>
+                  </div>
+
+                  {compare.map(({ m, ordered, rank, vals }) => {
+                    const maxAbs = Math.max(...ordered.map((o) => Math.abs(o.v)), 1e-9);
+                    return (
+                      <div
+                        key={m.key}
+                        className="grid border-t border-border first:border-t-0"
+                        style={{ gridTemplateColumns: tableCols }}
+                      >
+                        <div className="py-5 pl-7 pr-5">
+                          <div className="text-[17px] font-semibold leading-snug text-ink">{m.label}</div>
+                          <div className="mt-1 text-[13px] leading-relaxed text-ink-muted">{m.hint}</div>
+                        </div>
+                        {cols.map((c) => {
+                          const isSelf = c.id === self.id;
+                          const cellBg = isSelf ? "bg-primary/5" : "";
+                          const o = ordered.find((x) => x.c.id === c.id);
+                          if (!o) {
+                            return (
+                              <div key={c.id} className={`flex items-center p-4 ${cellBg}`}>
+                                <span className="font-serif text-2xl font-semibold text-ink-muted">—</span>
+                              </div>
+                            );
+                          }
+                          // A "bad" value is a loss on a higher-is-better measure, or net debt on the net debt measure.
+                          // It gets a red bar and a red number, so a negative value is never drawn like a positive one.
+                          const bad = m.better === "higher" ? o.v < 0 : o.v > 0;
+                          const w = Math.max(4, (Math.abs(o.v) / maxAbs) * 100);
+                          const barColor = bad ? "bg-danger" : isSelf ? "bg-primary" : "bg-chart-compare";
+                          const numColor = bad ? "text-danger" : isSelf ? "text-primary-ink" : "text-ink";
+                          return (
+                            <div key={c.id} className={`flex flex-col justify-center gap-2.5 p-4 ${cellBg}`}>
+                              <span className={`font-serif text-2xl font-semibold leading-none tabular-nums ${numColor}`}>
+                                {m.fmt(o.v)}
+                              </span>
+                              <div className="h-2 overflow-hidden rounded-full bg-border">
+                                <div className={`h-full rounded-full ${barColor}`} style={{ width: `${w}%` }} />
+                              </div>
+                              <span className="text-[13px] font-medium tabular-nums text-ink-muted">
+                                #{ordered.findIndex((x) => x.c.id === c.id) + 1} of {vals.length}
+                              </span>
                             </div>
-                            <span
-                              className={`text-right font-serif text-lg font-semibold leading-none tabular-nums sm:text-[22px] ${
-                                bad ? "text-danger" : isSelf ? "text-primary-ink" : "text-ink"
-                              }`}
-                            >
-                              {m.fmt(o.v)}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </li>
-                );
-              })}
-            </ol>
-            <p className="mt-5 max-w-[780px] border-l-[3px] border-primary pl-3 text-xs leading-relaxed text-ink-muted">
+                          );
+                        })}
+                        <div className="flex flex-col items-end justify-center py-5 pl-4 pr-7">
+                          <span className="font-serif text-[40px] font-semibold leading-none tabular-nums text-primary-ink">
+                            #{rank}
+                          </span>
+                          <span className="mt-1 text-sm text-ink-muted">of {vals.length}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            <SectionNote className="mt-6">
               {data.caveat}
-            </p>
+            </SectionNote>
           </div>
         )}
 
-        {/* Part 3: growth against profitability */}
+        {/* Part 3: growth against profitability (old layout; Growth rank box is now light blue) */}
         {hasScatter && axes && (
           <div className="pt-12">
             <SubHeading title={data.valuationTitle} intro={data.valuationIntro} />
@@ -529,7 +622,7 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
                 </p>
 
                 <div className="mt-6 grid grid-cols-2 gap-4">
-                  <div className="rounded-2xl bg-surface p-5">
+                  <div className="rounded-2xl bg-primary-soft p-5">
                     <div className="text-sm text-ink">Growth rank</div>
                     <div className="mt-1 font-serif text-5xl font-semibold leading-none tabular-nums text-ink">
                       {growthRank}
@@ -545,9 +638,9 @@ export default function Competitors({ data }: { data: CompetitorsData }) {
                   </div>
                 </div>
 
-                <p className="mt-6 border-l-2 border-border pl-3 text-sm leading-relaxed text-ink-muted">
+                <SectionNote className="mt-6">
                   {data.valuationHowToRead}
-                </p>
+                </SectionNote>
               </div>
 
               <div className={`${CARD} p-4 sm:p-6`}>

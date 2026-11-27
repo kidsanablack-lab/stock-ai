@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
-
+import type { CashAndReturnsData } from "@/lib/company-next/types";
+import SectionNote from "./SectionNote";
 // How much cash the company makes, how much it pays back, and whether the cash cushion is still safe.
 // Main visuals: paired yearly bars (free cash flow vs cash paid out), buybacks vs dividends bar,
 // ownership donuts, and five-year net cash.
@@ -8,43 +9,8 @@ import { type ReactNode } from "react";
 // Handles zero payouts, negative free cash flow, negative net cash and a rising share count.
 // Server Component.
 
-type Stat = { label: string; value: string; note: string };
-
-export type CashAndReturnsData = {
-  /** Used in "Your slice of Apple". Optional: without it the text says "the company". */
-  companyName?: string;
-  title: string;
-  lead: string;
-  labels: string[];
-  years: string[]; // fiscal year labels, oldest first (for example FY22..FY26)
-  fcf: number[];
-  dividends: number[];
-  buybacks: number[];
-  returned: { title: string; howToRead: string; fcfNote: string };
-  how: {
-    title: string;
-    shares: number[];
-    sharesTitle: string;
-    stats: Stat[];
-    // Optional: only shown when real price history is available.
-    tsr?: {
-      title: string;
-      rows: { name: string; value: number; gain: string }[];
-      note: string;
-    };
-  };
-  cushion: {
-    title: string;
-    cash: number[];
-    debt: number[];
-    equity: number[];
-    currentAssets: number;
-    currentLiabilities: number;
-    currentRatioNote: string;
-    howToRead: string;
-  };
-  source: string;
-};
+// The data types live in lib/company-next/types.ts. They are re-exported here so older imports keep working.
+export type { CashAndReturnsData, CashStat } from "@/lib/company-next/types";
 
 const sgn = (v: number) => (v < 0 ? "−" : "");
 const usd0 = (v: number) => `${sgn(v)}$${Math.round(Math.abs(v)).toLocaleString("en-US")}`;
@@ -63,9 +29,9 @@ function Heading({ children }: { children: ReactNode }) {
 
 function Note({ children }: { children: ReactNode }) {
   return (
-    <p className="mt-3 max-w-[780px] border-l-2 border-primary pl-3 text-[13px] leading-relaxed text-ink-muted">
+    <SectionNote className="mt-6">
       {children}
-    </p>
+    </SectionNote>
   );
 }
 
@@ -204,7 +170,7 @@ export default function CashAndReturns({ data }: { data: CashAndReturnsData }) {
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
         {/* Header */}
         <header>
-          <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
+          <h2 className="max-w-[900px] font-serif text-[clamp(30px,3.8vw,40px)] font-medium leading-[1.1] tracking-[-0.01em] text-ink">
             {data.title}
           </h2>
           <p className="mt-3 max-w-[680px] text-[15px] leading-relaxed text-ink-muted sm:text-base">{data.lead}</p>

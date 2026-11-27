@@ -1,10 +1,10 @@
 import Link from "next/link";
 import WatchlistButton from "@/components/ui/WatchlistButton";
-import type { CompanyPageData } from "@/lib/company-next/apple";
+import type { CompanyPageData } from "@/lib/company-next/types";
 import CompanyHero from "./CompanyHero";
 import CompanySummary from "./CompanySummary";
 import ScoreReasons from "./ScoreReasons";
-import Spotlight, { type SpotlightData } from "./Spotlight";
+import Spotlight from "./Spotlight";
 import WhatChanged from "./WhatChanged";
 import SignalsToWatch from "./SignalsToWatch";
 import WhereMoneyComes from "./WhereMoneyComes";
@@ -19,16 +19,14 @@ import SourcesMethod from "./SourcesMethod";
 import BottomLine from "./BottomLine";
 import ClosingPanel from "./ClosingPanel";
 
-// Spotlight is optional for now: only companies that have one show the section.
-// Once every company has a Spotlight, move this field into CompanyPageData.
-type CompanyNextViewData = CompanyPageData & { spotlight?: SpotlightData };
-
+// The page shape comes from lib/company-next/types.ts, so this view no longer depends on apple.ts.
+// `spotlight` is optional in CompanyPageData: only companies that have one show the section.
 export default function CompanyNextView({
   data,
   slug,
   backLink,
 }: {
-  data: CompanyNextViewData;
+  data: CompanyPageData;
   slug: string;
   backLink: { href: string; label: string };
 }) {

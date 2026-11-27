@@ -4,11 +4,12 @@ import type { DisplayValues } from "./apply";
 // The raw numbers behind each company's Scope Score.
 // Later, the data system will fill `raw` automatically. `display` is the text shown on the page.
 
+// Apple. Market cap is the saved API value (data/raw/AAPL.json): $4,997B at the Nov 6, 2026 close, shown as $5.00T.
 export const appleScore: { raw: RawInputs; display: DisplayValues } = {
-  raw: { roic: 72.0, cashConversion: 103.7, marginRange: 3.2, marketCap: 4975, revenueTtm: 478.8, operatingMargin: 33.0, netMargin: 27.6, fcfMargin: 28.4, growthTtm: 15.1, growthForecast: 11.2, growthCagr: 5.0, topProductShare: 53.1, netDebtEbitda: -0.33, worstGrowth: -2.8, peVsAvg: 1.27, evEbitdaVsAvg: 1.31, fcfYield: 2.7 },
+  raw: { roic: 72.0, cashConversion: 103.7, marginRange: 3.2, marketCap: 4997, revenueTtm: 478.8, operatingMargin: 33.0, netMargin: 27.6, fcfMargin: 28.4, growthTtm: 15.1, growthForecast: 11.2, growthCagr: 5.0, topProductShare: 53.1, netDebtEbitda: -0.33, worstGrowth: -2.8, peVsAvg: 1.27, evEbitdaVsAvg: 1.31, fcfYield: 2.7 },
   display: {
     roic: { value: "72%" }, cashConversion: { value: "103.7%" }, marginRange: { value: "3.2 points" },
-    marketCap: { value: "$4.98T" }, revenueTtm: { value: "$478.8B" },
+    marketCap: { value: "$5.00T" }, revenueTtm: { value: "$478.8B" },
     operatingMargin: { value: "33.0%" }, netMargin: { value: "27.6%" }, fcfMargin: { value: "28.4%" },
     growthTtm: { value: "+15.1%", name: "Revenue growth, last 12 months" },
     growthForecast: { value: "+11.2% a year" },
@@ -80,5 +81,23 @@ export const amazonScore: { raw: RawInputs; display: DisplayValues } = {
     growthCagr: { value: "+11.1% a year", name: "Revenue growth a year, FY21 to FY25" },
     topProductShare: { value: "33.9% (Online stores)" }, netDebtEbitda: { value: "−0.35" }, worstGrowth: { value: "+9.4%" },
     peVsAvg: { value: "0.50×" }, evEbitdaVsAvg: { value: "0.57×" }, fcfYield: { value: "−1.6%" },
+  },
+};
+
+// Meta. Numbers come from data/computed/META.json (fetched Nov 23, 2026).
+// topProductShare is entered by hand: Advertising was $63.06B of $64.60B revenue in Q3 2026 (97.6%).
+// Two inputs include one-time items: a tax benefit in Q1 2026 and a $9.89B legal charge in Q3 2026 (net margin 31.2%, P/E against its average 0.91×).
+// Net debt uses the Dec 31, 2025 balance sheet; by Sep 30, 2026 Meta owed about $1.2B more than it held.
+export const metaScore: { raw: RawInputs; display: DisplayValues } = {
+  raw: { roic: 24.04, cashConversion: 90.07, marginRange: 17.35, marketCap: 1527.61, revenueTtm: 241.61, operatingMargin: 32.86, netMargin: 31.15, fcfMargin: 11.86, growthTtm: 27.53, growthForecast: 22.89, growthCagr: 14.26, topProductShare: 97.6, netDebtEbitda: -0.22, worstGrowth: -1.12, peVsAvg: 0.91, evEbitdaVsAvg: 0.99, fcfYield: 1.88 },
+  display: {
+    roic: { value: "24.0%" }, cashConversion: { value: "90.1%" }, marginRange: { value: "17.4 points" },
+    marketCap: { value: "$1.53T" }, revenueTtm: { value: "$241.6B" },
+    operatingMargin: { value: "32.9%" }, netMargin: { value: "31.2%" }, fcfMargin: { value: "11.9%" },
+    growthTtm: { value: "+27.5%", name: "Revenue growth, last 12 months" },
+    growthForecast: { value: "+22.9% a year" },
+    growthCagr: { value: "+14.3% a year", name: "Revenue growth a year, FY21 to FY25" },
+    topProductShare: { value: "97.6% (Advertising)" }, netDebtEbitda: { value: "−0.22" }, worstGrowth: { value: "−1.1%" },
+    peVsAvg: { value: "0.91×" }, evEbitdaVsAvg: { value: "0.99×" }, fcfYield: { value: "1.9%" },
   },
 };

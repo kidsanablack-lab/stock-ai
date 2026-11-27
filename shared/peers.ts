@@ -1,5 +1,4 @@
 // Put this file at shared/peers.ts, next to methodology.ts.
-// Nothing imports it yet, so the build is unchanged.
 //
 // One place for the numbers of every company that appears in another company's "Competitors" chart.
 // All numbers come from the saved API data (data/raw/<TICKER>.json) through buildFacts, so Apple has
@@ -10,13 +9,14 @@
 // balance sheets only). peerCaveat() writes the exact dates into the page, so the caveat always matches.
 //
 // Net debt sign: positive = net debt, negative = net cash (same as the existing data files).
-import type { CompetitorsData } from "@/components/company-next/Competitors";
+import type { CompetitorsData } from "@/lib/company-next/types";
 import { buildFacts, type Facts, type RawFmp } from "@/lib/company-data/facts";
 import rawAapl from "@/data/raw/AAPL.json";
 import rawAmd from "@/data/raw/AMD.json";
 import rawAmzn from "@/data/raw/AMZN.json";
 import rawGoogl from "@/data/raw/GOOGL.json";
 import rawIntc from "@/data/raw/INTC.json";
+import rawMeta from "@/data/raw/META.json";
 import rawMsft from "@/data/raw/MSFT.json";
 import rawNvda from "@/data/raw/NVDA.json";
 // A new rival: run  npx tsx --env-file=.env.local scripts/fetch-company-data.ts <TICKER>,
@@ -30,6 +30,7 @@ const RAW = {
   MSFT: { name: "Microsoft", raw: rawMsft },
   GOOGL: { name: "Alphabet", raw: rawGoogl },
   AMZN: { name: "Amazon", raw: rawAmzn },
+  META: { name: "Meta", raw: rawMeta },
   NVDA: { name: "NVIDIA", raw: rawNvda },
   AMD: { name: "AMD", raw: rawAmd },
   INTC: { name: "Intel", raw: rawIntc },

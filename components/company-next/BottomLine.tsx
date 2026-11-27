@@ -2,29 +2,11 @@
 // One question: after everything above, what should the reader take away?
 // Server Component. No client JS needed.
 import Link from "next/link";
+import type { BottomLineData } from "@/lib/company-next/types";
+import SectionNote from "./SectionNote";
 
-export type BottomLineTone = "positive" | "caution" | "negative" | "neutral";
-
-export type BottomLineItem = {
-  icon: string; // Tabler icon name, e.g. "ti-briefcase"
-  label: string; // e.g. "The business"
-  verdict: string; // one or two words, shown as a chip
-  tone: BottomLineTone;
-  text: string; // one short line with the evidence
-  href?: string; // in-page anchor to the section that proves it
-  hrefLabel?: string;
-};
-
-export type BottomLineData = {
-  title: string;
-  lead: string;
-  score: number; // 0 to 10, same as the hero
-  scoreLabel: string; // e.g. "Strong"
-  scoreHref?: string;
-  scoreSummary?: string; // one sentence under the score, e.g. "Top grades for quality and profit, held back by a price above our fair value and slowing growth."
-  items: BottomLineItem[]; // 3 items
-  note: string;
-};
+// The data types live in lib/company-next/types.ts. They are re-exported here so older imports keep working.
+export type { BottomLineData, BottomLineItem, BottomLineTone } from "@/lib/company-next/types";
 
 // A word is always shown with the color, so meaning never depends on color alone.
 const TONE = {
@@ -39,7 +21,7 @@ export default function BottomLine({ data }: { data: BottomLineData }) {
     <section id="bottom-line" className="scroll-mt-24 bg-white py-10 sm:py-12">
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
         <header>
-          <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
+          <h2 className="max-w-[900px] font-serif text-[clamp(30px,3.8vw,40px)] font-medium leading-[1.1] tracking-[-0.01em] text-ink">
             {data.title}
           </h2>
           <p className="mt-3 max-w-[680px] text-[15px] leading-relaxed text-ink-muted sm:text-base">{data.lead}</p>
@@ -124,9 +106,9 @@ export default function BottomLine({ data }: { data: BottomLineData }) {
           </ul>
         </div>
 
-        <p className="mt-6 max-w-[780px] border-l-[3px] border-primary pl-3 text-[13px] leading-relaxed text-ink-muted">
+        <SectionNote className="mt-6">
           {data.note}
-        </p>
+        </SectionNote>
       </div>
     </section>
   );

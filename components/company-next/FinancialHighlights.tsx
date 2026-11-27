@@ -1,30 +1,13 @@
+import type { FinancialHighlightsData, FinancialMetric as Metric } from "@/lib/company-next/types";
+import SectionNote from "./SectionNote";
+
 // ส่วน 8: บริษัททำเงินได้เท่าไรต่อปี และคุณภาพกำไรดีแค่ไหน
 // ภาพหลัก: ตารางสรุปตัวเลข (หัวสีฟ้า) + กราฟเส้น "Growth since <ปีแรก>" (ปีแรก = 100) เส้นเต็มความกว้าง ตัวอธิบายเส้นอยู่ด้านล่าง
 // ไม่มีชื่อบริษัทหรือปีที่ฝังไว้ในไฟล์นี้ ปีทั้งหมดมาจาก data.years (บังคับส่ง)
 // Server Component.
 
-type Tone = "positive" | "negative";
-
-type Metric = {
-  label: string;
-  value: string;
-  change: string;
-  tone: Tone;
-  series: number[]; // one value per year, oldest first, same length as `years`
-  note: string;
-  unit: "B" | "$" | "%"; // ใช้แสดงตัวเลขบนแท่ง
-};
-
-export type FinancialHighlightsData = {
-  title: string;
-  lead: string;
-  labels: string[];
-  metrics: Metric[];
-  howToRead: string;
-  source: string;
-  // Year labels of the series, oldest first. Required: there is no default, so a page can never show the wrong years.
-  years: string[];
-};
+// The data types live in lib/company-next/types.ts. They are re-exported here so older imports keep working.
+export type { FinancialHighlightsData, FinancialMetric } from "@/lib/company-next/types";
 
 // A round step so the y axis shows about 8 labels at most, even when a line grows 10 times over.
 function niceStep(span: number, maxIntervals = 7) {
@@ -202,7 +185,7 @@ export default function FinancialHighlights({ data }: { data: FinancialHighlight
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
         <header>
           {/* data.labels ไม่แสดงแล้ว (ซ้ำกับบรรทัด Source ด้านล่าง) แต่ยังอยู่ใน data type เหมือนเดิม */}
-          <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
+          <h2 className="max-w-[900px] font-serif text-[clamp(30px,3.8vw,40px)] font-medium leading-[1.1] tracking-[-0.01em] text-ink">
             {data.title}
           </h2>
           <p className="mt-3 max-w-[620px] text-sm leading-relaxed text-ink-muted sm:text-base">{data.lead}</p>
@@ -240,9 +223,9 @@ export default function FinancialHighlights({ data }: { data: FinancialHighlight
 
         <GrowthChart metrics={data.metrics} years={data.years} />
 
-        <p className="mt-5 max-w-[780px] border-l-2 border-primary pl-3 text-[13px] leading-relaxed text-ink-muted">
-          {data.howToRead}
-        </p>
+        <SectionNote className="mt-6">
+  {data.howToRead}
+</SectionNote>
         <p className="mt-5 border-t border-border pt-4 text-[13px] leading-relaxed text-ink-muted">{data.source}</p>
       </div>
     </section>

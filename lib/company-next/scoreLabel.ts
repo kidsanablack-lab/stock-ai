@@ -1,0 +1,1 @@
+export { labelFor as scoreLabel } from "@/lib/scope-score/calculate";

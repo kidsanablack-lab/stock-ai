@@ -1,4 +1,6 @@
 import { type ReactNode } from "react";
+import type { ValuationData } from "@/lib/company-next/types";
+import SectionNote from "./SectionNote";
 
 // Is the company's price high or low against what its cash is worth, its own history and analyst targets?
 // Main visuals: a range bar per reference point (football field), required vs actual growth,
@@ -10,61 +12,8 @@ import { type ReactNode } from "react";
 // Tracks (the pale bar behind a range or a value) use bg-primary-soft. The old bg-surface is not a token in
 // design-tokens.css, so Tailwind did not generate it and the tracks were invisible.
 
-type FieldRow = {
-  name: string;
-  low: number;
-  high: number;
-  mark: number;
-  markName: string;
-};
-
-// peers is optional: leave it out when there is no reliable same-date peer data.
-type Multiple = { name: string; now: number; avg: number; peers?: number };
-
-export type ValuationData = {
-  title: string;
-  lead: string;
-  labels: string[];
-  price: number;
-  priceDate: string;
-  // fair is null when Scope does not show a fair value (for example when free cash flow is negative).
-  // In that case also fill noFair, and leave implied out.
-  fair: number | null;
-  noFair?: {
-    title: string;
-    text: string;
-    points: { label: string; value: string; note: string }[];
-  };
-  field: { max: number; howToRead: string; rows: FieldRow[]; title?: string };
-  implied?: {
-    title: string;
-    needed: number; // % per year the price needs
-    actual: number; // % per year actually grown
-    actualLabel: string; // e.g. "Since FY21"
-    text: string;
-    cases: string[];
-    assumptions: { label: string; values: string[] }[];
-    fairValues: number[];
-    note: string;
-  };
-  history: {
-    title: string;
-    // The last item is "now"; bars before it are the fiscal year ends.
-    years: { year: string; value: number }[];
-    /**
-     * The average P/E the dashed line shows. Give it when the average covers a different period than the bars
-     * (for example a 5-year average next to ten bars). Without it, the average of the bars before "now" is used.
-     */
-    peAverage?: number;
-    /** Length of that average, for example "5-year". Used in the wording next to the average. */
-    averagePeriod?: string;
-    peSubtitle: string;
-    peHowToRead: string;
-    multiples: Multiple[];
-    multiplesHowToRead: string;
-  };
-  source: string;
-};
+// The data types live in lib/company-next/types.ts. They are re-exported here so older imports keep working.
+export type { ValuationData, ValuationFieldRow, ValuationMultiple } from "@/lib/company-next/types";
 
 const usd = (v: number) => `$${Math.round(v).toLocaleString("en-US")}`;
 const pos = (v: number, max: number) => `${Math.min(100, Math.max(0, (v / (max || 1)) * 100)).toFixed(2)}%`;
@@ -122,7 +71,7 @@ export default function Valuation({ data }: { data: ValuationData }) {
       <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-6">
         {/* Header */}
         <header>
-          <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
+          <h2 className="max-w-[900px] font-serif text-[clamp(30px,3.8vw,40px)] font-medium leading-[1.1] tracking-[-0.01em] text-ink">
             {data.title}
           </h2>
           <p className="mt-3 max-w-[680px] text-[15px] leading-relaxed text-ink-muted sm:text-base">{data.lead}</p>

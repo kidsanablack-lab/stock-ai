@@ -1,0 +1,36 @@
+{
+ "ticker": "META",
+ "fetchedAt": "2026-11-24T06:54:31.584Z",
+ "computed": {
+  "roic": 24.04,
+  "cashConversion": 90.07,
+  "marginRange": 17.35,
+  "marketCap": 1527.61,
+  "revenueTtm": 241.61,
+  "operatingMargin": 32.86,
+  "netMargin": 31.15,
+  "fcfMargin": 11.86,
+  "growthTtm": 27.53,
+  "growthForecast": 22.89,
+  "growthCagr": 14.26,
+  "topProductShare": null,
+  "netDebtEbitda": -0.22,
+  "worstGrowth": -1.12,
+  "peVsAvg": 0.91,
+  "evEbitdaVsAvg": 0.99,
+  "fcfYield": 1.88
+ },
+ "extra": {
+  "price": 597.6,
+  "pe": 20.38199181446112,
+  "peAvg": 22.521392518140463,
+  "evEbitda": 14.762800775583248,
+  "evAvg": 14.967977677903244,
+  "epsTtm": 29.32,
+  "fiscalYearEnd": "2025-12-31",
+  "latestQuarter": "2026-09-30",
+  "targetConsensus": 835.43,
+  "targetHigh": 1000,
+  "targetLow": 595
+ }
+}

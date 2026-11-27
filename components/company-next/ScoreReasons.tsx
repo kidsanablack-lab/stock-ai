@@ -1,23 +1,12 @@
 import Link from "next/link";
+import type { ScoreReason, ScoreReasonsData } from "@/lib/company-next/types";
+import { scoreLabel } from "@/lib/company-next/scoreLabel";
+import SectionNote from "./SectionNote";
 
 // Server Component.
 
-export type ScoreReason = {
-  name: string;
-  grade: string; // e.g. "A+", "C", "D"
-  value: string; // the key number or short phrase
-  label: string; // one sentence of meaning
-  href: string; // where the data lives further down the page
-  score?: number; // 0 to 10, the category score behind the grade (drives the radar chart)
-  weight?: number; // % of the overall score
-};
-
-export type ScoreReasonsData = {
-  title: string;
-  takeaway: string;
-  reasons: ScoreReason[];
-  howToRead: string;
-};
+// The data types live in lib/company-next/types.ts. They are re-exported here so older imports keep working.
+export type { ScoreReason, ScoreReasonsData } from "@/lib/company-next/types";
 
 type Tier = "strong" | "mixed" | "weak";
 
@@ -137,14 +126,8 @@ function ScoreRadar({ reasons }: { reasons: ScoreReason[] }) {
 
 /* ---------- Overall summary card ---------- */
 
-// Same label cut-offs as Sources and method.
-function labelOf(score: number) {
-  if (score >= 9) return "Excellent";
-  if (score >= 7.5) return "Strong";
-  if (score >= 6) return "Good";
-  if (score >= 5) return "Fair";
-  return "Weak";
-}
+// The label cut-offs (Excellent, Strong, Good, Fair, Weak) live in lib/company-next/scoreLabel.ts,
+// shared with Sources and method.
 
 function OverallCard({ reasons }: { reasons: ScoreReason[] }) {
   const weighted = reasons.filter((r) => typeof r.weight === "number");
@@ -171,7 +154,7 @@ function OverallCard({ reasons }: { reasons: ScoreReason[] }) {
           </span>
           <span className="pb-2 text-sm text-primary-soft">out of 10</span>
           <span className="mb-2 ml-auto rounded-full bg-white px-3 py-0.5 text-[13px] font-semibold text-primary-ink">
-            {labelOf(overall)}
+            {scoreLabel(overall)}
           </span>
         </div>
       </div>
@@ -233,7 +216,7 @@ export default function ScoreReasons({ data }: { data: ScoreReasonsData }) {
     <section id="score" className="scroll-mt-24 bg-white py-10 sm:py-12">
       <div className="mx-auto w-full max-w-[1120px] px-4 sm:px-6">
         <header>
-          <h2 className="max-w-[900px] font-serif text-[clamp(26px,3.8vw,36px)] font-semibold leading-[1.12] tracking-[-0.02em] text-ink">
+          <h2 className="max-w-[900px] font-serif text-[clamp(30px,3.8vw,40px)] font-medium leading-[1.1] tracking-[-0.01em] text-ink">
             {data.title}
           </h2>
           <p className="mt-3 max-w-[660px] text-[15px] leading-relaxed text-ink-muted sm:text-base">
@@ -292,9 +275,9 @@ export default function ScoreReasons({ data }: { data: ScoreReasonsData }) {
           </div>
         )}
 
-        <p className="mt-6 max-w-[760px] border-l-[3px] border-primary pl-3 text-[13px] leading-relaxed text-ink-muted">
-          {data.howToRead}
-        </p>
+        <SectionNote className="mt-6">
+  {data.howToRead}
+</SectionNote>
       </div>
     </section>
   );

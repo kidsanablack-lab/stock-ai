@@ -1,85 +1,75 @@
-export type CompanySummaryData = {
-  title: string;
-  label?: string;
-  text: string;
-  /** Optional blue card on the right. Hidden if not provided. */
-  highlight?: {
-    eyebrow: string; // e.g. "Where the sales come from"
-    value: string; // e.g. "26%"
-    caption: string; // e.g. "from Services, FY25"
-    /** Bar segments in order. Widths follow `share` (should add up to about 100). */
-    segments: { label: string; share: number }[];
-  };
-};
+import type { CompanySummaryData } from "@/lib/company-next/types";
 
-// First segment is solid white, second is lighter, the rest are faded.
-const segmentStyle = ["bg-white", "bg-white/60", "bg-white/20"];
+// The data type lives in lib/company-next/types.ts. It is re-exported here so older imports keep working.
+export type { CompanySummaryData } from "@/lib/company-next/types";
+
+// Bar colors by position: first, second, then the rest. Full class names so Tailwind can find them.
+const barColor = ["bg-chart-1", "bg-chart-2", "bg-chart-compare"];
 
 export default function CompanySummary({ data }: { data: CompanySummaryData }) {
   const h = data.highlight;
 
   return (
-    <section id="summary" className="bg-[#ffff] py-4 sm:py-6">
+    <section id="summary" className="bg-white py-8 lg:py-14">
       <div
-        className={`mx-auto grid w-full max-w-[1120px] gap-4 px-4 sm:px-6 lg:gap-5 ${
-          h ? "lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" : ""
+        className={`mx-auto grid w-full max-w-[1120px] items-center gap-8 px-4 sm:px-6 ${
+          h ? "lg:grid-cols-[minmax(0,1fr)_460px] lg:gap-[72px]" : ""
         }`}
       >
         {/* Left: the summary */}
-        <div className="rounded-[28px] border border-border bg-white p-6 sm:rounded-[32px] sm:p-9">
-          {data.label && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3.5 py-1 text-[13px] font-semibold text-primary-ink">
-              <i className="ti ti-sparkles" aria-hidden="true" />
-              {data.label}
-            </span>
-          )}
-          <h2 className="mt-4 font-serif text-[clamp(30px,4vw,44px)] font-semibold leading-[1.08] tracking-[-0.02em] text-ink">
+        <div className="flex min-w-0 flex-col gap-5">
+          <h2 className="font-serif text-h2 font-semibold tracking-title text-ink">
             {data.title}
           </h2>
-          <p className="mt-4 max-w-[720px] font-serif text-[17px] font-medium leading-[1.6] text-ink sm:text-lg">
+          <p className="max-w-[560px] text-[17px] leading-[1.65] text-ink-muted sm:text-[19px]">
             {data.text}
           </p>
+          {data.label && (
+            <p className="mt-1 flex items-center gap-2 text-[13px] text-ink-muted">
+              <i className="ti ti-sparkles" aria-hidden="true" />
+              {data.label}
+            </p>
+          )}
         </div>
 
-        {/* Right: one number that matters */}
+        {/* Right: one number that matters, with the split below it */}
         {h && (
-          <div className="flex flex-col justify-between gap-8 rounded-[28px] bg-primary p-6 text-white sm:rounded-[32px] sm:p-9">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-white/75">
-              {h.eyebrow}
-            </p>
-
-            <div>
-              <div className="flex flex-wrap items-baseline gap-x-3">
-                <span className="font-serif text-[clamp(56px,6.5vw,80px)] font-semibold leading-none tracking-[-0.03em] tabular-nums">
+          <div className="min-w-0 overflow-hidden rounded-[28px] border border-border bg-white">
+            <div className="bg-primary px-7 pb-7 pt-6 text-white">
+              <p className="text-base font-semibold leading-snug">{h.eyebrow}</p>
+              <div className="mt-2 flex flex-wrap items-baseline gap-x-3.5 gap-y-1">
+                <span className="font-serif text-[clamp(56px,6.5vw,76px)] font-semibold leading-none tracking-[-0.03em]">
                   {h.value}
                 </span>
-                <span className="text-base font-semibold sm:text-lg">{h.caption}</span>
+                <span className="text-[17px] font-semibold">{h.caption}</span>
               </div>
+            </div>
 
-              <div
-                className="mt-6 flex gap-1.5"
-                role="img"
-                aria-label={h.segments.map((s) => `${s.label}: ${s.share}%`).join(", ")}
-              >
-                {h.segments.map((s, i) => (
-                  <div
-                    key={s.label}
-                    className={`h-3 rounded-full ${segmentStyle[Math.min(i, segmentStyle.length - 1)]}`}
-                    style={{ width: `${s.share}%` }}
-                  />
-                ))}
-              </div>
-              <div className="mt-2.5 flex gap-1.5 text-sm font-medium" aria-hidden="true">
-                {h.segments.map((s, i) => (
-                  <div
-                    key={s.label}
-                    className={i === h.segments.length - 1 ? "text-right" : ""}
-                    style={{ width: `${s.share}%` }}
-                  >
-                    {s.label}
+            <div
+              className="flex flex-col gap-[22px] p-7"
+              role="img"
+              aria-label={h.segments.map((s) => `${s.label}: ${s.share}%`).join(", ")}
+            >
+              {h.segments.map((s, i) => {
+                const color = barColor[Math.min(i, barColor.length - 1)];
+                return (
+                  <div key={s.label}>
+                    <div className="flex items-baseline justify-between gap-3 text-base text-ink">
+                      <span className="flex min-w-0 items-center gap-2.5">
+                        <span className={`h-2.5 w-2.5 flex-none rounded-[3px] ${color}`} />
+                        {s.label}
+                      </span>
+                      <span className="font-semibold">{s.share}%</span>
+                    </div>
+                    <div className="mt-2 h-2.5 rounded-full bg-border">
+                      <div
+                        className={`h-2.5 rounded-full ${color}`}
+                        style={{ width: `${s.share}%` }}
+                      />
+                    </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
         )}
